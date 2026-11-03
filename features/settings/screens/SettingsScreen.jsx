@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SettingsGroup, SettingsMenuRow, SettingsSheetLayout, Text } from '@/components/ui';
 import { signOut } from '@/features/auth/hooks/useSession';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { usePreferencesStore } from '@/features/settings/store/preferences.store';
 import {
   Bell,
   CircleHelp,
@@ -18,12 +19,14 @@ import { Alert, View } from 'react-native';
 export default function SettingsScreen() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const themeMode = usePreferencesStore((state) => state.themeMode);
   const [isSigningOut, setIsSigningOut] = React.useState(false);
   const name = user?.fullName || user?.name || user?.username || 'Người dùng';
   const isParent = user?.role === 'PARENT_PH';
   const role = isParent ? 'Phụ huynh' : 'Giáo viên';
   const accountType = isParent ? 'Phụ huynh' : 'Nhà trường';
   const avatar = user?.avatar || user?.avatarUrl;
+  const themeLabel = { system: 'Tự động', light: 'Sáng', dark: 'Tối' }[themeMode];
 
   async function logout() {
     if (isSigningOut) return;
@@ -56,7 +59,9 @@ export default function SettingsScreen() {
             <Text className="text-lg font-bold" numberOfLines={1}>
               {name}
             </Text>
-            <Text className="rounded-md bg-[#5faaf9] px-1.5 py-0.5 text-xs text-white">{role}</Text>
+            <Text className="rounded-md bg-brand px-1.5 py-0.5 text-xs text-brand-foreground">
+              {role}
+            </Text>
           </View>
           <Text className="text-xs text-muted-foreground">
             {user?.username || user?.employeeCode || ''} · {accountType}
@@ -74,7 +79,7 @@ export default function SettingsScreen() {
         </SettingsGroup>
         <SettingsGroup title="GIAO DIỆN">
           <SettingsMenuRow
-            label="Giao diện - Sáng"
+            label={`Giao diện - ${themeLabel}`}
             icon={Palette}
             onPress={() => router.push('/settings/appearance')}
           />

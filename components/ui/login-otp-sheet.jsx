@@ -2,9 +2,10 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { OtpCodeInput } from '@/components/ui/otp-code-input';
 import { Text } from '@/components/ui/text';
+import { ThemedSpinner } from '@/components/ui/themed-spinner';
 import { useKeyboardOverlap } from '@/shared/hooks/useKeyboardOverlap';
 import { maskEmail } from '@/shared/utils/mask-email';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function LoginOtpSheet({
@@ -37,11 +38,11 @@ export function LoginOtpSheet({
           </Text>
           <OtpCodeInput value={otp} onChange={onOtpChange} />
           {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
-          <Button className="w-full bg-[#8ec5ff]" disabled={isVerifying} onPress={onVerify}>
+          <Button className="w-full bg-brand" disabled={isVerifying} onPress={onVerify}>
             {isVerifying ? (
-              <ActivityIndicator size="small" color="#09090b" />
+              <ThemedSpinner />
             ) : (
-              <Text className="text-foreground">Xác minh</Text>
+              <Text className="text-brand-foreground">Xác minh</Text>
             )}
           </Button>
         </View>

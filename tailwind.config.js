@@ -16,6 +16,11 @@ module.exports = {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
+        brand: {
+          DEFAULT: 'hsl(var(--brand))',
+          foreground: 'hsl(var(--brand-foreground))',
+          link: 'hsl(var(--brand-link))',
+        },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         primary: {

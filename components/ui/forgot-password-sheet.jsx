@@ -4,10 +4,11 @@ import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { OtpCodeInput } from '@/components/ui/otp-code-input';
 import { Text } from '@/components/ui/text';
+import { ThemedSpinner } from '@/components/ui/themed-spinner';
 import { useKeyboardOverlap } from '@/shared/hooks/useKeyboardOverlap';
 import { ArrowRight } from 'lucide-react-native';
 import * as React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function ForgotPasswordSheet({
@@ -65,7 +66,7 @@ export function ForgotPasswordSheet({
               disabled={isSending}
               onPress={onSendEmail}>
               {isSending ? (
-                <ActivityIndicator size="small" color="#09090b" />
+                <ThemedSpinner />
               ) : (
                 <>
                   <Text>Gửi mã xác thực</Text>
@@ -82,16 +83,16 @@ export function ForgotPasswordSheet({
             <OtpCodeInput value={otp} onChange={onOtpChange} />
             {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
             <Button variant="link" className="w-full" disabled={isSending} onPress={onResendOtp}>
-              <Text className="font-bold text-[#5faaf9]">Gửi lại mã?</Text>
+              <Text className="font-bold text-brand-link">Gửi lại mã?</Text>
             </Button>
             <Button
-              className="w-full bg-[#8ec5ff] opacity-100 active:bg-[#8ec5ff]/90"
+              className="w-full bg-brand opacity-100 active:bg-brand/90"
               disabled={isVerifying}
               onPress={onVerifyOtp}>
               {isVerifying ? (
-                <ActivityIndicator size="small" color="#09090b" />
+                <ThemedSpinner />
               ) : (
-                <Text className="text-foreground">Xác minh</Text>
+                <Text className="text-brand-foreground">Xác minh</Text>
               )}
             </Button>
           </View>
@@ -122,14 +123,11 @@ export function ForgotPasswordSheet({
               />
             </View>
             {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
-            <Button
-              className="w-full bg-[#8ec5ff]"
-              disabled={isResetting}
-              onPress={onResetPassword}>
+            <Button className="w-full bg-brand" disabled={isResetting} onPress={onResetPassword}>
               {isResetting ? (
-                <ActivityIndicator size="small" color="#09090b" />
+                <ThemedSpinner />
               ) : (
-                <Text className="text-foreground">Đặt lại mật khẩu</Text>
+                <Text className="text-brand-foreground">Đặt lại mật khẩu</Text>
               )}
             </Button>
           </View>

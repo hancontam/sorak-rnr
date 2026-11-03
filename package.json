@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@rn-primitives/accordion": "^1.5.2",
     "@rn-primitives/alert-dialog": "^1.5.2",
     "@rn-primitives/aspect-ratio": "^1.5.2",

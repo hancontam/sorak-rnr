@@ -64,10 +64,8 @@ export default function AccountScreen() {
               />
               {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
             </View>
-            <Button
-              className="w-full bg-[#8ec5ff] active:bg-[#8ec5ff]/90"
-              onPress={continueToPassword}>
-              <Text className="text-foreground">Tiếp tục</Text>
+            <Button className="w-full bg-brand active:bg-brand/90" onPress={continueToPassword}>
+              <Text className="text-brand-foreground">Tiếp tục</Text>
             </Button>
           </View>
         </View>

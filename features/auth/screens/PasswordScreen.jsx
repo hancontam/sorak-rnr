@@ -6,6 +6,7 @@ import {
   Input,
   LoginOtpSheet,
   Text,
+  ThemedSpinner,
 } from '@/components/ui';
 import { useLogin } from '@/features/auth/hooks/useLogin';
 import { useLoginOtp } from '@/features/auth/hooks/useLoginOtp';
@@ -13,15 +14,7 @@ import { usePasswordRecovery } from '@/features/auth/hooks/usePasswordRecovery';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import * as React from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  View,
-} from 'react-native';
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PasswordScreen() {
@@ -135,20 +128,20 @@ export default function PasswordScreen() {
               {notice ? <Text className="text-xs text-muted-foreground">{notice}</Text> : null}
             </View>
             <Button
-              className="w-full bg-[#8ec5ff] opacity-100 active:bg-[#8ec5ff]/90"
+              className="w-full bg-brand opacity-100 active:bg-brand/90"
               disabled={login.isPending}
               accessibilityState={{ busy: login.isPending }}
               accessibilityLabel={login.isPending ? 'Đang đăng nhập' : 'Đăng nhập'}
               onPress={submitLogin}>
               {login.isPending ? (
-                <ActivityIndicator size="small" color="#09090b" />
+                <ThemedSpinner />
               ) : (
-                <Text className="text-foreground">Đăng nhập</Text>
+                <Text className="text-brand-foreground">Đăng nhập</Text>
               )}
             </Button>
           </View>
           <Button variant="link" className="w-full" onPress={forgotPassword}>
-            <Text className="font-bold text-[#5faaf9]">Quên mật khẩu?</Text>
+            <Text className="font-bold text-brand-link">Quên mật khẩu?</Text>
           </Button>
         </View>
       </KeyboardAvoidingView>

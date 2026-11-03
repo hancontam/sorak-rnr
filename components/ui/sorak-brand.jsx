@@ -10,7 +10,7 @@ export function SorakBrand() {
       <SorakMark width={32} height={35} />
       <Text className="text-lg font-semibold text-foreground">Sorak</Text>
       <Image source={schoolSeparator} className="ml-2 h-[23px] w-[23px]" resizeMode="contain" />
-      <Text className="max-w-[114px] text-sm font-semibold leading-[17px] text-[#5faaf9]">
+      <Text className="max-w-[114px] text-sm font-semibold leading-[17px] text-brand-link">
         Trường Mầm{'\n'}Non Hòn Tre
       </Text>
     </View>

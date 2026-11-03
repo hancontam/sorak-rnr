@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { OtpCodeInput } from '@/components/ui/otp-code-input';
 import { Text } from '@/components/ui/text';
+import { ThemedSpinner } from '@/components/ui/themed-spinner';
 import { useKeyboardOverlap } from '@/shared/hooks/useKeyboardOverlap';
 import { maskEmail } from '@/shared/utils/mask-email';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function TwoFactorSheet({
@@ -60,11 +61,13 @@ export function TwoFactorSheet({
             </>
           )}
           {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
-          <Button className="w-full bg-[#8ec5ff]" disabled={isSubmitting} onPress={onSubmit}>
+          <Button className="w-full bg-brand" disabled={isSubmitting} onPress={onSubmit}>
             {isSubmitting ? (
-              <ActivityIndicator size="small" color="#09090b" />
+              <ThemedSpinner />
             ) : (
-              <Text className="text-foreground">{enabling ? 'Xác nhận bật' : 'Xác nhận tắt'}</Text>
+              <Text className="text-brand-foreground">
+                {enabling ? 'Xác nhận bật' : 'Xác nhận tắt'}
+              </Text>
             )}
           </Button>
         </View>

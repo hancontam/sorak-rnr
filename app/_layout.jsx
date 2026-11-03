@@ -12,6 +12,8 @@ import * as React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRestoreSession } from '@/features/auth/hooks/useSession';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { useRestoreThemePreference } from '@/features/settings/hooks/useThemePreference';
+import { usePreferencesStore } from '@/features/settings/store/preferences.store';
 
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
@@ -21,18 +23,20 @@ export {
 } from 'expo-router';
 export default function RootLayout() {
   useRestoreSession();
+  useRestoreThemePreference();
   const user = useAuthStore((state) => state.user);
   const isRestoring = useAuthStore((state) => state.isRestoring);
+  const isThemeReady = usePreferencesStore((state) => state.isThemeReady);
   const { colorScheme } = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({
     JetBrainsMono_400Regular: require('@expo-google-fonts/jetbrains-mono/400Regular/JetBrainsMono_400Regular.ttf'),
   });
 
   React.useEffect(() => {
-    if (fontsLoaded || fontError) SplashScreen.hideAsync();
-  }, [fontsLoaded, fontError]);
+    if ((fontsLoaded || fontError) && isThemeReady) SplashScreen.hideAsync();
+  }, [fontsLoaded, fontError, isThemeReady]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if ((!fontsLoaded && !fontError) || !isThemeReady) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

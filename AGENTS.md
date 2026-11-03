@@ -14,8 +14,10 @@
 
 - Expo + React Native + Expo Router; source do dự án viết dùng JavaScript (`.js`) và JSX (`.jsx`). Không tạo `.ts`/`.tsx` cho source mới. File type được công cụ sinh trong `.expo/` không thuộc source dự án.
 - UI dùng React Native Reusables (RNR) và NativeWind. Ưu tiên dùng lại `components/ui` trước khi tạo UI component riêng.
+- Màu xanh Sorak được khai báo theo Sáng/Tối trong `global.css` và ánh xạ thành `brand` trong `tailwind.config.js`; dùng class token `bg-brand`, `text-brand-link`, `text-brand-foreground` thay vì mã màu xanh viết trực tiếp trong màn hình/component.
 - Zustand quản lý trạng thái phía app cần chia sẻ, như phiên đăng nhập. TanStack Query quản lý dữ liệu từ server và trạng thái request. Axios là lớp gửi HTTP. Các thư viện này là lựa chọn kiến trúc; chỉ cài và nối vào app trong bước được duyệt.
 - Token phiên lưu bằng Expo SecureStore qua lớp storage riêng. Không lưu token trong Zustand như nơi lưu bền vững.
+- Tùy chọn giao diện của thiết bị lưu bằng AsyncStorage qua `shared/storage/preferences.storage.js`; Zustand chỉ giữ lựa chọn hiện tại trong bộ nhớ. Màn Ngôn ngữ hiện chỉ có UI Tiếng Việt/English, chưa thực hiện đổi ngôn ngữ.
 
 ## Ranh giới code
 
@@ -25,7 +27,7 @@
 - `features/<feature>/api/`: đặt file chứa các hàm gọi endpoint của feature (ví dụ `features/auth/api/auth.api.js`). Các hàm này dùng Axios client chung từ `shared/api/client.js`; không gọi HTTP trực tiếp trong screen.
 - `features/<feature>/store/`: đặt Zustand store giữ trạng thái trong bộ nhớ của feature (ví dụ `features/auth/store/auth.store.js`). Store không thay thế nơi lưu token bền vững trên thiết bị.
 - Trong `features/<feature>/screens/*.jsx`, screen đơn giản có thể gọi trực tiếp hook của React hoặc TanStack Query (`useQuery`, `useMutation`). Khi cần gom nhiều bước xử lý, nhiều trạng thái, phân quyền hoặc logic dùng lại, đặt custom hook tự viết trong `features/<feature>/hooks/*.js` (ví dụ `features/auth/hooks/useLogin.js`) rồi gọi từ screen. Không tạo hook chỉ để chuyển tiếp một hàm hay để mỗi màn đều có hook; Welcome chỉ hiển thị và chuyển màn thì chỉ cần `features/auth/screens/WelcomeScreen.jsx`, không cần `useWelcome.js`.
-- `shared/api/client.js`: cấu hình Axios dùng chung, gồm base URL và xử lý HTTP chung. `shared/storage/`: wrapper cho SecureStore.
+- `shared/api/client.js`: cấu hình Axios dùng chung, gồm base URL và xử lý HTTP chung. `shared/storage/`: wrapper cho SecureStore (phiên đăng nhập) và AsyncStorage (tùy chọn giao diện).
 - `components/ui/`: nơi đặt toàn bộ component UI được tách khỏi screen, gồm RNR primitives và component tự viết, kể cả khi component chỉ phục vụ một feature. Đặt các file component ngang cấp trong `components/ui/`, không tạo thư mục con theo feature. Ưu tiên dùng lại RNR; không tạo `features/<feature>/components/`.
 - `assets/images/`: đặt các ảnh và SVG của app trực tiếp cùng cấp trong thư mục này; không tạo thư mục con theo màn hình như `welcome/`.
 - Luồng gọi backend: route → screen → custom hook (nếu cần) → hàm API → Axios client → backend. TanStack Query giữ trạng thái request và dữ liệu server; Zustand giữ trạng thái app cần chia sẻ; screen đọc các trạng thái đó để hiển thị.

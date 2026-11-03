@@ -14,6 +14,7 @@ export { SettingsSheetLayout } from './settings-sheet-layout';
 export { SettingsSwitchRow } from './settings-switch-row';
 export { SorakBrand } from './sorak-brand';
 export { Text } from './text';
+export { ThemedSpinner } from './themed-spinner';
 export { TypewriterText } from './typewriter-text';
 export { TwoFactorSheet } from './two-factor-sheet';
 export { WelcomeCarousel } from './welcome-carousel';

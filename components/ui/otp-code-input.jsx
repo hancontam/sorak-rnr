@@ -16,7 +16,7 @@ export function OtpCodeInput({ value, onChange }) {
           {index === 3 ? <View className="h-px w-7 bg-foreground" /> : null}
           <View
             className={`h-11 flex-1 items-center justify-center rounded-md border bg-background ${
-              index === value.length ? 'border-[#8ec5ff]' : 'border-border'
+              index === value.length ? 'border-brand' : 'border-border'
             }`}>
             <Text className="text-base">{value[index] || ''}</Text>
           </View>

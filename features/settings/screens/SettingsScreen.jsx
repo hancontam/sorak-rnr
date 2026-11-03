@@ -20,7 +20,10 @@ export default function SettingsScreen() {
   const user = useAuthStore((state) => state.user);
   const [isSigningOut, setIsSigningOut] = React.useState(false);
   const name = user?.fullName || user?.name || user?.username || 'Người dùng';
-  const role = user?.role === 'PARENT_PH' ? 'Phụ huynh' : 'Giáo viên';
+  const isParent = user?.role === 'PARENT_PH';
+  const role = isParent ? 'Phụ huynh' : 'Giáo viên';
+  const accountType = isParent ? 'Phụ huynh' : 'Nhà trường';
+  const avatar = user?.avatar || user?.avatarUrl;
 
   async function logout() {
     if (isSigningOut) return;
@@ -43,7 +46,7 @@ export default function SettingsScreen() {
     <SettingsSheetLayout onBack={() => router.back()}>
       <View className="mb-5 flex-row items-center gap-3">
         <Avatar alt={name} className="size-14">
-          {user?.avatar ? <AvatarImage source={{ uri: user.avatar }} /> : null}
+          {avatar ? <AvatarImage source={{ uri: avatar }} /> : null}
           <AvatarFallback>
             <Text className="text-lg font-semibold">{name.slice(0, 1).toUpperCase()}</Text>
           </AvatarFallback>
@@ -56,23 +59,39 @@ export default function SettingsScreen() {
             <Text className="rounded-md bg-[#5faaf9] px-1.5 py-0.5 text-xs text-white">{role}</Text>
           </View>
           <Text className="text-xs text-muted-foreground">
-            {user?.username || user?.employeeCode || ''} · {role}
+            {user?.username || user?.employeeCode || ''} · {accountType}
           </Text>
           {user?.email ? <Text className="text-xs text-muted-foreground">{user.email}</Text> : null}
         </View>
       </View>
       <View className="gap-3">
         <SettingsGroup title="CÁ NHÂN">
-          <SettingsMenuRow label="Hồ sơ cá nhân" icon={UserRound} />
+          <SettingsMenuRow
+            label="Hồ sơ cá nhân"
+            icon={UserRound}
+            onPress={() => router.push('/settings/profile')}
+          />
         </SettingsGroup>
         <SettingsGroup title="GIAO DIỆN">
-          <SettingsMenuRow label="Giao diện - Sáng" icon={Palette} />
+          <SettingsMenuRow
+            label="Giao diện - Sáng"
+            icon={Palette}
+            onPress={() => router.push('/settings/appearance')}
+          />
         </SettingsGroup>
         <SettingsGroup title="NGÔN NGỮ">
-          <SettingsMenuRow label="Ngôn ngữ - Tiếng Việt" icon={Languages} />
+          <SettingsMenuRow
+            label="Ngôn ngữ - Tiếng Việt"
+            icon={Languages}
+            onPress={() => router.push('/settings/language')}
+          />
         </SettingsGroup>
         <SettingsGroup title="THÔNG BÁO">
-          <SettingsMenuRow label="Thông báo" icon={Bell} />
+          <SettingsMenuRow
+            label="Thông báo"
+            icon={Bell}
+            onPress={() => router.push('/settings/notifications')}
+          />
         </SettingsGroup>
         <SettingsGroup title="HỖ TRỢ">
           <SettingsMenuRow

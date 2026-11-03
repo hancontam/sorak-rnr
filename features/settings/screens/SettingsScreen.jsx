@@ -8,11 +8,13 @@ import {
   CircleHelp,
   Languages,
   LogOut,
-  Palette,
+  Moon,
+  Sun,
   UserRound,
   UsersRound,
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { Alert, View } from 'react-native';
 
@@ -20,13 +22,15 @@ export default function SettingsScreen() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const themeMode = usePreferencesStore((state) => state.themeMode);
+  const { colorScheme } = useColorScheme();
   const [isSigningOut, setIsSigningOut] = React.useState(false);
   const name = user?.fullName || user?.name || user?.username || 'Người dùng';
   const isParent = user?.role === 'PARENT_PH';
   const role = isParent ? 'Phụ huynh' : 'Giáo viên';
   const accountType = isParent ? 'Phụ huynh' : 'Nhà trường';
   const avatar = user?.avatar || user?.avatarUrl;
-  const themeLabel = { system: 'Tự động', light: 'Sáng', dark: 'Tối' }[themeMode];
+  const effectiveTheme = themeMode === 'system' ? colorScheme : themeMode;
+  const isDark = effectiveTheme === 'dark';
 
   async function logout() {
     if (isSigningOut) return;
@@ -59,7 +63,7 @@ export default function SettingsScreen() {
             <Text className="text-lg font-bold" numberOfLines={1}>
               {name}
             </Text>
-            <Text className="rounded-md bg-brand px-1.5 py-0.5 text-xs text-brand-foreground">
+            <Text className="bg-brand text-brand-foreground rounded-md px-1.5 py-0.5 text-xs">
               {role}
             </Text>
           </View>
@@ -79,8 +83,8 @@ export default function SettingsScreen() {
         </SettingsGroup>
         <SettingsGroup title="GIAO DIỆN">
           <SettingsMenuRow
-            label={`Giao diện - ${themeLabel}`}
-            icon={Palette}
+            label={`Giao diện - ${isDark ? 'Tối' : 'Sáng'}`}
+            icon={isDark ? Moon : Sun}
             onPress={() => router.push('/settings/appearance')}
           />
         </SettingsGroup>

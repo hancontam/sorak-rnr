@@ -15,7 +15,7 @@ export function SettingsMenuRow({ label, icon, onPress, destructive = false, sho
         <Icon
           as={icon}
           size={16}
-          strokeWidth={1}
+          strokeWidth={2}
           className={destructive ? 'text-red-500 dark:text-red-400' : 'text-foreground'}
         />
       ) : null}
@@ -24,7 +24,7 @@ export function SettingsMenuRow({ label, icon, onPress, destructive = false, sho
         {label}
       </Text>
       {showChevron && onPress ? (
-        <Icon as={ChevronRight} size={14} strokeWidth={1} />
+        <Icon as={ChevronRight} size={14} strokeWidth={2} />
       ) : (
         <View className="w-3.5" />
       )}

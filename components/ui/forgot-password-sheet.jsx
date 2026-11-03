@@ -16,6 +16,7 @@ export function ForgotPasswordSheet({
   onOpenChange,
   step,
   identifier,
+  onIdentifierChange,
   destination,
   otp,
   onOtpChange,
@@ -58,7 +59,14 @@ export function ForgotPasswordSheet({
             <Text className="text-sm text-secondary-foreground">
               Gửi mã OTP tới email đã liên kết với tài khoản cán bộ này để đặt lại mật khẩu.
             </Text>
-            <Input value={identifier} editable={false} accessibilityLabel="Mã cán bộ nhận OTP" />
+            <Input
+              value={identifier}
+              onChangeText={onIdentifierChange}
+              autoCorrect={false}
+              autoCapitalize="none"
+              editable={!isSending}
+              accessibilityLabel="Mã cán bộ nhận OTP"
+            />
             {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
             <Button
               variant="secondary"
@@ -70,7 +78,7 @@ export function ForgotPasswordSheet({
               ) : (
                 <>
                   <Text>Gửi mã xác thực</Text>
-                  <Icon as={ArrowRight} size={16} strokeWidth={1} />
+                  <Icon as={ArrowRight} size={16} strokeWidth={2} />
                 </>
               )}
             </Button>
@@ -83,10 +91,10 @@ export function ForgotPasswordSheet({
             <OtpCodeInput value={otp} onChange={onOtpChange} />
             {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
             <Button variant="link" className="w-full" disabled={isSending} onPress={onResendOtp}>
-              <Text className="font-bold text-brand-link">Gửi lại mã?</Text>
+              <Text className="text-brand-link font-bold">Gửi lại mã?</Text>
             </Button>
             <Button
-              className="w-full bg-brand opacity-100 active:bg-brand/90"
+              className="bg-brand active:bg-brand/90 w-full opacity-100"
               disabled={isVerifying}
               onPress={onVerifyOtp}>
               {isVerifying ? (
@@ -123,7 +131,7 @@ export function ForgotPasswordSheet({
               />
             </View>
             {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
-            <Button className="w-full bg-brand" disabled={isResetting} onPress={onResetPassword}>
+            <Button className="bg-brand w-full" disabled={isResetting} onPress={onResetPassword}>
               {isResetting ? (
                 <ThemedSpinner />
               ) : (

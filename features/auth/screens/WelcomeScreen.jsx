@@ -6,7 +6,7 @@ import {
   TypewriterText,
   WelcomeCarousel,
 } from '@/components/ui';
-import { useRouter } from 'expo-router';
+import { useIsFocused, useRouter } from 'expo-router';
 import * as React from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +19,7 @@ const welcomeLines = [
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const isFocused = useIsFocused();
   const [isRoleSheetOpen, setIsRoleSheetOpen] = React.useState(false);
   const navigationTimer = React.useRef(null);
 
@@ -44,7 +45,7 @@ export default function WelcomeScreen() {
             style={{ fontFamily: 'JetBrainsMono_400Regular', letterSpacing: -0.8, minHeight: 80 }}
           />
         </View>
-        <WelcomeCarousel />
+        <WelcomeCarousel active={isFocused} />
         <View className="px-6">
           <Button size="lg" className="w-full" onPress={() => setIsRoleSheetOpen(true)}>
             <Text>Tiếp tục</Text>

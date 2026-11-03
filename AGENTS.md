@@ -14,6 +14,7 @@
 
 - Expo + React Native + Expo Router; source do dự án viết dùng JavaScript (`.js`) và JSX (`.jsx`). Không tạo `.ts`/`.tsx` cho source mới. File type được công cụ sinh trong `.expo/` không thuộc source dự án.
 - UI dùng React Native Reusables (RNR) và NativeWind. Ưu tiên dùng lại `components/ui` trước khi tạo UI component riêng.
+- Icon Lucide trong UI dùng `strokeWidth={2}` theo quy ước hiện tại.
 - Màu xanh Sorak được khai báo theo Sáng/Tối trong `global.css` và ánh xạ thành `brand` trong `tailwind.config.js`; dùng class token `bg-brand`, `text-brand-link`, `text-brand-foreground` thay vì mã màu xanh viết trực tiếp trong màn hình/component.
 - Zustand quản lý trạng thái phía app cần chia sẻ, như phiên đăng nhập. TanStack Query quản lý dữ liệu từ server và trạng thái request. Axios là lớp gửi HTTP. Các thư viện này là lựa chọn kiến trúc; chỉ cài và nối vào app trong bước được duyệt.
 - Token phiên lưu bằng Expo SecureStore qua lớp storage riêng. Không lưu token trong Zustand như nơi lưu bền vững.

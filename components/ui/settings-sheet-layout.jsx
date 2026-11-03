@@ -23,7 +23,7 @@ export function SettingsSheetLayout({ title, onBack, children }) {
               onPress={onBack}
               accessibilityRole="button"
               accessibilityLabel="Quay lại">
-              <Icon as={ChevronLeft} size={24} strokeWidth={1} />
+              <Icon as={ChevronLeft} size={24} strokeWidth={2} />
             </Pressable>
             <Text className="flex-1 text-center text-lg font-semibold">{title}</Text>
             <View className="size-8" />

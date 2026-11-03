@@ -33,10 +33,15 @@ export function usePasswordRecovery() {
     setOpen(true);
   }
 
+  function changeIdentifier(value) {
+    setIdentifier(value);
+    setError('');
+  }
+
   async function sendEmail() {
     const value = identifier.trim();
     if (!value) {
-      setError('Vui lòng nhập mã cán bộ ở bước trước.');
+      setError('Vui lòng nhập mã cán bộ.');
       return;
     }
     setError('');
@@ -46,6 +51,7 @@ export function usePasswordRecovery() {
         setError(result.message || 'Vui lòng liên hệ nhà trường để được hỗ trợ.');
         return;
       }
+      setIdentifier(value);
       setDestination(maskEmail(result?.emailMasked) || 'email liên kết với tài khoản');
       setStep('otp');
     } catch (requestError) {
@@ -116,6 +122,7 @@ export function usePasswordRecovery() {
     start,
     step,
     identifier,
+    changeIdentifier,
     destination,
     otp,
     setOtp,

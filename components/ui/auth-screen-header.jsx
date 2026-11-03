@@ -14,7 +14,7 @@ export function AuthScreenHeader({ title, onBack }) {
           className="h-8 w-8"
           onPress={onBack}
           accessibilityLabel="Quay lại">
-          <Icon as={ChevronLeft} size={32} strokeWidth={1} className="text-muted-foreground" />
+          <Icon as={ChevronLeft} size={32} strokeWidth={2} className="text-muted-foreground" />
         </Button>
         <Text className="text-lg font-semibold text-foreground">{title}</Text>
       </View>

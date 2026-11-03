@@ -26,7 +26,7 @@ export default function HomeScreen() {
             <Text className="flex-shrink text-sm" numberOfLines={1}>
               {username}
             </Text>
-            <Icon as={ChevronDown} size={14} strokeWidth={1} className="text-muted-foreground" />
+            <Icon as={ChevronDown} size={14} strokeWidth={2} className="text-muted-foreground" />
           </View>
           <Pressable
             onPress={() => router.push('/settings')}

@@ -122,13 +122,13 @@ export default function PasswordScreen() {
                   onPress={() => setIsPasswordVisible((visible) => !visible)}
                   accessibilityRole="button"
                   accessibilityLabel={isPasswordVisible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}>
-                  <Icon as={isPasswordVisible ? Eye : EyeOff} size={20} strokeWidth={1} />
+                  <Icon as={isPasswordVisible ? Eye : EyeOff} size={20} strokeWidth={2} />
                 </Pressable>
               </View>
               {notice ? <Text className="text-xs text-muted-foreground">{notice}</Text> : null}
             </View>
             <Button
-              className="w-full bg-brand opacity-100 active:bg-brand/90"
+              className="bg-brand active:bg-brand/90 w-full opacity-100"
               disabled={login.isPending}
               accessibilityState={{ busy: login.isPending }}
               accessibilityLabel={login.isPending ? 'Đang đăng nhập' : 'Đăng nhập'}
@@ -141,7 +141,7 @@ export default function PasswordScreen() {
             </Button>
           </View>
           <Button variant="link" className="w-full" onPress={forgotPassword}>
-            <Text className="font-bold text-brand-link">Quên mật khẩu?</Text>
+            <Text className="text-brand-link font-bold">Quên mật khẩu?</Text>
           </Button>
         </View>
       </KeyboardAvoidingView>
@@ -150,6 +150,7 @@ export default function PasswordScreen() {
         onOpenChange={recovery.setOpen}
         step={recovery.step}
         identifier={recovery.identifier}
+        onIdentifierChange={recovery.changeIdentifier}
         destination={recovery.destination}
         otp={recovery.otp}
         onOtpChange={(value) => {

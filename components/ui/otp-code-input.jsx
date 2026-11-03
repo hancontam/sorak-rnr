@@ -7,13 +7,13 @@ export function OtpCodeInput({ value, onChange }) {
 
   return (
     <Pressable
-      className="relative flex-row items-center justify-center gap-2"
+      className="relative flex-row items-center justify-center gap-1.5"
       onPress={() => input.current?.focus()}
       accessibilityRole="button"
       accessibilityLabel="Nhập mã OTP gồm 6 chữ số">
       {Array.from({ length: 6 }, (_, index) => (
         <React.Fragment key={index}>
-          {index === 3 ? <View className="h-px w-7 bg-foreground" /> : null}
+          {index === 3 ? <View className="h-px w-4 bg-foreground" /> : null}
           <View
             className={`h-11 flex-1 items-center justify-center rounded-md border bg-background ${
               index === value.length ? 'border-brand' : 'border-border'

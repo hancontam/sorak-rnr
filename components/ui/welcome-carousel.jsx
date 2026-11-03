@@ -7,10 +7,12 @@ const slides = [
   require('@/assets/images/slide-next.png'),
 ];
 
-export function WelcomeCarousel() {
+export function WelcomeCarousel({ active = true }) {
   const { width } = useWindowDimensions();
   const slideWidth = Math.min(344, width - 96);
   const slideHeight = (slideWidth * 459) / 344;
+
+  if (!active) return <View style={{ width, height: slideHeight }} />;
 
   return (
     <Carousel

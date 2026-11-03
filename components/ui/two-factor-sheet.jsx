@@ -6,7 +6,7 @@ import { Text } from '@/components/ui/text';
 import { ThemedSpinner } from '@/components/ui/themed-spinner';
 import { useKeyboardOverlap } from '@/shared/hooks/useKeyboardOverlap';
 import { maskEmail } from '@/shared/utils/mask-email';
-import { View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function TwoFactorSheet({
@@ -22,6 +22,8 @@ export function TwoFactorSheet({
   isSubmitting,
 }) {
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const compact = height < 480;
   const keyboardOffset = useKeyboardOverlap(Boolean(step));
   const enabling = step === 'enable';
 
@@ -30,15 +32,15 @@ export function TwoFactorSheet({
       <DialogContent
         showCloseButton={false}
         overlayClassName="items-end justify-end bg-foreground/35 p-0"
-        className="mx-0 w-full max-w-full gap-0 rounded-b-none rounded-t-[36px] border-border bg-card px-6 pt-7 shadow-lg shadow-black/20"
+        className={`mx-0 w-full max-w-full gap-0 rounded-b-none rounded-t-[36px] border-border bg-card px-6 shadow-lg shadow-black/20 ${compact ? 'pt-4' : 'pt-7'}`}
         style={{
           marginBottom: keyboardOffset,
-          paddingBottom: keyboardOffset > 0 ? 24 : Math.max(insets.bottom, 24),
+          paddingBottom: compact ? 12 : keyboardOffset > 0 ? 24 : Math.max(insets.bottom, 24),
         }}>
         <DialogTitle className="text-xl font-medium">
           {enabling ? 'Bật xác thực 2 bước' : 'Tắt xác thực 2 bước'}
         </DialogTitle>
-        <View className="mt-5 gap-4">
+        <View className={compact ? 'mt-3 gap-3' : 'mt-5 gap-4'}>
           {enabling ? (
             <>
               <Text className="text-sm text-secondary-foreground">

@@ -52,7 +52,7 @@ export default function RootLayout() {
               <Stack.Screen name="home" />
               <Stack.Screen
                 name="settings"
-                options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }}
+                options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
               />
             </Stack.Protected>
           </Stack>

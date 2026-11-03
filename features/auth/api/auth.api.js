@@ -1,11 +1,8 @@
 import { apiClient } from '@/shared/api/client';
 
-const STAGING_API_URLS = new Set([
-  'https://testmamnonhontre.sorak.io.vn/api',
-  'https://test2mamnonhontre.sorak.io.vn/api',
-]);
+const STAGING_API_URLS = new Set(['https://testmamnonhontre.sorak.io.vn/api']);
 
-function getStagingTurnstileToken() {
+function getStagingCaptchaToken() {
   const baseURL = apiClient.defaults.baseURL?.replace(/\/+$/, '');
 
   if (!STAGING_API_URLS.has(baseURL)) {
@@ -15,11 +12,12 @@ function getStagingTurnstileToken() {
   return 'sorak-mobile-bypass';
 }
 
-export async function loginWithPassword({ username, password, turnstileToken }) {
+export async function loginWithPassword({ username, password, role }) {
   const response = await apiClient.post('/auth/login', {
     username,
     password,
-    turnstileToken: turnstileToken ?? getStagingTurnstileToken(),
+    role,
+    captchaToken: getStagingCaptchaToken(),
   });
 
   return response.data.data;

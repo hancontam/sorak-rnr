@@ -11,13 +11,26 @@ import * as React from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const welcomeLines = [
+  'Mỗi ngày đến lớp,\nmột điều tuyệt vời.',
+  'Mỗi nụ cười nhỏ,\nmột niềm vui lớn.',
+  'Cùng con khôn lớn,\nqua từng ngày vui.',
+];
+
 export default function WelcomeScreen() {
   const router = useRouter();
   const [isRoleSheetOpen, setIsRoleSheetOpen] = React.useState(false);
+  const navigationTimer = React.useRef(null);
+
+  React.useEffect(() => () => clearTimeout(navigationTimer.current), []);
 
   function selectRole(role) {
+    if (navigationTimer.current) return;
     setIsRoleSheetOpen(false);
-    router.push({ pathname: '/auth/account', params: { role } });
+    navigationTimer.current = setTimeout(() => {
+      navigationTimer.current = null;
+      router.push({ pathname: '/auth/account', params: { role } });
+    }, 180);
   }
 
   return (
@@ -26,7 +39,7 @@ export default function WelcomeScreen() {
         <View className="items-center gap-8 px-6">
           <SorakBrand />
           <TypewriterText
-            text={'Mỗi ngày đến lớp,\nmột điều tuyệt vời.'}
+            lines={welcomeLines}
             className="text-center text-[30px] leading-10 text-foreground"
             style={{ fontFamily: 'JetBrainsMono_400Regular', letterSpacing: -0.8, minHeight: 80 }}
           />

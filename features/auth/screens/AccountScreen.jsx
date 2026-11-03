@@ -1,15 +1,24 @@
 import { AuthScreenHeader, Button, Input, Text } from '@/components/ui';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import * as React from 'react';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AccountScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const { role } = useLocalSearchParams();
   const isParent = role === 'PARENT_PH';
+  const usernameInputRef = React.useRef(null);
   const [username, setUsername] = React.useState('');
   const [error, setError] = React.useState('');
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('transitionEnd', (event) => {
+      if (!event.data?.closing) usernameInputRef.current?.focus();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   function continueToPassword() {
     const value = username.trim();
@@ -27,7 +36,7 @@ export default function AccountScreen() {
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <AuthScreenHeader
-          title={isParent ? 'Phụ huynh' : 'Nhà trường'}
+          title={isParent ? 'Phụ huynh' : 'Giáo viên'}
           onBack={() => router.back()}
         />
         <View className="gap-5 px-6 pt-6">
@@ -40,7 +49,7 @@ export default function AccountScreen() {
                 {isParent ? 'Mã học sinh' : 'Tài khoản'}
               </Text>
               <Input
-                autoFocus
+                ref={usernameInputRef}
                 autoCapitalize="none"
                 autoCorrect={false}
                 autoComplete="username"

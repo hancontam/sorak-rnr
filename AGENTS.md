@@ -29,8 +29,14 @@
 - Luồng gọi backend: route → screen → custom hook (nếu cần) → hàm API → Axios client → backend. TanStack Query giữ trạng thái request và dữ liệu server; Zustand giữ trạng thái app cần chia sẻ; screen đọc các trạng thái đó để hiển thị.
 - Không tạo Context/SessionProvider riêng cho auth nếu Zustand đã đảm nhận trạng thái phiên. `QueryClientProvider` của TanStack Query được gắn ở root layout khi bắt đầu dùng Query.
 
+## Hợp đồng API
+
+- Đọc `C:\Users\HCT\Desktop\Code\SWAGGER_USAGE_GUIDE.md` để biết cách truy cập và sử dụng Swagger. Trước khi viết hoặc sửa một hàm API, đọc schema đang deploy tại `https://mamnonhontre.sorak.io.vn/docs.json` để xác nhận method, path, request body, response và mã lỗi. Schema Swagger là nguồn ưu tiên cho tên field; không suy field từ tên endpoint, response mẫu hoặc code backend context.
+- Nếu Swagger chỉ ghi object chung, thiếu field cần dùng hoặc mâu thuẫn với tài liệu khác, dừng riêng endpoint đó và chờ backend xác nhận contract. Không viết request/response theo suy đoán rồi coi là đã hoàn thành.
+- `C:/Users/HCT/Desktop/Code/MOBILE_AUTH_INTEGRATION_GUIDE.md` chỉ bổ sung quy tắc riêng cho mobile như `X-Client-Platform` và lưu/đổi refresh token; không thay thế schema request của Swagger. Code backend trong thư mục context có thể chưa cập nhật kịp.
+- URL Swagger là nơi đọc tài liệu; API của app lấy base URL staging từ cấu hình môi trường. Không dùng domain production để thử request staging. Giá trị ví dụ trong Swagger hoặc guide không chứng minh tài khoản/dữ liệu đó còn đúng trên staging.
+
 ## Phạm vi sản phẩm và API
 
 - Mobile phục vụ giáo viên và phụ huynh. Nếu tài khoản ban giám hiệu đăng nhập, hiển thị thông báo dùng dashboard web; không xây flow ban giám hiệu trên mobile.
-- Với auth mobile, tham khảo `C:/Users/HCT/Desktop/Code/MOBILE_AUTH_INTEGRATION_GUIDE.md` và hợp đồng API đã được backend xác nhận. Code backend trong thư mục context có thể chưa cập nhật kịp.
-- Request auth mobile cần `X-Client-Platform` theo hệ điều hành. Login/refresh nhận `accessToken` và `refreshToken` trong JSON; khi refresh thành công phải lưu đè cả hai token vì refresh token được xoay vòng.
+- Request auth mobile cần `X-Client-Platform` theo hệ điều hành. Khi backend xác nhận response refresh có cả access token và refresh token mới, phải lưu đè cả hai vì refresh token được xoay vòng.

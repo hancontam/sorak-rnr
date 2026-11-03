@@ -10,8 +10,30 @@
     "clean": "rm -rf .expo node_modules"
   },
   "dependencies": {
+    "@rn-primitives/accordion": "^1.5.2",
+    "@rn-primitives/alert-dialog": "^1.5.2",
+    "@rn-primitives/aspect-ratio": "^1.5.2",
+    "@rn-primitives/avatar": "^1.5.2",
+    "@rn-primitives/checkbox": "^1.5.2",
+    "@rn-primitives/collapsible": "^1.5.2",
+    "@rn-primitives/context-menu": "^1.5.2",
+    "@rn-primitives/dialog": "^1.5.2",
+    "@rn-primitives/dropdown-menu": "^1.5.2",
+    "@rn-primitives/hover-card": "^1.5.2",
+    "@rn-primitives/label": "^1.5.2",
+    "@rn-primitives/menubar": "^1.5.2",
+    "@rn-primitives/popover": "^1.5.2",
     "@rn-primitives/portal": "~1.4.0",
+    "@rn-primitives/progress": "^1.5.2",
+    "@rn-primitives/radio-group": "^1.5.2",
+    "@rn-primitives/select": "^1.5.2",
+    "@rn-primitives/separator": "^1.5.2",
     "@rn-primitives/slot": "^1.5.2",
+    "@rn-primitives/switch": "^1.5.2",
+    "@rn-primitives/tabs": "^1.5.2",
+    "@rn-primitives/toggle": "^1.5.2",
+    "@rn-primitives/toggle-group": "^1.5.2",
+    "@rn-primitives/tooltip": "^1.5.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "expo": "~56.0.13",
@@ -38,10 +60,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
-    "@types/react": "~19.2.10",
     "prettier": "^3.8.3",
-    "prettier-plugin-tailwindcss": "^0.8.0",
-    "typescript": "~6.0.3"
+    "prettier-plugin-tailwindcss": "^0.8.0"
   },
   "private": true
 }

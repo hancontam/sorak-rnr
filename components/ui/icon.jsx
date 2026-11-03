@@ -1,17 +1,10 @@
 import { TextClassContext } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
-import type { LucideIcon, LucideProps } from 'lucide-react-native';
 import { cssInterop } from 'nativewind';
 import * as React from 'react';
-
-type IconProps = LucideProps & {
-  as: LucideIcon;
-} & React.RefAttributes<LucideIcon>;
-
-function IconImpl({ as: IconComponent, ...props }: IconProps) {
+function IconImpl({ as: IconComponent, ...props }) {
   return <IconComponent {...props} />;
 }
-
 cssInterop(IconImpl, {
   className: {
     target: 'style',
@@ -42,7 +35,7 @@ cssInterop(IconImpl, {
  * @param {number} size - Icon size (defaults to 14).
  * @param {...LucideProps} ...props - Additional Lucide icon props passed to the "as" icon.
  */
-function Icon({ as: IconComponent, className, size = 14, ...props }: IconProps) {
+function Icon({ as: IconComponent, className, size = 14, ...props }) {
   const textClass = React.useContext(TextClassContext);
   return (
     <IconImpl
@@ -53,5 +46,4 @@ function Icon({ as: IconComponent, className, size = 14, ...props }: IconProps) 
     />
   );
 }
-
 export { Icon };

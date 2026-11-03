@@ -2,18 +2,20 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
+import { OtpCodeInput } from '@/components/ui/otp-code-input';
 import { Text } from '@/components/ui/text';
+import { useKeyboardOverlap } from '@/shared/hooks/useKeyboardOverlap';
 import { ArrowRight } from 'lucide-react-native';
 import * as React from 'react';
-import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function ForgotPasswordSheet({
   open,
   onOpenChange,
   step,
-  email,
-  onEmailChange,
+  identifier,
+  destination,
   otp,
   onOtpChange,
   onSendEmail,
@@ -21,10 +23,16 @@ export function ForgotPasswordSheet({
   onResendOtp,
   isSending,
   isVerifying,
+  newPassword,
+  onNewPasswordChange,
+  confirmPassword,
+  onConfirmPasswordChange,
+  onResetPassword,
+  isResetting,
   error,
 }) {
   const insets = useSafeAreaInsets();
-  const otpInput = React.useRef(null);
+  const keyboardOffset = useKeyboardOverlap(open && step !== 'account');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -32,26 +40,24 @@ export function ForgotPasswordSheet({
         showCloseButton={false}
         overlayClassName="items-end justify-end bg-foreground/35 p-0"
         className="mx-0 w-full max-w-full gap-0 rounded-b-none rounded-t-[36px] border-border bg-card px-6 pt-7 shadow-lg shadow-black/20"
-        style={{ paddingBottom: Math.max(insets.bottom, 24) }}>
+        style={{
+          marginBottom: keyboardOffset,
+          paddingBottom: keyboardOffset > 0 ? 24 : Math.max(insets.bottom, 24),
+        }}>
         <DialogTitle className="text-xl font-medium">
-          {step === 'email' ? 'Quên mật khẩu' : 'Nhập mã OTP'}
+          {step === 'account'
+            ? 'Quên mật khẩu'
+            : step === 'otp'
+              ? 'Nhập mã OTP'
+              : 'Đặt lại mật khẩu'}
         </DialogTitle>
 
-        {step === 'email' ? (
+        {step === 'account' ? (
           <View className="mt-5 gap-3.5">
             <Text className="text-sm text-secondary-foreground">
-              Nhập email và chúng tôi sẽ gửi bạn một mã OTP để đặt lại mật khẩu.
+              Gửi mã OTP tới email đã liên kết với tài khoản cán bộ này để đặt lại mật khẩu.
             </Text>
-            <Input
-              value={email}
-              onChangeText={onEmailChange}
-              placeholder="email@example.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="email"
-              accessibilityLabel="Email nhận mã OTP"
-            />
+            <Input value={identifier} editable={false} accessibilityLabel="Mã cán bộ nhận OTP" />
             {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
             <Button
               variant="secondary"
@@ -68,40 +74,12 @@ export function ForgotPasswordSheet({
               )}
             </Button>
           </View>
-        ) : (
+        ) : step === 'otp' ? (
           <View className="mt-5 gap-4">
             <Text className="text-sm text-secondary-foreground">
-              Nhập mã xác thực đã gửi đến {email}
+              Nhập mã xác thực đã gửi đến {destination}
             </Text>
-            <Pressable
-              className="relative flex-row items-center justify-center gap-2"
-              onPress={() => otpInput.current?.focus()}
-              accessibilityRole="button"
-              accessibilityLabel="Nhập mã OTP gồm 6 chữ số">
-              {Array.from({ length: 6 }, (_, index) => (
-                <React.Fragment key={index}>
-                  {index === 3 ? <View className="h-px w-7 bg-foreground" /> : null}
-                  <View
-                    className={`h-11 flex-1 items-center justify-center rounded-md border bg-background ${
-                      index === otp.length ? 'border-[#8ec5ff]' : 'border-border'
-                    }`}>
-                    <Text className="text-base">{otp[index] || ''}</Text>
-                  </View>
-                </React.Fragment>
-              ))}
-              <TextInput
-                ref={otpInput}
-                className="absolute inset-0 opacity-0"
-                value={otp}
-                onChangeText={(value) => onOtpChange(value.replace(/\D/g, '').slice(0, 6))}
-                keyboardType="number-pad"
-                textContentType="oneTimeCode"
-                autoComplete="sms-otp"
-                maxLength={6}
-                caretHidden
-                accessibilityLabel="Mã OTP"
-              />
-            </Pressable>
+            <OtpCodeInput value={otp} onChange={onOtpChange} />
             {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
             <Button variant="link" className="w-full" disabled={isSending} onPress={onResendOtp}>
               <Text className="font-bold text-[#5faaf9]">Gửi lại mã?</Text>
@@ -114,6 +92,44 @@ export function ForgotPasswordSheet({
                 <ActivityIndicator size="small" color="#09090b" />
               ) : (
                 <Text className="text-foreground">Xác minh</Text>
+              )}
+            </Button>
+          </View>
+        ) : (
+          <View className="mt-5 gap-4">
+            <Text className="text-sm text-secondary-foreground">
+              Nhập mật khẩu mới cho {identifier}. Mật khẩu cần ít nhất 8 ký tự, gồm chữ hoa, số và
+              ký tự đặc biệt.
+            </Text>
+            <View className="gap-2">
+              <Text className="text-xs font-medium">Mật khẩu mới</Text>
+              <Input
+                value={newPassword}
+                onChangeText={onNewPasswordChange}
+                secureTextEntry
+                autoComplete="new-password"
+                accessibilityLabel="Mật khẩu mới"
+              />
+            </View>
+            <View className="gap-2">
+              <Text className="text-xs font-medium">Nhập lại mật khẩu mới</Text>
+              <Input
+                value={confirmPassword}
+                onChangeText={onConfirmPasswordChange}
+                secureTextEntry
+                autoComplete="new-password"
+                accessibilityLabel="Nhập lại mật khẩu mới"
+              />
+            </View>
+            {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
+            <Button
+              className="w-full bg-[#8ec5ff]"
+              disabled={isResetting}
+              onPress={onResetPassword}>
+              {isResetting ? (
+                <ActivityIndicator size="small" color="#09090b" />
+              ) : (
+                <Text className="text-foreground">Đặt lại mật khẩu</Text>
               )}
             </Button>
           </View>

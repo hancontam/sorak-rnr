@@ -10,6 +10,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useRestoreSession } from '@/features/auth/hooks/useSession';
+import { useAuthStore } from '@/features/auth/store/auth.store';
 
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
@@ -18,6 +20,9 @@ export {
   ErrorBoundary,
 } from 'expo-router';
 export default function RootLayout() {
+  useRestoreSession();
+  const user = useAuthStore((state) => state.user);
+  const isRestoring = useAuthStore((state) => state.isRestoring);
   const { colorScheme } = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({
     JetBrainsMono_400Regular: require('@expo-google-fonts/jetbrains-mono/400Regular/JetBrainsMono_400Regular.ttf'),
@@ -34,7 +39,19 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
           <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-          <Stack />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Protected guard={!user}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="auth" />
+            </Stack.Protected>
+            <Stack.Protected guard={!!user || isRestoring}>
+              <Stack.Screen name="home" />
+              <Stack.Screen
+                name="settings"
+                options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }}
+              />
+            </Stack.Protected>
+          </Stack>
           <PortalHost />
         </ThemeProvider>
       </QueryClientProvider>

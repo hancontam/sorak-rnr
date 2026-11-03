@@ -1,11 +1,27 @@
-import { AuthScreenHeader, Button, ForgotPasswordSheet, Icon, Input, Text } from '@/components/ui';
-import { requestPasswordReset, verifyPasswordResetOtp } from '@/features/auth/api/auth.api';
+import {
+  AuthScreenHeader,
+  Button,
+  ForgotPasswordSheet,
+  Icon,
+  Input,
+  LoginOtpSheet,
+  Text,
+} from '@/components/ui';
 import { useLogin } from '@/features/auth/hooks/useLogin';
-import { useMutation } from '@tanstack/react-query';
+import { useLoginOtp } from '@/features/auth/hooks/useLoginOtp';
+import { usePasswordRecovery } from '@/features/auth/hooks/usePasswordRecovery';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import * as React from 'react';
-import { ActivityIndicator, Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PasswordScreen() {
@@ -15,14 +31,12 @@ export default function PasswordScreen() {
   const [password, setPassword] = React.useState('');
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
   const [notice, setNotice] = React.useState('');
-  const [isForgotOpen, setIsForgotOpen] = React.useState(false);
-  const [forgotStep, setForgotStep] = React.useState('email');
-  const [email, setEmail] = React.useState('');
-  const [otp, setOtp] = React.useState('');
-  const [forgotError, setForgotError] = React.useState('');
+  const [loginChallenge, setLoginChallenge] = React.useState(null);
+  const [loginOtpCode, setLoginOtpCode] = React.useState('');
+  const [loginOtpError, setLoginOtpError] = React.useState('');
   const login = useLogin();
-  const sendResetEmail = useMutation({ mutationFn: requestPasswordReset });
-  const verifyResetOtp = useMutation({ mutationFn: verifyPasswordResetOtp });
+  const loginOtp = useLoginOtp();
+  const recovery = usePasswordRecovery();
 
   async function submitLogin() {
     if (!password) {
@@ -35,9 +49,9 @@ export default function PasswordScreen() {
       if (result.kind === 'web-only') {
         setNotice('Tài khoản Ban giám hiệu vui lòng dùng dashboard web.');
       } else if (result.kind === 'requires-2fa') {
-        setNotice('Tài khoản cần xác thực 2FA trước khi đăng nhập.');
-      } else {
-        setNotice('Đăng nhập thành công.');
+        setLoginChallenge(result);
+        setLoginOtpCode('');
+        setLoginOtpError('');
       }
     } catch (error) {
       setNotice(error.response?.data?.message || error.message || 'Đăng nhập không thành công.');
@@ -49,50 +63,34 @@ export default function PasswordScreen() {
       Alert.alert('Quên mật khẩu', 'Vui lòng liên hệ giáo viên chủ nhiệm để được hỗ trợ.');
     } else {
       Keyboard.dismiss();
-      setForgotStep('email');
-      setForgotError('');
-      setIsForgotOpen(true);
+      recovery.start(username);
     }
   }
 
-  async function submitResetEmail() {
-    const value = email.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      setForgotError('Vui lòng nhập email hợp lệ.');
+  async function verifyLoginChallenge() {
+    if (loginOtpCode.length !== 6 || !loginChallenge?.tempToken) {
+      setLoginOtpError('Vui lòng nhập đủ 6 chữ số của mã OTP.');
       return;
     }
-    setForgotError('');
+    setLoginOtpError('');
     try {
-      await sendResetEmail.mutateAsync(value);
-      setEmail(value);
-      setForgotStep('otp');
+      const result = await loginOtp.mutateAsync({
+        tempToken: loginChallenge.tempToken,
+        otp: loginOtpCode,
+        role,
+      });
+      if (result.kind === 'web-only') {
+        setLoginChallenge(null);
+        setNotice('Tài khoản Ban giám hiệu vui lòng dùng dashboard web.');
+      }
     } catch (error) {
-      setForgotError(error.response?.data?.message || error.message || 'Không gửi được mã xác thực.');
+      setLoginOtpError(error.response?.data?.message || error.message || 'Mã OTP không hợp lệ.');
     }
   }
 
-  async function submitResetOtp() {
-    if (otp.length !== 6) {
-      setForgotError('Vui lòng nhập đủ 6 chữ số của mã OTP.');
-      return;
-    }
-    setForgotError('');
-    try {
-      await verifyResetOtp.mutateAsync({ email, otp });
-      setIsForgotOpen(false);
-      setNotice('Mã OTP đã được xác thực.');
-    } catch (error) {
-      setForgotError(error.response?.data?.message || error.message || 'Mã OTP không hợp lệ.');
-    }
-  }
-
-  async function resendResetOtp() {
-    setForgotError('');
-    try {
-      await sendResetEmail.mutateAsync(email);
-    } catch (error) {
-      setForgotError(error.response?.data?.message || error.message || 'Không gửi lại được mã.');
-    }
+  async function submitNewPassword() {
+    if (await recovery.submitNewPassword())
+      setNotice('Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.');
   }
 
   return (
@@ -155,19 +153,49 @@ export default function PasswordScreen() {
         </View>
       </KeyboardAvoidingView>
       <ForgotPasswordSheet
-        open={isForgotOpen}
-        onOpenChange={setIsForgotOpen}
-        step={forgotStep}
-        email={email}
-        onEmailChange={(value) => { setEmail(value); setForgotError(''); }}
-        otp={otp}
-        onOtpChange={(value) => { setOtp(value); setForgotError(''); }}
-        onSendEmail={submitResetEmail}
-        onVerifyOtp={submitResetOtp}
-        onResendOtp={resendResetOtp}
-        isSending={sendResetEmail.isPending}
-        isVerifying={verifyResetOtp.isPending}
-        error={forgotError}
+        open={recovery.open}
+        onOpenChange={recovery.setOpen}
+        step={recovery.step}
+        identifier={recovery.identifier}
+        destination={recovery.destination}
+        otp={recovery.otp}
+        onOtpChange={(value) => {
+          recovery.setOtp(value);
+          recovery.setError('');
+        }}
+        onSendEmail={recovery.sendEmail}
+        onVerifyOtp={recovery.verifyOtp}
+        onResendOtp={recovery.resendOtp}
+        isSending={recovery.isSending}
+        isVerifying={recovery.isVerifying}
+        newPassword={recovery.newPassword}
+        onNewPasswordChange={(value) => {
+          recovery.setNewPassword(value);
+          recovery.setError('');
+        }}
+        confirmPassword={recovery.confirmPassword}
+        onConfirmPasswordChange={(value) => {
+          recovery.setConfirmPassword(value);
+          recovery.setError('');
+        }}
+        onResetPassword={submitNewPassword}
+        isResetting={recovery.isResetting}
+        error={recovery.error}
+      />
+      <LoginOtpSheet
+        open={!!loginChallenge}
+        onOpenChange={(open) => {
+          if (!open) setLoginChallenge(null);
+        }}
+        emailMasked={loginChallenge?.emailMasked}
+        otp={loginOtpCode}
+        onOtpChange={(value) => {
+          setLoginOtpCode(value);
+          setLoginOtpError('');
+        }}
+        onVerify={verifyLoginChallenge}
+        isVerifying={loginOtp.isPending}
+        error={loginOtpError}
       />
     </SafeAreaView>
   );

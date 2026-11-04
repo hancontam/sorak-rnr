@@ -6,12 +6,15 @@ import { Text } from '@/components/ui/text';
 import { ThemedSpinner } from '@/components/ui/themed-spinner';
 import { getParentSchedule, getTimetable } from '@/features/daily/api/daily.api';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import {
   CalendarDays,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
+  HeartPulse,
+  UserCheck,
 } from 'lucide-react-native';
 import * as React from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
@@ -39,60 +42,19 @@ function formatDateISO(date) {
   return `${y}-${m}-${d}`;
 }
 
-const DEFAULT_ACTIVITIES = [
-  {
-    time: '07:15',
-    activity: 'Đón trẻ, chơi',
-    description: 'Thực hành giao tiếp: Bé bày tỏ mong muốn với cô giáo bằng câu hoàn chỉnh',
-  },
-  {
-    time: '08:00',
-    activity: 'Thể dục sáng',
-    description: 'Bài tập thể dục sáng: "Gà trống gáy sáng" kết hợp cờ và nơ hoa',
-  },
-  {
-    time: '08:30',
-    activity: 'Học',
-    description: 'Thí nghiệm cảm giác: "Chiếc túi kỳ diệu" sờ đoán vật cứng – mềm',
-  },
-  {
-    time: '09:15',
-    activity: 'Chơi, hoạt động ở các góc',
-    description: 'Trò chơi: "Chọn trang phục phù hợp cho bạn búp bê đi dạo phố"',
-  },
-  {
-    time: '10:15',
-    activity: 'Chơi ngoài trời',
-    description: 'Bé dạo chơi vườn trường quan sát hoa hồng, hoa cúc và quả chuối',
-  },
-  {
-    time: '11:15',
-    activity: 'Ăn trưa & vệ sinh',
-    description: 'Rèn luyện kỹ năng tự xúc cơm và rửa tay bằng xà phòng đúng 6 bước',
-  },
-  {
-    time: '12:00',
-    activity: 'Ngủ trưa',
-    description: 'Nghe nhạc êm dịu, rèn thói quen nằm ngủ đúng tư thế',
-  },
-  {
-    time: '14:00',
-    activity: 'Chơi, hoạt động theo ý thích',
-    description: 'Luyện thanh vui nhộn: "Bé phát âm các từ quen thuộc qua trò chơi con ong vò vẽ"',
-  },
-  {
-    time: '15:30',
-    activity: 'Trả trẻ',
-    description: 'Giờ trả trẻ: Bé kể cho cô hoặc bố mẹ nghe điều vui nhất hôm nay ở lớp',
-  },
-];
-
 export default function DailyTimetableScreen({ isParent = false, classId }) {
+  const router = useRouter();
   const today = React.useMemo(() => new Date(), []);
   const [selectedDate, setSelectedDate] = React.useState(today);
 
   const currentWeek = React.useMemo(() => getWeekDates(selectedDate), [selectedDate]);
   const selectedDateStr = React.useMemo(() => formatDateISO(selectedDate), [selectedDate]);
+
+  const selectedDayKey = React.useMemo(() => {
+    const day = selectedDate.getDay();
+    const map = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    return map[day];
+  }, [selectedDate]);
 
   const { data: teacherTimetable, isLoading: isLoadingTeacher } = useQuery({
     queryKey: ['daily-timetable-teacher', classId, selectedDateStr],
@@ -108,39 +70,62 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
 
   const isLoading = isParent ? isLoadingParent : isLoadingTeacher;
 
+  // Extract live activities from backend
   const activities = React.useMemo(() => {
     if (isParent) {
-      if (parentSchedule?.routineSlots && parentSchedule.routineSlots.length > 0) {
-        return parentSchedule.routineSlots.map((s) => ({
+      const routineSlots =
+        parentSchedule?.timetable?.routineSlots || parentSchedule?.routineSlots || [];
+      if (routineSlots.length > 0) {
+        return routineSlots.map((s) => ({
+          id: s.id,
           time: s.time?.split('–')?.[0]?.trim() || s.time || '08:00',
-          activity: s.title,
-          description: s.description,
+          endTime: s.time?.split('–')?.[1]?.trim(),
+          activity: s.title || s.activity || 'Lịch sinh hoạt',
+          description: s.description || s.content || '',
+          category: s.category || s.slot,
         }));
       }
-    } else {
-      if (teacherTimetable?.days) {
-        const foundDay = teacherTimetable.days.find(
-          (d) => d.date === selectedDateStr || d.fullDate === selectedDateStr
-        );
-        if (foundDay?.activities?.length > 0) {
-          return foundDay.activities;
-        }
-      }
-      if (teacherTimetable?.slots?.length > 0) {
-        return teacherTimetable.slots.map((s) => ({
-          time: s.time || s.startTime || '08:00',
-          activity: s.name || s.title || s.activity,
-          description: s.description || s.objective || '',
+      return [];
+    }
+
+    // Teacher slots
+    if (teacherTimetable?.slots?.length > 0) {
+      const daySlots = teacherTimetable.slots.filter(
+        (s) =>
+          s.dayKey === selectedDayKey ||
+          s.day === selectedDayKey ||
+          s.fullDate === selectedDateStr
+      );
+      if (daySlots.length > 0) {
+        return daySlots.map((s) => ({
+          id: s.id,
+          time: s.startTime || s.time || '08:00',
+          endTime: s.endTime,
+          activity: s.title || s.shortTitle || s.contentTitle || s.name || 'Hoạt động',
+          description: s.objective || s.planObjective || s.description || s.contentTitle || '',
+          status: s.status,
+          statusLabel: s.statusLabel,
+          goalCode: s.goalCode,
+          domain: s.domain,
         }));
       }
     }
-    return DEFAULT_ACTIVITIES;
-  }, [isParent, parentSchedule, teacherTimetable, selectedDateStr]);
+
+    return [];
+  }, [isParent, parentSchedule, teacherTimetable, selectedDayKey, selectedDateStr]);
 
   const monthLabel = `Tháng ${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`;
   const weekLabel = `Tuần ${currentWeek[0].getDate()}–${currentWeek[6].getDate()}`;
 
-  const dayOfWeekNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+  const dayOfWeekNames = [
+    'Chủ nhật',
+    'Thứ hai',
+    'Thứ ba',
+    'Thứ tư',
+    'Thứ năm',
+    'Thứ sáu',
+    'Thứ bảy',
+  ];
   const fullDayLabel = `${dayOfWeekNames[selectedDate.getDay()]}, ${selectedDate.getDate()}/${selectedDate.getMonth() + 1}`;
 
   const isRecorded = teacherTimetable?.stats?.isRecorded;
@@ -195,7 +180,7 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
       </View>
 
       {/* Weekday Selector (T2–CN) */}
-      <View className="mb-4 flex-row justify-between">
+      <View className="mb-3 flex-row justify-between">
         {currentWeek.map((dayDate, index) => {
           const isSelected =
             dayDate.getDate() === selectedDate.getDate() &&
@@ -233,6 +218,38 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
         })}
       </View>
 
+      {/* Quick Action Bar for Teachers */}
+      {!isParent ? (
+        <View className="mb-3 flex-row gap-2">
+          <Pressable
+            onPress={() => router.push('/daily/attendance')}
+            accessibilityRole="button"
+            accessibilityLabel="Mở màn hình Điểm danh"
+            className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-card py-2.5 px-2 active:bg-accent/20">
+            <Icon as={UserCheck} size={15} className="text-primary" />
+            <Text className="text-xs font-semibold text-foreground">Điểm danh</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push('/daily/pickup')}
+            accessibilityRole="button"
+            accessibilityLabel="Mở màn hình Đón trẻ"
+            className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-card py-2.5 px-2 active:bg-accent/20">
+            <Icon as={Clock} size={15} className="text-primary" />
+            <Text className="text-xs font-semibold text-foreground">Đón trẻ</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push('/daily/health')}
+            accessibilityRole="button"
+            accessibilityLabel="Mở màn hình Đo sức khỏe"
+            className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-card py-2.5 px-2 active:bg-accent/20">
+            <Icon as={HeartPulse} size={15} className="text-primary" />
+            <Text className="text-xs font-semibold text-foreground">Sức khỏe</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       {/* Selected Day & Status Badge */}
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="text-sm font-semibold text-foreground">{fullDayLabel}</Text>
@@ -249,6 +266,16 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
           <ThemedSpinner size="large" />
           <Text className="mt-2 text-xs text-muted-foreground">Đang tải lịch sinh hoạt...</Text>
         </View>
+      ) : activities.length === 0 ? (
+        <View className="flex-1 items-center justify-center py-12 px-6">
+          <Icon as={CalendarDays} size={40} className="text-muted-foreground/40 mb-3" />
+          <Text className="text-sm font-medium text-foreground text-center">
+            Chưa có lịch sinh hoạt cho {fullDayLabel.toLowerCase()}
+          </Text>
+          <Text className="mt-1 text-xs text-muted-foreground text-center">
+            Vui lòng chọn ngày khác trong tuần hoặc liên hệ nhà trường.
+          </Text>
+        </View>
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -256,12 +283,21 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
           className="flex-1">
           <View className="gap-3">
             {activities.map((item, idx) => (
-              <View key={idx} className="flex-row items-start gap-3">
-                <View className="w-12 pt-2">
+              <View key={item.id || idx} className="flex-row items-start gap-3">
+                <View className="w-16 pt-2">
                   <Text className="text-xs font-medium text-muted-foreground">{item.time}</Text>
                 </View>
                 <Card className="flex-1 p-3">
-                  <Text className="text-sm font-semibold text-foreground">{item.activity}</Text>
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-sm font-semibold text-foreground flex-1">
+                      {item.activity}
+                    </Text>
+                    {item.statusLabel ? (
+                      <Badge variant="outline" className="ml-2">
+                        <Text className="text-[10px]">{item.statusLabel}</Text>
+                      </Badge>
+                    ) : null}
+                  </View>
                   {item.description ? (
                     <Text className="mt-1 text-[13px] leading-5 text-muted-foreground">
                       {item.description}

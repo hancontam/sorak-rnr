@@ -21,6 +21,7 @@ export function useRestoreThemePreference() {
         themeMode = 'system';
       }
       usePreferencesStore.getState().restoreThemeMode(themeMode);
+      usePreferencesStore.getState().initPreferences();
     }
 
     restore();

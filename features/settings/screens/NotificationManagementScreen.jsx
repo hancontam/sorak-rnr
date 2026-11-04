@@ -1,11 +1,16 @@
 import { SettingsSheetLayout, SettingsSwitchRow, Text } from '@/components/ui';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { usePreferencesStore } from '@/features/settings/store/preferences.store';
 import { useRouter } from 'expo-router';
+import * as React from 'react';
 import { View } from 'react-native';
 
 export default function NotificationManagementScreen() {
   const router = useRouter();
   const isParent = useAuthStore((state) => state.user?.role === 'PARENT_PH');
+  const prefs = usePreferencesStore((state) => state.notificationPrefs);
+  const updatePrefs = usePreferencesStore((state) => state.updateNotificationPrefs);
+
   return (
     <SettingsSheetLayout title="Quản lý thông báo" onBack={() => router.back()}>
       <View className="gap-6">
@@ -14,7 +19,8 @@ export default function NotificationManagementScreen() {
           <SettingsSwitchRow
             label="Lớp học & điểm danh"
             description="Cập nhật điểm danh và thông tin lớp"
-            checked
+            checked={prefs?.emailClassAttendance ?? true}
+            onCheckedChange={(val) => updatePrefs({ emailClassAttendance: val })}
           />
           <SettingsSwitchRow
             label="Đơn xin nghỉ & chuyển lớp"
@@ -23,12 +29,14 @@ export default function NotificationManagementScreen() {
                 ? 'Cập nhật trạng thái yêu cầu của con'
                 : 'Thông báo khi có yêu cầu cần duyệt'
             }
-            checked
+            checked={prefs?.emailRequests ?? true}
+            onCheckedChange={(val) => updatePrefs({ emailRequests: val })}
           />
           <SettingsSwitchRow
             label="Bảo mật tài khoản"
             description="Cảnh báo đăng nhập và đổi mật khẩu"
-            checked
+            checked={prefs?.emailSecurity ?? true}
+            onCheckedChange={(val) => updatePrefs({ emailSecurity: val })}
           />
         </View>
         <View className="gap-3">
@@ -38,9 +46,15 @@ export default function NotificationManagementScreen() {
           <SettingsSwitchRow
             label="Thông báo đẩy"
             description="Hiện thông báo nhanh trên thiết bị"
-            checked
+            checked={prefs?.pushNotifications ?? true}
+            onCheckedChange={(val) => updatePrefs({ pushNotifications: val })}
           />
-          <SettingsSwitchRow label="Âm thanh" description="Phát âm thanh khi có thông báo" />
+          <SettingsSwitchRow
+            label="Âm thanh"
+            description="Phát âm thanh khi có thông báo"
+            checked={prefs?.soundEnabled ?? false}
+            onCheckedChange={(val) => updatePrefs({ soundEnabled: val })}
+          />
         </View>
       </View>
     </SettingsSheetLayout>

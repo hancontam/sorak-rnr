@@ -13,7 +13,10 @@ import { ThemedSpinner } from '@/components/ui/themed-spinner';
 import { useSemesterAssessment } from '@/features/assessment/hooks/useSemesterAssessment';
 import { useClassStudents } from '@/features/assessment/hooks/useClassStudents';
 import { useSaveSemesterNotes } from '@/features/assessment/hooks/useParentResults';
-import { formatSemesterPeriod } from '@/features/assessment/lib/assessment-format';
+import {
+  describeSaveError,
+  formatSemesterPeriod,
+} from '@/features/assessment/lib/assessment-format';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useRouter } from 'expo-router';
 import { Search } from 'lucide-react-native';
@@ -91,10 +94,7 @@ export default function TeacherSemesterScreen() {
       setInitialNotes(notes);
       Alert.alert('Đã lưu', `Đã lưu lời bình cho ${records.length} học sinh.`);
     } catch (error) {
-      Alert.alert(
-        'Không lưu được',
-        error.response?.data?.message || error.message || 'Vui lòng thử lại sau.'
-      );
+      Alert.alert('Không lưu được', describeSaveError(error));
     }
   }
 

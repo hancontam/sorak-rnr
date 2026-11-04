@@ -51,9 +51,7 @@ export function FlowerCriteriaSheet({
 }) {
   const [attendance, setAttendance] = React.useState(initialCriteria.minAttendanceRate);
   const [goals, setGoals] = React.useState(initialCriteria.minGoalsRate);
-  const [healthStatuses, setHealthStatuses] = React.useState(
-    initialCriteria.allowedHealthStatuses
-  );
+  const [healthStatuses, setHealthStatuses] = React.useState(initialCriteria.allowedHealthStatuses);
   const [attendanceText, setAttendanceText] = React.useState('');
   const [goalsText, setGoalsText] = React.useState('');
 

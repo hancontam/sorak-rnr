@@ -24,6 +24,7 @@ import { useClassStudents } from '@/features/assessment/hooks/useClassStudents';
 import { useFlowerCriteria } from '@/features/assessment/hooks/useFlowerCriteria';
 import { useMonthlyAssessment } from '@/features/assessment/hooks/useMonthlyAssessment';
 import { useSaveMonthlyAssessment } from '@/features/assessment/hooks/useSaveMonthlyAssessment';
+import { describeSaveError } from '@/features/assessment/lib/assessment-format';
 import {
   isLotusByRoses,
   isWeekEligible,
@@ -210,8 +211,7 @@ export default function TeacherGoodChildScreen() {
       setInitialDraft(draft);
       Alert.alert('Đã lưu', 'Sổ bé ngoan đã được lưu.');
     } catch (error) {
-      const message = error.response?.data?.message || error.message || 'Vui lòng thử lại sau.';
-      Alert.alert('Không lưu được sổ bé ngoan', message);
+      Alert.alert('Không lưu được sổ bé ngoan', describeSaveError(error));
     }
   }
 

@@ -66,13 +66,15 @@ export default function ParentContactBookScreen() {
     ? `${data.student.fullName} · ${data.classInfo?.name || '—'}`
     : undefined;
   const attendance = summariseMonth(data?.weeklyStats);
-  // Staging trả record.id = null ngay cả khi tháng đã có phiếu đánh giá, nên nhận biết
-  // "đã có phiếu" bằng dữ liệu thực: có hoa tuần, có nhận xét hoặc đã có phản hồi.
+  // Staging trả record.id = null ngay cả khi tháng đã có phiếu, nên nhận biết "đã có phiếu"
+  // bằng dữ liệu thực. Backend cũ từng điền sẵn câu mặc định khi chưa có phiếu nên loại câu đó.
   const record = data?.record;
+  const placeholderNote = 'Chưa có nhận xét cho tháng này.';
+  const teacherNoteText = (record?.teacherNotes || '').trim();
   const hasMonthRecord = Boolean(
     (record?.rosesCount ?? 0) > 0 ||
     Object.values(record?.weeks || {}).some(Boolean) ||
-    (record?.teacherNotes || '').trim().length > 0 ||
+    (teacherNoteText && teacherNoteText !== placeholderNote) ||
     (record?.parentFeedback || '').trim().length > 0
   );
 

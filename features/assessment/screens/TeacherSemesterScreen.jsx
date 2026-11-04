@@ -11,6 +11,7 @@ import { SemesterTabSwitch } from '@/components/ui/semester-tab-switch';
 import { Text } from '@/components/ui/text';
 import { ThemedSpinner } from '@/components/ui/themed-spinner';
 import { useSemesterAssessment } from '@/features/assessment/hooks/useSemesterAssessment';
+import { useClassStudents } from '@/features/assessment/hooks/useClassStudents';
 import { useSaveSemesterNotes } from '@/features/assessment/hooks/useParentResults';
 import { formatSemesterPeriod } from '@/features/assessment/lib/assessment-format';
 import { useAuthStore } from '@/features/auth/store/auth.store';
@@ -35,14 +36,28 @@ export default function TeacherSemesterScreen() {
   const [semester, setSemester] = React.useState('SEMESTER_1');
   const [search, setSearch] = React.useState('');
   const [notes, setNotes] = React.useState({});
+  const [initialNotes, setInitialNotes] = React.useState({});
 
   const query = useSemesterAssessment({ classId, semester });
+  const classStudents = useClassStudents(classId);
   const saveNotes = useSaveSemesterNotes();
   const students = query.data?.students || [];
 
+  const avatarByCode = React.useMemo(
+    () =>
+      (classStudents.data?.students || []).reduce((accumulator, student) => {
+        if (student.avatarUrl) accumulator[student.studentCode] = student.avatarUrl;
+        return accumulator;
+      }, {}),
+    [classStudents.data]
+  );
+
   // Nạp lại lời bình mỗi khi dữ liệu của học kỳ đang chọn thay đổi.
   React.useEffect(() => {
-    if (query.data) setNotes(buildInitialNotes(query.data.students));
+    if (!query.data) return;
+    const next = buildInitialNotes(query.data.students);
+    setNotes(next);
+    setInitialNotes(next);
   }, [query.data]);
 
   const filtered = students.filter((student) => {
@@ -54,17 +69,27 @@ export default function TeacherSemesterScreen() {
     );
   });
 
+  const isDirty = React.useMemo(
+    () => JSON.stringify(notes) !== JSON.stringify(initialNotes),
+    [notes, initialNotes]
+  );
+
   async function submitNotes() {
+    // Chỉ gửi học sinh có lời bình thay đổi, kể cả khi nội dung mới rỗng để xoá lời bình cũ.
+    // Tránh ghi đè lời bình của người khác đã sửa trong lúc màn này mở.
     const records = students
-      .map((student) => ({ studentId: student.id, teacherNotes: notes[student.id] ?? '' }))
-      .filter((record) => record.teacherNotes !== '');
+      .filter((student) => (notes[student.id] ?? '') !== (initialNotes[student.id] ?? ''))
+      .map((student) => ({ studentId: student.id, teacherNotes: notes[student.id] ?? '' }));
+
     if (records.length === 0) {
-      Alert.alert('Chưa có lời bình', 'Nhập lời bình cho ít nhất một học sinh trước khi lưu.');
+      Alert.alert('Không có thay đổi', 'Chưa có lời bình nào được sửa để lưu.');
       return;
     }
+
     try {
       await saveNotes.mutateAsync({ classId, semester, records });
-      Alert.alert('Đã lưu', 'Lời bình đánh giá học kỳ đã được lưu.');
+      setInitialNotes(notes);
+      Alert.alert('Đã lưu', `Đã lưu lời bình cho ${records.length} học sinh.`);
     } catch (error) {
       Alert.alert(
         'Không lưu được',
@@ -153,6 +178,7 @@ export default function TeacherSemesterScreen() {
                       key={student.id}
                       student={student}
                       note={notes[student.id] ?? ''}
+                      avatarUrl={avatarByCode[student.code]}
                       editable
                       onNoteChange={(value) =>
                         setNotes((current) => ({ ...current, [student.id]: value }))
@@ -169,13 +195,15 @@ export default function TeacherSemesterScreen() {
               <Button
                 className="w-full"
                 onPress={submitNotes}
-                disabled={saveNotes.isPending}
+                disabled={!isDirty || saveNotes.isPending}
                 accessibilityState={{ busy: saveNotes.isPending }}
                 accessibilityLabel={saveNotes.isPending ? 'Đang lưu đánh giá' : 'Lưu đánh giá'}>
                 {saveNotes.isPending ? (
                   <ThemedSpinner />
                 ) : (
-                  <Text className="text-primary-foreground">Lưu đánh giá</Text>
+                  <Text className="text-primary-foreground">
+                    {isDirty ? 'Lưu đánh giá' : 'Đã lưu'}
+                  </Text>
                 )}
               </Button>
             </View>

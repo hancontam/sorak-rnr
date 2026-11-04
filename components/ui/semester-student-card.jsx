@@ -10,11 +10,11 @@ import {
 import { View } from 'react-native';
 
 // Thẻ một học sinh trong màn Đánh giá học kỳ của giáo viên (Figma: Assessment Student).
-export function SemesterStudentCard({ student, note, onNoteChange, editable }) {
+export function SemesterStudentCard({ student, note, onNoteChange, editable, avatarUrl }) {
   return (
     <View className="gap-3 rounded-xl border border-border bg-card px-3 py-3">
       <View className="flex-row items-center gap-2">
-        <StudentInitialAvatar name={student.name} code={student.code} />
+        <StudentInitialAvatar name={student.name} code={student.code} uri={avatarUrl} />
         <View className="flex-1">
           <Text className="text-sm font-medium text-foreground" numberOfLines={1}>
             {student.name}

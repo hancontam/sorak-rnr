@@ -25,6 +25,16 @@ export async function fetchMonthlyAssessment({ classId, month, year }) {
   return response.data.data;
 }
 
+// Giáo viên: lưu sổ bé ngoan. Body theo service: { month, year, records: [{ studentId, week1Rose..week5Rose, teacherNotes }] }.
+export async function saveMonthlyAssessment({ classId, month, year, records }) {
+  const response = await apiClient.post(`/assessment/classes/${classId}/monthly`, {
+    month,
+    year,
+    records,
+  });
+  return response.data.data;
+}
+
 // Phụ huynh: một endpoint trả cả sổ liên lạc theo tháng và đánh giá học kỳ của con.
 export async function fetchParentResults() {
   const response = await apiClient.get('/parent/good-behavior');

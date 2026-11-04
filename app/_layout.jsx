@@ -59,7 +59,7 @@ export default function RootLayout() {
                 options={{
                   presentation: 'transparentModal',
                   animation: 'slide_from_bottom',
-                  contentStyle: { backgroundColor: 'transparent' },
+                  contentStyle: { backgroundColor: 'rgba(0, 0, 0, 0.25)' },
                 }}
               />
               <Stack.Protected guard={isTeacher}>

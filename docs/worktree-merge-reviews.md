@@ -200,8 +200,8 @@ Nguồn chính thức: [Cloudflare mobile WebView](https://developers.cloudflare
 ## 10. Setting phủ trực tiếp trên Home — 05/11/2026
 
 - Ảnh thiết bị cho thấy hai lớp: iOS modal kiểu page sheet bao ngoài, sau đó SettingsSheetLayout lại có nền secondary và card bo góc riêng. Nền modal/spacer trắng che Home và tạo cảm giác sheet nằm trong một màn trắng khác.
-- Đổi route settings ở root sang transparentModal với contentStyle trong suốt; đặt contentStyle trong suốt cho stack con và bỏ nền secondary của SettingsSheetLayout. Chỉ giữ một lớp dim ở layout settings, bên dưới navigator, để khi push/pop không cộng nhiều lớp dim. Card vẫn dùng token bg-card và cùng khoảng cách/bo góc.
+- Đổi route settings ở root sang transparentModal; stack con và SettingsSheetLayout có nền trong suốt. Người dùng xác nhận đã hết màn trắng thừa nhưng lớp dim View đặt bên dưới navigator chưa thấy trên native. Đã chuyển backdrop sang contentStyle của chính route modal gốc: đen opacity 25%; bỏ View dim cũ. Chỉ có một backdrop cho toàn bộ stack nên không cộng opacity qua các màn con. Card vẫn dùng token bg-card và cùng khoảng cách/bo góc.
 - Home được giữ bên dưới; menu Setting mở từ dưới lên; các màn con vẫn slide_from_right và back theo stack cũ. Cả GV/PH dùng chung sửa đổi. Không thay đổi API, hook hoặc flow OTP.
-- Kiểm tra parse JSX và diff; cần reload ứng dụng vì thay presentation của route. Đang chờ xác nhận giao diện native, không dùng kết quả parse để coi đã QA ảnh thiết bị.
+- Kiểm tra parse JSX và diff; cần reload ứng dụng để áp dụng cấu hình modal. Phần bỏ màn trắng thừa đã được người dùng xác nhận, còn mức dim mới chờ kiểm tra trên native.
 
 Tham chiếu: [React Navigation Native Stack — transparentModal](https://reactnavigation.org/docs/native-stack-navigator/).

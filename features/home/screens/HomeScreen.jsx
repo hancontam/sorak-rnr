@@ -19,7 +19,7 @@ export default function HomeScreen() {
     (isParent ? user?.student?.className : assignedClass?.className) || 'Chưa có lớp';
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <View className="h-[72px] flex-row items-center justify-between px-6">
         <View className="flex-row items-center gap-1.5">
           <SorakMark width={20} height={20} />

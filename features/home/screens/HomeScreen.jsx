@@ -1,20 +1,22 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SorakMark from '@/assets/images/sorak-mark.svg';
-import { HomeSectionTabs, Icon, Text } from '@/components/ui';
+import { HomeBottomNav, HomeSectionTabs, Icon, Text } from '@/components/ui';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useRouter } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
-import * as React from 'react';
 import { Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = React.useState('daily');
   const user = useAuthStore((state) => state.user);
   const name = user?.fullName || user?.name || user?.username || 'Sorak';
   const username = user?.username || user?.employeeCode || name;
   const avatar = user?.avatar || user?.avatarUrl;
+  const isParent = user?.role === 'PARENT_PH';
+  const assignedClass = user?.assignedClasses?.[0] || user?.teacher?.assignedClasses?.[0];
+  const className =
+    (isParent ? user?.student?.className : assignedClass?.className) || 'Chưa có lớp';
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
@@ -43,16 +45,14 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       </View>
-      <View className="px-6 pt-2">
-        <HomeSectionTabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          isParent={user?.role === 'PARENT_PH'}
-        />
-      </View>
-      <View className="px-6 pt-6">
+      <HomeSectionTabs isParent={isParent}>
+        <Text className="text-xl font-semibold">Báo cáo</Text>
         <Text className="text-xl font-semibold">Xin chào, {name}</Text>
-      </View>
+        <Text className="text-xl font-semibold">
+          {isParent ? 'Kết quả đánh giá' : 'Đánh giá giai đoạn'}
+        </Text>
+      </HomeSectionTabs>
+      <HomeBottomNav isParent={isParent} className={className} notificationCount={2} />
     </SafeAreaView>
   );
 }

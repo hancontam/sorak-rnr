@@ -1,6 +1,7 @@
 export { AuthScreenHeader } from './auth-screen-header';
 export { Button } from './button';
 export { ForgotPasswordSheet } from './forgot-password-sheet';
+export { HomeSectionTabs } from './home-section-tabs';
 export { Icon } from './icon';
 export { Input } from './input';
 export { LoginOtpSheet } from './login-otp-sheet';

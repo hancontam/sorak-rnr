@@ -1,14 +1,16 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SorakMark from '@/assets/images/sorak-mark.svg';
-import { Icon, Text } from '@/components/ui';
+import { HomeSectionTabs, Icon, Text } from '@/components/ui';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useRouter } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
+import * as React from 'react';
 import { Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = React.useState('daily');
   const user = useAuthStore((state) => state.user);
   const name = user?.fullName || user?.name || user?.username || 'Sorak';
   const username = user?.username || user?.employeeCode || name;
@@ -40,6 +42,13 @@ export default function HomeScreen() {
             </Avatar>
           </Pressable>
         </View>
+      </View>
+      <View className="px-6 pt-2">
+        <HomeSectionTabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          isParent={user?.role === 'PARENT_PH'}
+        />
       </View>
       <View className="px-6 pt-6">
         <Text className="text-xl font-semibold">Xin chào, {name}</Text>

@@ -1,5 +1,13 @@
 # Ghi chú điểm lệch Swagger ↔ staging
 
+## HĐGD theo slot — kiểm tra test2 ngày 04/11/2026
+
+| Method/path | Swagger sai hoặc thiếu | Staging đã quan sát / cách kiểm tra | Giới hạn |
+| --- | --- | --- | --- |
+| `GET /attendance/classes/{classId}/timetable?date=YYYY-MM-DD` | Response chung không mô tả phạm vi mảng `slots`. | Test2 trả nhiều tháng slot dù truyền `date`; mỗi slot có `fullDate`, `id`, `activityId`, `routineSlot`, `criteria`. Mobile phải lọc đúng `fullDate`, không lọc riêng `dayKey` vì sẽ trộn các tuần cùng thứ. | Lớp của GV test có một slot vào 04/11. Số slot ít phản ánh lịch backend trả, không bổ sung lịch giả. |
+| `GET /assessment/classes/{classId}/records` | Thiếu query `slotId`, `activityId`, `date` và schema `data.records`. | 200 với `{ records: [{ studentId, studentCode, status, note }] }`; đổi activity hoặc ngày trả mảng rỗng thay vì kết quả slot cũ. Dùng endpoint này thay vì `students.status` dạng P/N của overview (overview có thể lấy đánh giá gần nhất của hoạt động khác). | Đã kiểm tra hai hoạt động và hai ngày; không suy diễn P/N thành ba mức. Danh sách hiển thị lấy roster lớp hiện tại, không đưa học sinh ngoài roster vào màn. |
+| `POST /assessment/classes/{classId}/records` | `SaveDailyAssessmentBatchRequest` đã mô tả `activityId`, `date`, `records[].studentId/status/note`; thiếu `slotId` và response `data.savedCount`. | Body theo Swagger, bổ sung `slotId` theo web/API context và staging: `{ slotId, activityId, date, records: [{ studentId, status, note }] }`. Gửi lại nguyên mức/note một đánh giá test có sẵn trả 200, `data.savedCount: 1`; GET lại khớp nguyên mức/note. | Chưa chạy lưu từ UI native. Bản client yêu cầu savedCount đúng số dòng gửi mới báo thành công; chỉ gửi dòng chưa có hoặc đã sửa, giữ nguyên note rỗng khi xóa lời bình. |
+
 Chỉ ghi contract Swagger sai hoặc thiếu so với hành vi đã kiểm tra trên staging. Dùng chung cho mọi feature. Khi backend sửa Swagger, kiểm tra lại endpoint và cập nhật ghi chú; không coi kết quả cũ là vĩnh viễn. Không ghi tài khoản, mật khẩu, OTP hoặc token thật.
 
 Nguồn tham khảo: [OpenAPI JSON](https://mamnonhontre.sorak.io.vn/docs.json), code web và API trong `C:/Users/HCT/Desktop/Code/`. Server kiểm tra: `https://testmamnonhontre.sorak.io.vn/api` (JSON, `X-Client-Platform: android` cho auth mobile). Swagger trên domain production có chọn server staging, nhưng `https://testmamnonhontre.sorak.io.vn/docs.json` hiện trả HTML, không phải OpenAPI JSON.

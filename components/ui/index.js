@@ -1,9 +1,11 @@
 export { AssessmentMetricRow, AssessmentSectionCard } from './assessment-metric-row';
+export { ActivityStudentRatingCard } from './activity-student-rating-card';
 export { AssessmentOptionCard } from './assessment-option-card';
 export { AssessmentScreenHeader } from './assessment-screen-header';
 export { AssessmentEmpty, AssessmentError, AssessmentLoading } from './assessment-state';
 export { AuthScreenHeader } from './auth-screen-header';
 export { Button } from './button';
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
 export { CaptchaChallengeModal } from './captcha-challenge-modal';
 export { ForgotPasswordSheet } from './forgot-password-sheet';
 export { FlowerCriteriaSheet } from './flower-criteria-sheet';

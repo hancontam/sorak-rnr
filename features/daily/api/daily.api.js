@@ -1,5 +1,27 @@
 import { apiClient } from '@/shared/api/client';
 
+export async function getActivityAssessment(classId, params) {
+  const response = await apiClient.get(
+    `/assessment/classes/${encodeURIComponent(classId)}/records`,
+    { params }
+  );
+  if (!Array.isArray(response.data?.data?.records))
+    throw new Error('Dữ liệu đánh giá không hợp lệ.');
+  return response.data.data;
+}
+
+export async function saveActivityAssessment(classId, payload) {
+  const response = await apiClient.post(
+    `/assessment/classes/${encodeURIComponent(classId)}/records`,
+    payload
+  );
+  const result = response.data?.data;
+  if (result?.savedCount !== payload.records.length) {
+    throw new Error('Chưa lưu đủ đánh giá. Vui lòng tải lại để kiểm tra trước khi thử lại.');
+  }
+  return result;
+}
+
 export async function getTimetable(classId, params = {}) {
   const targetId = classId || 'default';
   const response = await apiClient.get(`/attendance/classes/${targetId}/timetable`, { params });

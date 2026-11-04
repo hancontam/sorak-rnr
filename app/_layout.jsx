@@ -59,10 +59,17 @@ export default function RootLayout() {
                 options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
               />
               <Stack.Protected guard={isTeacher}>
-                <Stack.Screen name="report/[studentId]" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen
+                  name="report/[studentId]"
+                  options={{ animation: 'slide_from_right' }}
+                />
                 <Stack.Screen name="daily/attendance" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen name="daily/pickup" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen name="daily/health" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen
+                  name="daily/activity-assessment"
+                  options={{ animation: 'slide_from_right' }}
+                />
                 <Stack.Screen name="request/approval" options={{ animation: 'slide_from_right' }} />
               </Stack.Protected>
               <Stack.Protected guard={isParent}>

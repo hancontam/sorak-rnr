@@ -50,12 +50,6 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
   const currentWeek = React.useMemo(() => getWeekDates(selectedDate), [selectedDate]);
   const selectedDateStr = React.useMemo(() => formatDateISO(selectedDate), [selectedDate]);
 
-  const selectedDayKey = React.useMemo(() => {
-    const day = selectedDate.getDay();
-    const map = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-    return map[day];
-  }, [selectedDate]);
-
   const { data: teacherTimetable, isLoading: isLoadingTeacher } = useQuery({
     queryKey: ['daily-timetable-teacher', classId, selectedDateStr],
     queryFn: () => getTimetable(classId, { date: selectedDateStr }),
@@ -90,29 +84,27 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
 
     // Teacher slots
     if (teacherTimetable?.slots?.length > 0) {
-      const daySlots = teacherTimetable.slots.filter(
-        (s) =>
-          s.dayKey === selectedDayKey ||
-          s.day === selectedDayKey ||
-          s.fullDate === selectedDateStr
-      );
+      const daySlots = teacherTimetable.slots.filter((s) => s.fullDate === selectedDateStr);
       if (daySlots.length > 0) {
-        return daySlots.map((s) => ({
-          id: s.id,
-          time: s.startTime || s.time || '08:00',
-          endTime: s.endTime,
-          activity: s.title || s.shortTitle || s.contentTitle || s.name || 'Hoạt động',
-          description: s.objective || s.planObjective || s.description || s.contentTitle || '',
-          status: s.status,
-          statusLabel: s.statusLabel,
-          goalCode: s.goalCode,
-          domain: s.domain,
-        }));
+        return daySlots
+          .sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)))
+          .map((s) => ({
+            ...s,
+            id: s.id,
+            time: s.startTime || s.time || '08:00',
+            endTime: s.endTime,
+            activity: s.title || s.shortTitle || s.contentTitle || s.name || 'Hoạt động',
+            description: s.objective || s.planObjective || s.description || s.contentTitle || '',
+            status: s.status,
+            statusLabel: s.statusLabel,
+            goalCode: s.goalCode,
+            domain: s.domain,
+          }));
       }
     }
 
     return [];
-  }, [isParent, parentSchedule, teacherTimetable, selectedDayKey, selectedDateStr]);
+  }, [isParent, parentSchedule, teacherTimetable, selectedDateStr]);
 
   const monthLabel = `Tháng ${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`;
   const weekLabel = `Tuần ${currentWeek[0].getDate()}–${currentWeek[6].getDate()}`;
@@ -202,9 +194,7 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
               </Text>
               <View
                 className={`h-10 w-full items-center justify-center rounded-md border ${
-                  isSelected
-                    ? 'border-primary bg-primary'
-                    : 'border-border bg-background'
+                  isSelected ? 'border-primary bg-primary' : 'border-border bg-background'
                 }`}>
                 <Text
                   className={`text-sm font-medium ${
@@ -225,7 +215,7 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
             onPress={() => router.push('/daily/attendance')}
             accessibilityRole="button"
             accessibilityLabel="Mở màn hình Điểm danh"
-            className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-card py-2.5 px-2 active:bg-accent/20">
+            className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-2 py-2.5 active:bg-accent/20">
             <Icon as={UserCheck} size={15} className="text-primary" />
             <Text className="text-xs font-semibold text-foreground">Điểm danh</Text>
           </Pressable>
@@ -234,7 +224,7 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
             onPress={() => router.push('/daily/pickup')}
             accessibilityRole="button"
             accessibilityLabel="Mở màn hình Đón trẻ"
-            className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-card py-2.5 px-2 active:bg-accent/20">
+            className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-2 py-2.5 active:bg-accent/20">
             <Icon as={Clock} size={15} className="text-primary" />
             <Text className="text-xs font-semibold text-foreground">Đón trẻ</Text>
           </Pressable>
@@ -243,7 +233,7 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
             onPress={() => router.push('/daily/health')}
             accessibilityRole="button"
             accessibilityLabel="Mở màn hình Đo sức khỏe"
-            className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-card py-2.5 px-2 active:bg-accent/20">
+            className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-2 py-2.5 active:bg-accent/20">
             <Icon as={HeartPulse} size={15} className="text-primary" />
             <Text className="text-xs font-semibold text-foreground">Sức khỏe</Text>
           </Pressable>
@@ -267,12 +257,12 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
           <Text className="mt-2 text-xs text-muted-foreground">Đang tải lịch sinh hoạt...</Text>
         </View>
       ) : activities.length === 0 ? (
-        <View className="flex-1 items-center justify-center py-12 px-6">
-          <Icon as={CalendarDays} size={40} className="text-muted-foreground/40 mb-3" />
-          <Text className="text-sm font-medium text-foreground text-center">
+        <View className="flex-1 items-center justify-center px-6 py-12">
+          <Icon as={CalendarDays} size={40} className="mb-3 text-muted-foreground/40" />
+          <Text className="text-center text-sm font-medium text-foreground">
             Chưa có lịch sinh hoạt cho {fullDayLabel.toLowerCase()}
           </Text>
-          <Text className="mt-1 text-xs text-muted-foreground text-center">
+          <Text className="mt-1 text-center text-xs text-muted-foreground">
             Vui lòng chọn ngày khác trong tuần hoặc liên hệ nhà trường.
           </Text>
         </View>
@@ -287,23 +277,37 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
                 <View className="w-16 pt-2">
                   <Text className="text-xs font-medium text-muted-foreground">{item.time}</Text>
                 </View>
-                <Card className="flex-1 p-3">
-                  <View className="flex-row items-center justify-between">
-                    <Text className="text-sm font-semibold text-foreground flex-1">
+                <Pressable
+                  className="flex-1"
+                  disabled={isParent || !item.activityId}
+                  accessibilityRole={isParent ? undefined : 'button'}
+                  accessibilityLabel={
+                    isParent ? undefined : `Xem nội dung và đánh giá ${item.activity}`
+                  }
+                  onPress={() =>
+                    router.push({
+                      pathname: '/daily/activity-assessment',
+                      params: { slotId: String(item.id), date: selectedDateStr },
+                    })
+                  }>
+                  <Card className="gap-2 p-3">
+                    <Text className="text-sm font-semibold text-foreground" numberOfLines={3}>
                       {item.activity}
                     </Text>
                     {item.statusLabel ? (
-                      <Badge variant="outline" className="ml-2">
+                      <Badge variant="outline" className="self-start">
                         <Text className="text-[10px]">{item.statusLabel}</Text>
                       </Badge>
                     ) : null}
-                  </View>
-                  {item.description ? (
-                    <Text className="mt-1 text-[13px] leading-5 text-muted-foreground">
-                      {item.description}
-                    </Text>
-                  ) : null}
-                </Card>
+                    {item.description ? (
+                      <Text
+                        className="text-[13px] leading-5 text-muted-foreground"
+                        numberOfLines={3}>
+                        {item.description}
+                      </Text>
+                    ) : null}
+                  </Card>
+                </Pressable>
               </View>
             ))}
           </View>

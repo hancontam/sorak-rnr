@@ -34,3 +34,14 @@ Nguồn tham khảo: [OpenAPI JSON](https://mamnonhontre.sorak.io.vn/docs.json),
 | --- | --- | --- | --- |
 | `GET /parent/notifications` | Swagger chỉ mô tả route dưới nhóm Parent, thiếu mô tả cấu trúc `data.unreadCount` và `data.notifications`. Thiếu tài liệu cho vai trò Giáo viên. | Staging cho phép cả Phụ huynh và Giáo viên test gọi và nhận 200; `data` có `{ unreadCount, notifications }` lọc theo `account_id` của tài khoản đăng nhập. | Tài khoản test hiện có `unreadCount: 0` và danh sách rỗng. |
 | `PATCH /parent/notifications/{id}/read` | Response `data` chỉ ghi `object`. | Staging nhận publicId của thông báo và cập nhật `is_read = true`, trả 200. | Chưa có endpoint riêng `/teachers/notifications` hay `/teacher/notifications` (trả 404), mobile dùng endpoint `/parent/notifications` chung. |
+
+## Yêu cầu đón hộ / Ủy quyền đón trẻ & Xin nghỉ — kiểm tra 04/11/2026 (UTC+7)
+
+| Method/path | Swagger sai hoặc thiếu | Staging đã quan sát / cách kiểm tra | Giới hạn |
+| --- | --- | --- | --- |
+| `GET /parent/requests` | Swagger thiếu mô tả chi tiết trường `siblings`, `student`, và mảng `requests`. | Gọi bằng tài khoản Phụ huynh test trả 200 với danh sách anh chị em, học sinh hiện tại và các đơn đã gửi. | Phụ huynh test ban đầu có mảng `requests: []`. |
+| `POST /parent/requests/pickup` | Swagger chỉ mô tả chung `PickupRequest`. Thiếu danh sách trường bắt buộc (`pickup_person_name`, `pickup_person_phone`, `relationship`, `start_date`, `end_date`). | Staging validation từ chối 400 nếu thiếu tên/SĐT/quan hệ/ngày bắt đầu-kết thúc. Khi gửi đủ thông tin hợp lệ, trả 200/201 tạo đơn thành công. | Chỉ kiểm tra với tài khoản phụ huynh test. |
+| `GET /attendance/classes/{classId}/authorizations` | Swagger chỉ ghi response `data` là `object`. | Giáo viên gọi lớp phân công trả 200 với `{ authorizations, stats: { pendingCount, approvedCount, rejectedCount, totalCount } }`. Danh sách đơn chứa đúng hồ sơ mẫu bé Mai Phương Linh như Figma. | Chỉ kiểm tra lớp của giáo viên test. |
+| `PATCH /attendance/classes/{classId}/authorizations/{authId}/approve` | Response chỉ mô tả chung `object`. | Nhận ID đơn và cập nhật trạng thái `APPROVED`, trả 200. | Đã xác nhận trên đơn mẫu của lớp. |
+| `PATCH /attendance/classes/{classId}/authorizations/{authId}/reject` | Swagger thiếu mô tả body `{ reason }`. | Nhận ID đơn và lý do hủy, cập nhật trạng thái `REJECTED`, trả 200. | Đã kiểm tra nhánh từ chối đơn. |
+| `POST /parent/requests/leave` (Đơn xin nghỉ riêng) | Chưa có trong Swagger và chưa có trong router backend staging (gọi thử trả 404/401). | Backend chưa cung cấp endpoint `leave` độc lập; việc xin nghỉ/nghỉ có phép được theo dõi qua trạng thái `EXCUSED_ABSENCE` (CP) trong bảng `attendance` và ghi chú trong đơn đón/ủy thác. | Mobile cho phép phụ huynh ghi rõ lý do xin nghỉ/đón hộ trong trường ghi chú và kết nối endpoint ủy quyền đã xác thực trên staging. |

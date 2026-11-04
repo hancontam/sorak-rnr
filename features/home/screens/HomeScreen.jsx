@@ -3,6 +3,10 @@ import SorakMark from '@/assets/images/sorak-mark.svg';
 import { HomeBottomNav, HomeSectionTabs, Icon, Text } from '@/components/ui';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { getNotifications } from '@/features/notification/api/notification.api';
+import {
+  getParentRequests,
+  getTeacherAuthorizations,
+} from '@/features/request/api/request.api';
 import ParentReportScreen from '@/features/report/screens/ParentReportScreen';
 import ReportListScreen from '@/features/report/screens/ReportListScreen';
 import { useQuery } from '@tanstack/react-query';
@@ -30,6 +34,22 @@ export default function HomeScreen() {
     queryKey: ['notifications'],
     queryFn: getNotifications,
   });
+
+  const { data: teacherAuthData } = useQuery({
+    queryKey: ['teacher-authorizations', classId],
+    queryFn: () => getTeacherAuthorizations(classId),
+    enabled: !isParent && !!classId,
+  });
+
+  const { data: parentRequestData } = useQuery({
+    queryKey: ['parent-requests'],
+    queryFn: getParentRequests,
+    enabled: isParent,
+  });
+
+  const authorizationCount = isParent
+    ? parentRequestData?.requests?.length ?? 0
+    : teacherAuthData?.stats?.pendingCount ?? 0;
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -72,10 +92,12 @@ export default function HomeScreen() {
       <HomeBottomNav
         isParent={isParent}
         className={className}
+        authorizationCount={authorizationCount}
         notificationCount={notificationData?.unreadCount ?? 0}
         showSearch={!isParent && activeTabIndex === 0}
         search={studentSearch}
         onSearchChange={setStudentSearch}
+        onAuthorizationPress={() => router.push(isParent ? '/request/new' : '/request/approval')}
         onNotificationPress={() => router.push('/notifications')}
       />
     </SafeAreaView>

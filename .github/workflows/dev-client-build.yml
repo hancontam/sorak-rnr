@@ -1,0 +1,171 @@
+# ──────────────────────────────────────────────────────────────
+# Dev Client Build (iOS IPA with Hot Reload)
+# Triggers when package.json changes on release/tester.
+# Auto-merges into dev/client branch and builds dev client IPA.
+# ──────────────────────────────────────────────────────────────
+name: Dev Client Build (iOS Hot Reload)
+
+on:
+  push:
+    branches:
+      - 'release/tester'
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build even without package changes'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dev-client-build
+  cancel-in-progress: true
+
+jobs:
+  merge-and-build:
+    name: Merge & Build Dev Client IPA
+    runs-on: macos-26
+    env:
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL || 'https://test2mamnonhontre.sorak.io.vn/api' }}
+
+    steps:
+      - name: Checkout dev/client branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev/client
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge release/tester into dev/client
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin release/tester
+
+          echo "── Merging release/tester into dev/client ──"
+          git merge origin/release/tester -X theirs --no-edit || {
+            echo "::warning::Merge conflict detected, resolving with theirs..."
+            git checkout --theirs .
+            git add .
+            git commit --no-edit -m "ci: auto-merge release/tester (resolved conflicts)"
+          }
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Ensure expo-dev-client & sync dependencies
+        run: |
+          echo "── Ensuring expo-dev-client compatibility ──"
+          npx expo install expo-dev-client
+
+          echo "── Ensuring dev:client script ──"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.scripts = pkg.scripts || {};
+            pkg.scripts['dev:client'] = 'expo start --dev-client -c';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+          git add package.json package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "ci: sync dependencies from release/tester and ensure expo-dev-client"
+            git push origin dev/client
+          else
+            echo "Dependencies and scripts already up-to-date on dev/client"
+          fi
+
+      - name: Verify Xcode & Swift versions
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Expo Prebuild (iOS)
+        run: npx expo prebuild --platform ios --clean --no-install
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      # ── Build Debug config for dev client (connects to metro for hot reload) ──
+      - name: Build Dev Client IPA (Debug - Hot Reload)
+        run: |
+          cd ios
+          WORKSPACE="$(find . -name '*.xcworkspace' -maxdepth 1 | head -n 1)"
+          SCHEME="sorakrnr"
+
+          echo "── Available schemes ──"
+          xcodebuild -workspace "$WORKSPACE" -list || true
+          echo "── Building Dev Client: workspace=$WORKSPACE scheme=$SCHEME ──"
+
+          xcodebuild -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            clean build
+
+      - name: Package Dev Client IPA
+        run: |
+          set -euo pipefail
+          APP_PATH="$(find ios/build/Build/Products/Debug-iphoneos -name '*.app' -type d | head -n 1 || true)"
+          if [ -z "$APP_PATH" ]; then
+            echo "Searching across build directory..."
+            APP_PATH="$(find ios/build -name '*.app' -type d | grep -v 'Intermediates' | head -n 1)"
+          fi
+
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::No .app bundle found under ios/build"
+            find ios/build -maxdepth 5 -type d || true
+            exit 1
+          fi
+
+          echo "Packaging Dev Client: $APP_PATH"
+          STAGE="$(mktemp -d)"
+          mkdir -p "$STAGE/Payload"
+          cp -R "$APP_PATH" "$STAGE/Payload/"
+
+          IPA_NAME="sorak-devclient-${{ github.sha }}.ipa"
+          (
+            cd "$STAGE"
+            zip -qry "$GITHUB_WORKSPACE/$IPA_NAME" Payload
+          )
+
+          ls -lh "$GITHUB_WORKSPACE/$IPA_NAME"
+
+      - name: Upload Dev Client IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: sorak-devclient-${{ github.sha }}
+          path: sorak-devclient-${{ github.sha }}.ipa
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Summary
+        run: |
+          echo "## 🔥 Dev Client Build Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**IPA:** \`sorak-devclient-${{ github.sha }}.ipa\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Cách dùng:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download IPA từ GitHub Actions Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "2. Cài lên iPhone bằng Sideloadly (dùng Apple ID cá nhân miễn phí)" >> $GITHUB_STEP_SUMMARY
+          echo "3. Trên máy tính chạy: \`npm run dev:client\`" >> $GITHUB_STEP_SUMMARY
+          echo "4. Mở app trên iPhone → Quét QR code từ terminal hoặc nhập URL Metro (exp://<IP>:8081)" >> $GITHUB_STEP_SUMMARY
+          echo "5. Fast Refresh / Hot Reload hoạt động tức thì khi sửa code trên máy tính! 🚀" >> $GITHUB_STEP_SUMMARY

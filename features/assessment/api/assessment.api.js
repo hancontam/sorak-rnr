@@ -1,5 +1,10 @@
 import { apiClient } from '@/shared/api/client';
 
+export async function fetchAssessmentClassStudents(classId) {
+  const response = await apiClient.get(`/classes/${encodeURIComponent(classId)}/students`);
+  return response.data.data;
+}
+
 // Giáo viên: đánh giá học kỳ của lớp được phân công.
 export async function fetchSemesterAssessment({ classId, semester = 'SEMESTER_1' }) {
   const response = await apiClient.get(`/assessment/classes/${classId}/semester`, {
@@ -21,6 +26,16 @@ export async function saveSemesterAssessment({ classId, semester = 'SEMESTER_1',
 export async function fetchMonthlyAssessment({ classId, month, year }) {
   const response = await apiClient.get(`/assessment/classes/${classId}/monthly`, {
     params: { ...(month ? { month } : {}), ...(year ? { year } : {}) },
+  });
+  return response.data.data;
+}
+
+// Giáo viên: lưu sổ bé ngoan. Body theo service: { month, year, records: [{ studentId, week1Rose..week5Rose, teacherNotes }] }.
+export async function saveMonthlyAssessment({ classId, month, year, records }) {
+  const response = await apiClient.post(`/assessment/classes/${classId}/monthly`, {
+    month,
+    year,
+    records,
   });
   return response.data.data;
 }

@@ -1,13 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { BottomSheetContent, Dialog } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { OtpCodeInput } from '@/components/ui/otp-code-input';
 import { Text } from '@/components/ui/text';
 import { ThemedSpinner } from '@/components/ui/themed-spinner';
-import { useKeyboardOverlap } from '@/shared/hooks/useKeyboardOverlap';
 import { maskEmail } from '@/shared/utils/mask-email';
 import { View, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function TwoFactorSheet({
   step,
@@ -21,25 +19,15 @@ export function TwoFactorSheet({
   onSubmit,
   isSubmitting,
 }) {
-  const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const compact = height < 480;
-  const keyboardOffset = useKeyboardOverlap(Boolean(step));
   const enabling = step === 'enable';
 
   return (
     <Dialog open={Boolean(step)} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent
-        showCloseButton={false}
-        overlayClassName="items-end justify-end bg-foreground/35 p-0"
-        className={`mx-0 w-full max-w-full gap-0 rounded-b-none rounded-t-[36px] border-border bg-card px-6 shadow-lg shadow-black/20 ${compact ? 'pt-4' : 'pt-7'}`}
-        style={{
-          marginBottom: keyboardOffset,
-          paddingBottom: compact ? 12 : keyboardOffset > 0 ? 24 : Math.max(insets.bottom, 24),
-        }}>
-        <DialogTitle className="text-xl font-medium">
-          {enabling ? 'Bật xác thực 2 bước' : 'Tắt xác thực 2 bước'}
-        </DialogTitle>
+      <BottomSheetContent
+        open={Boolean(step)}
+        title={enabling ? 'Bật xác thực 2 bước' : 'Tắt xác thực 2 bước'}>
         <View className={compact ? 'mt-3 gap-3' : 'mt-5 gap-4'}>
           {enabling ? (
             <>
@@ -73,7 +61,7 @@ export function TwoFactorSheet({
             )}
           </Button>
         </View>
-      </DialogContent>
+      </BottomSheetContent>
     </Dialog>
   );
 }

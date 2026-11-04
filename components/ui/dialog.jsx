@@ -1,11 +1,13 @@
 import { Icon } from '@/components/ui/icon';
 import { NativeOnlyAnimatedView } from '@/components/ui/native-only-animated-view';
+import { useKeyboardOverlap } from '@/shared/hooks/useKeyboardOverlap';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@rn-primitives/dialog';
 import { X } from 'lucide-react-native';
 import * as React from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Platform, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { FadeIn, FadeOut, ReduceMotion } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
@@ -92,6 +94,37 @@ function DialogContent({
     </DialogPortal>
   );
 }
+function BottomSheetContent({ open, title, children }) {
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOverlap(open);
+  const availableHeight = height - keyboardOffset;
+  const compact = availableHeight < 480;
+
+  return (
+    <DialogContent
+      showCloseButton={false}
+      overlayClassName="items-end justify-end bg-foreground/35 p-0"
+      className={cn(
+        'mx-0 w-full max-w-full gap-0 rounded-b-none rounded-t-[36px] border-border bg-card px-6 shadow-lg shadow-black/20',
+        compact ? 'pt-4' : 'pt-7'
+      )}
+      style={{
+        width,
+        maxHeight: Math.max(0, availableHeight - 8),
+        marginBottom: keyboardOffset,
+        paddingBottom: compact ? 12 : Math.max(insets.bottom, 24),
+      }}>
+      <DialogTitle className="text-xl font-medium">{title}</DialogTitle>
+      <ScrollView
+        style={{ flexShrink: 1 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        {children}
+      </ScrollView>
+    </DialogContent>
+  );
+}
 function DialogHeader({ className, ...props }) {
   return (
     <View className={cn('flex flex-col gap-2 text-center sm:text-left', className)} {...props} />
@@ -122,6 +155,7 @@ function DialogDescription({ className, ...props }) {
   );
 }
 export {
+  BottomSheetContent,
   Dialog,
   DialogClose,
   DialogContent,

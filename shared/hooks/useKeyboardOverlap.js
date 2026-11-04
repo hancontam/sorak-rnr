@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Keyboard, Platform, useWindowDimensions } from 'react-native';
+import { Dimensions, Keyboard, Platform, useWindowDimensions } from 'react-native';
 
-// PortalHost nằm ngoài KeyboardAvoidingView. Android adjustResize đã co cửa sổ,
-// còn iOS có thể để bàn phím phủ lên sheet; chỉ bù phần chiều cao thật sự bị che.
+// Dialog portal phủ toàn màn hình ngay cả khi Android co phần nội dung vì bàn phím.
+// Đo khoảng từ đỉnh bàn phím đến đáy màn hình để nâng sheet lên đúng chỗ.
 export function useKeyboardOverlap(enabled) {
   const { height: windowHeight } = useWindowDimensions();
   const [keyboardTop, setKeyboardTop] = React.useState(null);
@@ -30,5 +30,6 @@ export function useKeyboardOverlap(enabled) {
 
   if (keyboardTop == null) return 0;
 
-  return Math.max(0, Math.round(windowHeight - keyboardTop));
+  const viewportHeight = Platform.OS === 'android' ? Dimensions.get('screen').height : windowHeight;
+  return Math.max(0, Math.round(viewportHeight - keyboardTop));
 }

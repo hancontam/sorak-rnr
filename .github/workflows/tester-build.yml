@@ -59,13 +59,13 @@ jobs:
       - name: Expo Doctor Check
         run: npx expo-doctor || true
 
-      # ── Build APK: only arm64 + armv7 (skip x86/x86_64 emulator ABIs) ──
+      # ── Build APK: arm64 + armv7 + x86_64 (physical devices + PC emulators) ──
       - name: Build Android APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease \
-            -PreactNativeArchitectures=arm64-v8a,armeabi-v7a \
+            -PreactNativeArchitectures=arm64-v8a,armeabi-v7a,x86_64 \
             --no-daemon \
             --build-cache \
             -Dorg.gradle.parallel=true \

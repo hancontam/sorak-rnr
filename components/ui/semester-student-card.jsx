@@ -10,7 +10,8 @@ import {
 import { View } from 'react-native';
 
 // Thẻ một học sinh trong màn Đánh giá học kỳ của giáo viên (Figma: Assessment Student).
-export function SemesterStudentCard({ student, note, onNoteChange, editable, avatarUrl }) {
+// Hỗ trợ chế độ xem (read-only): Hiển thị 5 lĩnh vực phát triển, chuyên cần, sức khỏe và lời bình.
+export function SemesterStudentCard({ student, note, onNoteChange, editable = false, avatarUrl }) {
   return (
     <View className="gap-3 rounded-xl border border-border bg-card px-3 py-3">
       <View className="flex-row items-center gap-2">
@@ -54,6 +55,11 @@ export function SemesterStudentCard({ student, note, onNoteChange, editable, ava
             placeholder="Thêm lời bình"
             accessibilityLabel={`Lời bình cho ${student.name}`}
           />
+        </View>
+      ) : note ? (
+        <View className="gap-1 rounded-lg border border-border bg-muted/20 p-2.5">
+          <Text className="text-[11px] font-medium text-muted-foreground">Lời bình của cô</Text>
+          <Text className="text-xs text-foreground leading-relaxed">{note}</Text>
         </View>
       ) : null}
     </View>

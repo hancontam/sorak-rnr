@@ -137,7 +137,11 @@ export function HomeSectionTabs({ isParent, children, onTabChange }) {
   const navWidth = width - 48;
   const activeWidth = Math.max(INACTIVE_WIDTH, navWidth - INACTIVE_WIDTH * 2 - TAB_GAP * 2);
   const sections = [
-    { label: 'Báo cáo', labelWidth: 52, icon: LayoutGrid },
+    {
+      label: isParent ? 'Hồ sơ trẻ' : 'Báo cáo',
+      labelWidth: isParent ? 68 : 52,
+      icon: LayoutGrid,
+    },
     { label: 'Nhật ký ngày', labelWidth: 88, icon: CalendarDays },
     {
       label: isParent ? 'Kết quả đánh giá' : 'Đánh giá giai đoạn',

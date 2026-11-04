@@ -16,3 +16,8 @@ export async function getStudentReport(classId, studentId) {
   });
   return response.data.data;
 }
+
+export async function getParentStudentReport() {
+  const response = await apiClient.get('/parent/student-report');
+  return response.data.data;
+}

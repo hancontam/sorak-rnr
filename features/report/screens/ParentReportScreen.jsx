@@ -1,25 +1,30 @@
 import { Button } from '@/components/ui/button';
 import { StudentReportBody } from '@/components/ui/student-report-body';
 import { Text } from '@/components/ui/text';
-import { useAuthStore } from '@/features/auth/store/auth.store';
-import { useStudentReport } from '@/features/report/hooks/useStudentReport';
+import { getParentStudentReport } from '@/features/report/api/report.api';
 import { getRequestError } from '@/features/report/lib/report-format';
+import { useQuery } from '@tanstack/react-query';
+import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
+// Màn hình "Hồ sơ trẻ" của Phụ huynh (Tab 1 Home)
+// Kết nối trực tiếp endpoint riêng: GET /parent/student-report
 export default function ParentReportScreen() {
-  const child = useAuthStore((state) => state.user?.student);
-  const { student, report, isLoading, error, refetch } = useStudentReport(
-    child?.classId,
-    child?.id
-  );
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['parent-student-report'],
+    queryFn: getParentStudentReport,
+  });
 
-  if (!child?.id || !child?.classId) {
-    return (
-      <Text className="text-sm text-muted-foreground">
-        Tài khoản chưa liên kết với học sinh hoặc lớp.
-      </Text>
-    );
-  }
+  const studentWithClass = React.useMemo(() => {
+    if (!data?.student) return null;
+    return {
+      ...data.student,
+      currentClass: {
+        className: data.classInfo?.name,
+        schoolYearName: data.classInfo?.schoolYear,
+      },
+    };
+  }, [data]);
 
   return (
     <View className="flex-1" style={{ marginHorizontal: -24 }}>
@@ -35,7 +40,7 @@ export default function ParentReportScreen() {
           </Button>
         </View>
       ) : (
-        <StudentReportBody student={student} report={report} bottomInset={120} />
+        <StudentReportBody student={studentWithClass} report={data} bottomInset={120} />
       )}
     </View>
   );

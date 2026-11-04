@@ -6,13 +6,14 @@ import { Rose } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
 // Một dòng học sinh trong Sổ bé ngoan theo tuần (Figma: Assessment Student · Sổ bé ngoan).
-// Chạm vào icon hoa để bật/tắt hoa của tuần đang chọn; thay đổi nằm ở bản nháp của screen.
+// Chế độ xem (read-only): Hiển thị hoa và thống kê chuyên cần/mục tiêu/sức khỏe của bé.
 export function GoodChildStudentCard({
   student,
   weekKey,
   avatarUrl,
   roseActive = false,
   onToggleRose,
+  readOnly = true,
 }) {
   const weekly = student.weeklyStats?.[weekKey];
   const stats = formatMonthlyStats(weekly);
@@ -37,23 +38,38 @@ export function GoodChildStudentCard({
           </Text>
         </View>
       </View>
-      <Pressable
-        className="items-center justify-center px-1 py-1"
-        onPress={onToggleRose}
-        accessibilityRole="switch"
-        accessibilityState={{ checked: roseActive }}
-        accessibilityLabel={
-          roseActive
-            ? `Bỏ hoa tuần này của ${student.name}`
-            : `Tặng hoa tuần này cho ${student.name}`
-        }>
-        <Icon
-          as={Rose}
-          size={18}
-          strokeWidth={2}
-          className={roseActive ? 'text-rose-500' : 'text-muted-foreground/50'}
-        />
-      </Pressable>
+      {readOnly || !onToggleRose ? (
+        <View
+          className="items-center justify-center px-1.5 py-1"
+          accessibilityLabel={
+            roseActive ? `Bé ${student.name} đạt hoa tuần này` : `Bé ${student.name} chưa đạt hoa`
+          }>
+          <Icon
+            as={Rose}
+            size={20}
+            strokeWidth={2}
+            className={roseActive ? 'text-rose-500' : 'text-muted-foreground/30'}
+          />
+        </View>
+      ) : (
+        <Pressable
+          className="items-center justify-center px-1.5 py-1"
+          onPress={onToggleRose}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: roseActive }}
+          accessibilityLabel={
+            roseActive
+              ? `Bỏ hoa tuần này của ${student.name}`
+              : `Tặng hoa tuần này cho ${student.name}`
+          }>
+          <Icon
+            as={Rose}
+            size={20}
+            strokeWidth={2}
+            className={roseActive ? 'text-rose-500' : 'text-muted-foreground/50'}
+          />
+        </Pressable>
+      )}
     </View>
   );
 }

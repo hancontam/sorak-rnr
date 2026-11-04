@@ -51,7 +51,9 @@ export default function HomeScreen() {
   });
 
   const authorizationCount = isParent
-    ? parentRequestData?.requests?.length ?? 0
+    ? parentRequestData?.stats?.pendingCount ??
+      parentRequestData?.requests?.filter((r) => r.status === 'PENDING')?.length ??
+      0
     : teacherAuthData?.stats?.pendingCount ?? 0;
 
   return (

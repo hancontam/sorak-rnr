@@ -19,3 +19,11 @@ Nguồn tham khảo: [OpenAPI JSON](https://mamnonhontre.sorak.io.vn/docs.json),
 | `POST /auth/logout` | Request/response chỉ là object chung. | Gửi refresh token mới và Bearer access token trả 200, `data.message`. | Swagger chưa mô tả field cụ thể. |
 | Các endpoint Auth có lỗi | `ErrorResponse` ghi `{ success, error: { code, message, details } }`. | Lỗi 400/401 thực tế có `{ success: false, code, message, details?, traceId, timestamp, path }`; `code` và `message` ở cấp đầu. | Đã quan sát trên các request validation và auth lỗi, chưa khẳng định mọi lỗi của mọi feature đều giống vậy. |
 | `GET /health` | Chỉ mô tả 200. | Không gửi Bearer token trả 401 `UNAUTHORIZED` (`Missing access token`). | Chưa kiểm tra health với token hợp lệ. |
+
+## Báo cáo học sinh — kiểm tra 04/11/2026 (UTC+7)
+
+| Method/path | Swagger sai hoặc thiếu | Staging đã quan sát / cách kiểm tra | Giới hạn |
+| --- | --- | --- | --- |
+| `GET /classes/{id}/students` | Khai báo `page` và `limit` (mặc định 20) nhưng không mô tả rằng staging trả toàn bộ danh sách, bỏ qua giới hạn trang. Response `data` chỉ ghi `object`, thiếu `class` và `students`. | Giáo viên test gọi lớp được phân công trả 200 với `data.class` và 25 mục trong `data.students`. Gọi thêm `?page=1&limit=1` vẫn trả 25 mục; `?search=<chuỗi không khớp>` trả 0 mục. Mobile lọc danh sách đã tải tại chỗ theo tên/mã. | Chỉ kiểm tra lớp của tài khoản giáo viên test. |
+| `GET /students/{id}` | Response `data` chỉ ghi `object`, thiếu cấu trúc hồ sơ học sinh. | Giáo viên và phụ huynh test đều nhận 200; `data` là hồ sơ trực tiếp, gồm `id`, `studentCode`, `fullName`, `dateOfBirth`, `gender`, `currentClass`, `parents` và các trường sức khỏe nền. | Đã kiểm tra học sinh thuộc lớp/quyền của hai tài khoản test. |
+| `GET /classes/{id}/student-report` | Thiếu query `studentId` và cấu trúc `data` (chỉ ghi `object`). | Gọi `?studentId=<id học sinh>` bằng giáo viên và phụ huynh test trả 200; `data` gồm `student`, `health`, `attendance`, `assessments`, `authorizations`, `classInfo`, `semesterInfo`. `health.history` có ngày đo, chiều cao, cân nặng, z-score để dựng biểu đồ. | Chưa kiểm tra các trường hợp lỗi hoặc học sinh ngoài lớp. |

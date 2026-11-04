@@ -2,6 +2,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SorakMark from '@/assets/images/sorak-mark.svg';
 import { HomeBottomNav, HomeSectionTabs, Icon, Text } from '@/components/ui';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import ParentReportScreen from '@/features/report/screens/ParentReportScreen';
+import ReportListScreen from '@/features/report/screens/ReportListScreen';
 import { useRouter } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
@@ -15,6 +17,7 @@ export default function HomeScreen() {
   const avatar = user?.avatar || user?.avatarUrl;
   const isParent = user?.role === 'PARENT_PH';
   const assignedClass = user?.assignedClasses?.[0] || user?.teacher?.assignedClasses?.[0];
+  const classId = assignedClass?.classId;
   const className =
     (isParent ? user?.student?.className : assignedClass?.className) || 'Chưa có lớp';
 
@@ -46,7 +49,7 @@ export default function HomeScreen() {
         </View>
       </View>
       <HomeSectionTabs isParent={isParent}>
-        <Text className="text-xl font-semibold">Báo cáo</Text>
+        {isParent ? <ParentReportScreen /> : <ReportListScreen classId={classId} />}
         <Text className="text-xl font-semibold">Xin chào, {name}</Text>
         <Text className="text-xl font-semibold">
           {isParent ? 'Kết quả đánh giá' : 'Đánh giá giai đoạn'}

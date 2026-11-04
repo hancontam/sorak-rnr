@@ -43,3 +43,17 @@ export function formatMonthlyStats(weekly) {
 export function initialOf(name) {
   return (name || '?').trim().slice(0, 1).toUpperCase();
 }
+
+// Lỗi 5xx hiện trả message kỹ thuật từ server (ví dụ "Cannot convert <uuid> to a BigInt"),
+// không hữu ích với giáo viên. Giữ nguyên câu thân thiện và ghi chi tiết ra console để đối chiếu.
+export function describeSaveError(error, fallback = 'Vui lòng thử lại sau.') {
+  const status = error?.response?.status;
+  const serverMessage = error?.response?.data?.message;
+
+  if (status >= 500) {
+    if (serverMessage) console.warn('[assessment] save failed', status, serverMessage);
+    return 'Máy chủ đang gặp lỗi khi lưu. Vui lòng báo nhà trường kiểm tra.';
+  }
+
+  return serverMessage || error?.message || fallback;
+}

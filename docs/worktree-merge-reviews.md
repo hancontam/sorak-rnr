@@ -80,3 +80,38 @@ Swagger hiện có `GET /parent/good-behavior`, nhưng không có endpoint phụ
 1. Trao đổi và thảo luận chi tiết với người dùng để làm rõ ý đồ thiết kế, luồng dữ liệu và tương tác của các component trong flow Nhật ký ngày.
 2. Kiểm tra lại toàn bộ dữ liệu backend thật trên staging cho các màn hình timetable, điểm danh, đón trẻ và thể chất; loại bỏ triệt để các dữ liệu mock/cứng.
 3. Rà soát và chỉnh sửa lại giao diện người dùng (UI) theo đúng thiết kế Figma, tận dụng tối đa các component từ thư viện React Native Reusables (RNR) có sẵn của dự án.
+
+---
+
+## 3. Tích hợp tiếp `feat/assessment-tabs` vào `main`
+
+- **Ngày rà soát:** 04/11/2026. **Commit được rà soát:** `c0fedbe`, `f440ef1`, `0d8b210`, `fd76ce8`.
+- **Phạm vi mới:** menu cấu hình/tặng hoa nhanh, tiêu chí lưu trên thiết bị, bản nháp sổ bé ngoan, tổng kết tháng và sheet phản hồi, avatar thật từ danh sách lớp, sửa bản nháp lời bình học kỳ và thông báo lỗi 5xx.
+- **Nhận xét UI:** bản demo được chấp nhận để tiếp tục phát triển, chưa được xác nhận khớp Figma. Cần kiểm tra lại khoảng cách, avatar và sheet trên máy thật; ưu tiên component RNR sẵn có trước khi tự dựng.
+- **Sửa trong lúc tích hợp:** chuyển hàm HTTP lấy avatar ra khỏi hook vào `features/assessment/api/assessment.api.js`; lưu tháng chỉ gửi học sinh có bản nháp thay đổi để tránh upsert cả lớp khi sửa một học sinh. Hai chỉnh sửa này chưa thay đổi contract.
+- **Chưa hoàn tất:** chưa kiểm tra UI trên máy của người dùng sau bốn commit; không xác nhận được lưu tháng/học kỳ thành công vì staging trả 500 khi `records` có phần tử. Sau khi backend sửa, cần thử trên dữ liệu test được phép thay đổi, rồi xác nhận body và luồng lưu. Parent semester feedback vẫn chỉ là UI.
+
+### Rủi ro còn lại khi merge
+
+| Mức | Vấn đề | Việc tiếp theo |
+| --- | --- | --- |
+| Chặn chức năng | `POST /assessment/classes/{classId}/monthly` và `/semester` với `records` không rỗng trả 500 do UUID `req.user.sub` bị ép `BigInt` trong service. `records: []` trả 200 nhưng không lưu gì. | Backend đổi UUID sang `account_id` trước khi ghi `evaluated_by`; kiểm tra lại body và `savedCount > 0` trên staging. |
+| Cao, quyền riêng tư | Phụ huynh gọi được `GET /assessment/classes/{classId}/semester` và nhận cả lớp; mobile chỉ lọc con mình sau khi đã tải dữ liệu. Cách này đã được người dùng cho phép tạm để demo. | Backend giới hạn route lớp theo vai trò và làm endpoint chỉ trả học kỳ của con. Mobile chuyển sang endpoint mới trước khi dùng dữ liệu thật. |
+| Trung bình | Tiêu chí tặng hoa lưu bằng AsyncStorage trên một thiết bị; không đồng bộ giữa giáo viên/thiết bị. | Backend xác nhận tiêu chí là cá nhân hay cấp lớp; nếu cần đồng bộ, thêm API đọc/lưu tiêu chí. |
+| Trung bình | Query đánh giá nạp lại bản nháp khi dữ liệu server đổi; refetch nền có thể làm mất chỉnh sửa chưa lưu. | Khi backend sửa lưu, kiểm tra và bảo vệ bản nháp trong lúc refetch. |
+| Chờ contract | Chưa có đường lưu nhận xét học kỳ của phụ huynh; `GET /parent/good-behavior` có `record.id = null` và `historyMonths` không nhất quán với tháng đang xem. | Backend xác nhận nghiệp vụ, trả trạng thái bản ghi đúng và cung cấp endpoint nếu lời bình phụ huynh được phép lưu. |
+
+### Đề nghị backend cho mobile
+
+1. **Ưu tiên 0 — sửa ghi đánh giá:** áp dụng cùng bước quy đổi `public_id` UUID → `account_id` đang có ở `saveAssessmentRecords` cho `saveMonthlyAssessments` và `saveSemesterAssessments`. Bằng chứng request/response đã che dữ liệu nằm trong `docs/contract-audit.md`. Tiêu chí nhận: giáo viên được phân công gửi một bản ghi hợp lệ nhận 2xx và `savedCount > 0`; GET lại phản ánh thay đổi. Sau đó thống nhất request schema thực tế (`teacherNotes`, `week1Rose`…`week5Rose`) với Swagger, vì hiện cả body theo service lẫn Swagger đều dừng ở 500.
+2. **Ưu tiên 0 — tách dữ liệu học kỳ phụ huynh:** endpoint theo phiên đăng nhập, chỉ trả năm lĩnh vực, kết quả và lời bình của đúng con; route theo lớp cần từ chối token phụ huynh nếu trả danh sách cả lớp. Không dùng số lĩnh vực 90–98 cố định trong code context làm kết quả thật.
+3. **Ưu tiên 1 — phản hồi phụ huynh:** xác nhận có cho phụ huynh lưu nhận xét học kỳ không. Nếu có, cung cấp endpoint đọc/ghi theo con và học kỳ, quyền, body, lỗi và điều kiện sửa; màn mobile hiện chưa nối nút lưu vì chưa có contract.
+4. **Ưu tiên 1 — trạng thái sổ liên lạc:** làm rõ/sửa `record.id` và `historyMonths.isEvaluated`/`rosesCount` của `GET /parent/good-behavior` để mobile xác định tháng đã có phiếu mà không đoán từ lời bình mẫu.
+5. **Settings — cần xác nhận phạm vi:** Swagger hiện có `/auth/change-password`, nên mobile sẽ nối sau khi kiểm tra staging; Swagger chưa thấy API lưu tùy chọn thông báo. Backend xác nhận công tắc thông báo là tùy chọn cá nhân trên server hay chỉ UI. Theme lưu trên thiết bị; đổi ngôn ngữ đang được hoãn theo quyết định sản phẩm.
+
+### Thứ tự hoàn thiện sau merge
+
+1. Người dùng kiểm tra UI/điều hướng assessment trên máy; ghi lỗi cụ thể, chỉnh từng màn theo Figma.
+2. Backend sửa hai POST 500; mobile thử lại lưu một bản ghi test và làm rõ schema.
+3. Backend trả endpoint học kỳ riêng cho phụ huynh; mobile bỏ cách lọc cả lớp trên thiết bị.
+4. Hoàn thiện Setting: đổi mật khẩu theo contract đã xác nhận, rồi bàn và nối tùy chọn thông báo/ngôn ngữ khi chốt nghiệp vụ.

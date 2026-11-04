@@ -5,6 +5,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { ThemedSpinner } from '@/components/ui/themed-spinner';
 import { getParentSchedule, getTimetable } from '@/features/daily/api/daily.api';
+import { getTeacherDayActivities } from '@/features/daily/lib/daily-timetable';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import {
@@ -82,28 +83,7 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
       return [];
     }
 
-    // Teacher slots
-    if (teacherTimetable?.slots?.length > 0) {
-      const daySlots = teacherTimetable.slots.filter((s) => s.fullDate === selectedDateStr);
-      if (daySlots.length > 0) {
-        return daySlots
-          .sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)))
-          .map((s) => ({
-            ...s,
-            id: s.id,
-            time: s.startTime || s.time || '08:00',
-            endTime: s.endTime,
-            activity: s.title || s.shortTitle || s.contentTitle || s.name || 'Hoạt động',
-            description: s.objective || s.planObjective || s.description || s.contentTitle || '',
-            status: s.status,
-            statusLabel: s.statusLabel,
-            goalCode: s.goalCode,
-            domain: s.domain,
-          }));
-      }
-    }
-
-    return [];
+    return teacherTimetable ? getTeacherDayActivities(teacherTimetable.slots, selectedDateStr) : [];
   }, [isParent, parentSchedule, teacherTimetable, selectedDateStr]);
 
   const monthLabel = `Tháng ${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`;

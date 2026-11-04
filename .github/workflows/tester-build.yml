@@ -46,7 +46,7 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon || ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a --no-daemon || ./gradlew assembleDebug --no-daemon
 
       - name: Sign & Package Tester APK
         run: |
@@ -101,6 +101,11 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Select Xcode 16.2
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.2.app || sudo xcode-select -s /Applications/Xcode_16.1.app || true
+          xcodebuild -version
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -111,7 +116,7 @@ jobs:
         run: npm ci
 
       - name: Expo Prebuild (iOS)
-        run: npx expo prebuild --platform ios --clean
+        run: npx expo prebuild --platform ios --clean --no-install
 
       - name: Install CocoaPods
         run: |

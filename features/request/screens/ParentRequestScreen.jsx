@@ -322,12 +322,12 @@ export default function ParentRequestScreen() {
 
               <View>
                 <Text className="text-xs font-medium text-foreground">
-                  Ghi chú cho giáo viên / lý do đón hộ hoặc xin nghỉ
+                  Ghi chú cho giáo viên / lý do ủy quyền đón
                 </Text>
                 <Textarea
                   value={note}
                   onChangeText={setNote}
-                  placeholder="Ví dụ: Đón bé lúc 16:30 bằng xe máy / bé xin phép về quê cùng gia đình..."
+                  placeholder="Ví dụ: Đón bé lúc 16:30 bằng xe máy / người thân đón thay..."
                   className="mt-1.5 min-h-[72px] rounded-md border-border bg-background p-3 text-sm shadow-none"
                 />
               </View>

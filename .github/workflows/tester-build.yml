@@ -1,3 +1,7 @@
+# ──────────────────────────────────────────────────────────────
+# Build Tester (Android APK & iOS IPA)
+# Triggers on push to release/tester or manual dispatch.
+# ──────────────────────────────────────────────────────────────
 name: Build Tester (Android APK & iOS IPA)
 
 on:
@@ -13,7 +17,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# ═══════════════════════════════════════════════════════════════
 jobs:
+  # ─────────────────────────────────────────────────────────────
+  # ANDROID APK
+  # ─────────────────────────────────────────────────────────────
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
@@ -36,6 +44,12 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      # ── Gradle cache (saves ~3-5 min on repeat builds) ──
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
       - name: Install dependencies
         run: npm ci
 
@@ -45,11 +59,17 @@ jobs:
       - name: Expo Doctor Check
         run: npx expo-doctor || true
 
+      # ── Build APK: only arm64 + armv7 (skip x86/x86_64 emulator ABIs) ──
       - name: Build Android APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a --no-daemon || ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleRelease \
+            -PreactNativeArchitectures=arm64-v8a,armeabi-v7a \
+            --no-daemon \
+            --build-cache \
+            -Dorg.gradle.parallel=true \
+            -Dorg.gradle.workers.max=4
 
       - name: Sign & Package Tester APK
         run: |
@@ -66,7 +86,6 @@ jobs:
                 -dname "CN=Sorak Tester, OU=QA, O=Sorak, L=HCM, ST=HCM, C=VN"
 
               BUILD_TOOLS_DIR=$(find $ANDROID_HOME/build-tools -maxdepth 1 -type d | sort -V | tail -n 1)
-              echo "Using apksigner from: $BUILD_TOOLS_DIR"
               $BUILD_TOOLS_DIR/apksigner sign \
                 --ks tester.keystore \
                 --ks-pass pass:android \
@@ -74,11 +93,10 @@ jobs:
                 --out "$APK_NAME" \
                 "$RELEASE_APK"
             else
-              echo "Release APK is already signed."
               cp "$RELEASE_APK" "$APK_NAME"
             fi
           else
-            echo "Falling back to debug APK..."
+            echo "No release APK found, falling back to debug..."
             DEBUG_APK="$(find android/app/build/outputs/apk/debug -name '*.apk' | head -n 1)"
             cp "$DEBUG_APK" "$APK_NAME"
           fi
@@ -94,9 +112,16 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  # ─────────────────────────────────────────────────────────────
+  # iOS IPA (Unsigned for Sideloadly)
+  # ─────────────────────────────────────────────────────────────
   build-ios:
     name: Build iOS IPA (Unsigned for Sideloadly)
-    runs-on: macos-14
+    # ── macos-26 ships Xcode 26 with Swift 6.2 ──
+    # expo-modules-jsi requires swift-tools-version: 6.2
+    # macos-14 only has up to Xcode 16.2 (Swift 6.0) → fails
+    # macos-15 only has up to Xcode 16.4 (Swift 6.0) → fails
+    runs-on: macos-26
     env:
       EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL || 'https://testmamnonhontre.sorak.io.vn/api' }}
 
@@ -104,10 +129,11 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16.2
+      - name: Verify Xcode & Swift versions
         run: |
-          sudo xcode-select -s /Applications/Xcode_16.2.app || sudo xcode-select -s /Applications/Xcode_16.1.app || true
           xcodebuild -version
+          swift --version
+          echo "Swift tools version 6.2 requirement: ✓ (Xcode 26 on macos-26)"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -126,22 +152,19 @@ jobs:
           cd ios
           pod install
 
+      # ── Scheme is hardcoded to 'sorakrnr' ──
+      # expo prebuild generates the Xcode project with scheme name
+      # derived from the slug in app.json ("sorak-rnr" → "sorakrnr").
+      # Previous attempts used schemes[0] which picked "EXConstants".
       - name: Build Xcode Release (Unsigned)
         run: |
           cd ios
           WORKSPACE="$(find . -name '*.xcworkspace' -maxdepth 1 | head -n 1)"
-          SCHEMES_JSON="$(xcodebuild -workspace "$WORKSPACE" -list -json)"
-          echo "Available schemes: $SCHEMES_JSON"
-          SCHEME="$(echo "$SCHEMES_JSON" | node -e "
-            const fs = require('fs');
-            const data = JSON.parse(fs.readFileSync(0, 'utf8'));
-            const schemes = (data.workspace && data.workspace.schemes) || [];
-            const found = schemes.find(s => s === 'sorakrnr' || s === 'sorak-rnr')
-              || schemes.find(s => !s.startsWith('Pods') && !s.startsWith('EX') && !s.startsWith('React'))
-              || 'sorakrnr';
-            console.log(found);
-          ")"
-          echo "Building workspace '$WORKSPACE' with scheme '$SCHEME' (Unsigned Release)"
+          SCHEME="sorakrnr"
+
+          echo "── Available schemes ──"
+          xcodebuild -workspace "$WORKSPACE" -list || true
+          echo "── Building: workspace=$WORKSPACE scheme=$SCHEME ──"
 
           xcodebuild -workspace "$WORKSPACE" \
             -scheme "$SCHEME" \
@@ -161,12 +184,12 @@ jobs:
           set -euo pipefail
           APP_PATH="$(find ios/build/Build/Products/Release-iphoneos -name '*.app' -type d | head -n 1 || true)"
           if [ -z "$APP_PATH" ]; then
-            echo "Searching across build directory for .app bundle..."
-            APP_PATH="$(find ios/build -name '*.app' -type d | grep -v 'DerivedData.*Intermediate' | head -n 1)"
+            echo "Searching across build directory..."
+            APP_PATH="$(find ios/build -name '*.app' -type d | grep -v 'Intermediates' | head -n 1)"
           fi
 
           if [ -z "$APP_PATH" ]; then
-            echo "Error: .app bundle not found under ios/build"
+            echo "::error::No .app bundle found under ios/build"
             find ios/build -maxdepth 5 -type d || true
             exit 1
           fi

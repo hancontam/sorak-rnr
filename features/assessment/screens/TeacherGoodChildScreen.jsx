@@ -192,7 +192,12 @@ export default function TeacherGoodChildScreen() {
   }
 
   async function submitMonthly() {
-    const records = students.map((student) => ({
+    const changedStudents = students.filter(
+      (student) =>
+        JSON.stringify(draft[student.id]) !== JSON.stringify(initialDraft[student.id])
+    );
+    if (changedStudents.length === 0) return;
+    const records = changedStudents.map((student) => ({
       studentId: student.id,
       week1Rose: Boolean(draft[student.id]?.week1Rose),
       week2Rose: Boolean(draft[student.id]?.week2Rose),

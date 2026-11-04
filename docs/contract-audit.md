@@ -27,6 +27,7 @@ Nguồn tham khảo: [OpenAPI JSON](https://mamnonhontre.sorak.io.vn/docs.json),
 | `GET /classes/{id}/students` | Khai báo `page` và `limit` (mặc định 20) nhưng không mô tả rằng staging trả toàn bộ danh sách, bỏ qua giới hạn trang. Response `data` chỉ ghi `object`, thiếu `class` và `students`. | Giáo viên test gọi lớp được phân công trả 200 với `data.class` và 25 mục trong `data.students`. Gọi thêm `?page=1&limit=1` vẫn trả 25 mục; `?search=<chuỗi không khớp>` trả 0 mục. Mobile lọc danh sách đã tải tại chỗ theo tên/mã. | Chỉ kiểm tra lớp của tài khoản giáo viên test. |
 | `GET /students/{id}` | Response `data` chỉ ghi `object`, thiếu cấu trúc hồ sơ học sinh. | Giáo viên và phụ huynh test đều nhận 200; `data` là hồ sơ trực tiếp, gồm `id`, `studentCode`, `fullName`, `dateOfBirth`, `gender`, `currentClass`, `parents` và các trường sức khỏe nền. | Đã kiểm tra học sinh thuộc lớp/quyền của hai tài khoản test. |
 | `GET /classes/{id}/student-report` | Thiếu query `studentId` và cấu trúc `data` (chỉ ghi `object`). | Gọi `?studentId=<id học sinh>` bằng giáo viên và phụ huynh test trả 200; `data` gồm `student`, `health`, `attendance`, `assessments`, `authorizations`, `classInfo`, `semesterInfo`. `health.history` có ngày đo, chiều cao, cân nặng, z-score để dựng biểu đồ. | Chưa kiểm tra các trường hợp lỗi hoặc học sinh ngoài lớp. |
+
 ## Đánh giá giai đoạn / Kết quả đánh giá — kiểm tra 04/11/2026 (UTC+7)
 
 | Method/path | Swagger sai hoặc thiếu | Staging đã quan sát / cách kiểm tra | Giới hạn |
@@ -76,3 +77,33 @@ Nguồn tham khảo: [OpenAPI JSON](https://mamnonhontre.sorak.io.vn/docs.json),
 **Chưa xác nhận:** nhánh lưu thành công trên staging, và body thật sự đúng là `teacherNotes`/`weekNRose` (theo service) hay `overallResult`/`awardedStar` (theo Swagger) — cả hai đều 500 trước khi tới bước đọc field.
 
 **Dữ liệu thử:** mọi lần thử đều 500 nên không tạo hay sửa bản ghi nào trên staging.
+
+## Thông báo — kiểm tra 04/11/2026 (UTC+7)
+
+| Method/path | Swagger sai hoặc thiếu | Staging đã quan sát / cách kiểm tra | Giới hạn |
+| --- | --- | --- | --- |
+| `GET /parent/notifications` | Swagger chỉ mô tả route dưới nhóm Parent, thiếu mô tả cấu trúc `data.unreadCount` và `data.notifications`. Thiếu tài liệu cho vai trò Giáo viên. | Staging cho phép cả Phụ huynh và Giáo viên test gọi và nhận 200; `data` có `{ unreadCount, notifications }` lọc theo `account_id` của tài khoản đăng nhập. | Tài khoản test hiện có `unreadCount: 0` và danh sách rỗng. |
+| `PATCH /parent/notifications/{id}/read` | Response `data` chỉ ghi `object`. | Staging nhận publicId của thông báo và cập nhật `is_read = true`, trả 200. | Chưa có endpoint riêng `/teachers/notifications` hay `/teacher/notifications` (trả 404), mobile dùng endpoint `/parent/notifications` chung. |
+
+## Yêu cầu đón hộ / Ủy quyền đón trẻ & Xin nghỉ — kiểm tra 04/11/2026 (UTC+7)
+
+| Method/path | Swagger sai hoặc thiếu | Staging đã quan sát / cách kiểm tra | Giới hạn |
+| --- | --- | --- | --- |
+| `GET /parent/requests` | Swagger thiếu mô tả chi tiết trường `siblings`, `student`, và mảng `requests`. | Gọi bằng tài khoản Phụ huynh test trả 200 với danh sách anh chị em, học sinh hiện tại và các đơn đã gửi. | Phụ huynh test ban đầu có mảng `requests: []`. |
+| `POST /parent/requests/pickup` | Swagger chỉ mô tả chung `PickupRequest`. Thiếu danh sách trường bắt buộc (`pickup_person_name`, `pickup_person_phone`, `relationship`, `start_date`, `end_date`). | Staging validation từ chối 400 nếu thiếu tên/SĐT/quan hệ/ngày bắt đầu-kết thúc. Khi gửi đủ thông tin hợp lệ, trả 200/201 tạo đơn thành công. | Chỉ kiểm tra với tài khoản phụ huynh test. |
+| `GET /attendance/classes/{classId}/authorizations` | Swagger chỉ ghi response `data` là `object`. | Giáo viên gọi lớp phân công trả 200 với `{ authorizations, stats: { pendingCount, approvedCount, rejectedCount, totalCount } }`. Danh sách đơn chứa đúng hồ sơ mẫu bé Mai Phương Linh như Figma. | Chỉ kiểm tra lớp của giáo viên test. |
+| `PATCH /attendance/classes/{classId}/authorizations/{authId}/approve` | Response chỉ mô tả chung `object`. | Nhận ID đơn và cập nhật trạng thái `APPROVED`, trả 200. | Đã xác nhận trên đơn mẫu của lớp. |
+| `PATCH /attendance/classes/{classId}/authorizations/{authId}/reject` | Swagger thiếu mô tả body `{ reason }`. | Nhận ID đơn và lý do hủy, cập nhật trạng thái `REJECTED`, trả 200. | Đã kiểm tra nhánh từ chối đơn. |
+| `POST /parent/requests/leave` (Đơn xin nghỉ riêng) | Chưa có trong Swagger và chưa có trong router backend staging (gọi thử trả 404/401). | Backend chưa cung cấp endpoint `leave` độc lập; việc xin nghỉ/nghỉ có phép được theo dõi qua trạng thái `EXCUSED_ABSENCE` (CP) trong bảng `attendance` và ghi chú trong đơn đón/ủy thác. | Mobile cho phép phụ huynh ghi rõ lý do xin nghỉ/đón hộ trong trường ghi chú và kết nối endpoint ủy quyền đã xác thực trên staging. |
+
+## Nhật ký ngày, Điểm danh, Đón trẻ & Sức khỏe — kiểm tra 04/11/2026 (UTC+7)
+
+| Method/path | Swagger sai hoặc thiếu | Staging đã quan sát / cách kiểm tra | Giới hạn |
+| --- | --- | --- | --- |
+| `GET /attendance/classes/{classId}/timetable` | Swagger chỉ ghi `object` chung chung, thiếu cấu trúc `classInfo`, `stats`, `attendanceDays`, `healthDays`, `dismissalDays`, `days`, `slots`, `students`. | Gọi bằng giáo viên test trả 200 với đầy đủ thời khóa biểu các ngày trong tuần, danh sách hoạt động, và học sinh của lớp. | Đã xác nhận trên lớp phân công của giáo viên test. |
+| `POST /attendance/classes/{classId}/records` | Swagger thiếu cấu trúc mảng `records: [{ studentId, status, notes }]`. Giá trị status yêu cầu `PRESENT`, `EXCUSED_ABSENCE`, `UNEXCUSED_ABSENCE`. | Gửi body `{ date: "YYYY-MM-DD", records: [{ studentId, status: "PRESENT", notes }] }` trả 200, `updatedCount: 1`. | Đã kiểm tra và lưu thành công trên staging. |
+| `GET /attendance/classes/{classId}/dismissal` | Swagger chỉ ghi `object`. Thiếu cấu trúc học sinh kèm thông tin đón (`pickupPersonName`, `pickupTime`, `status`). | Gọi bằng giáo viên test trả 200 với danh sách học sinh và trạng thái đón trẻ trong ngày. | Chỉ áp dụng cho các học sinh có trạng thái điểm danh `PRESENT`. |
+| `POST /attendance/classes/{classId}/dismissal` | Swagger thiếu mô tả body mảng `records: [{ studentId, pickupPersonName, pickupTime, pickupNote, status }]`. | Gửi ghi nhận đón trả 200 với `updatedCount`. Yêu cầu học sinh phải có điểm danh `PRESENT` trước khi ghi nhận đón. | Đã kiểm tra và xác nhận trên staging. |
+| `GET /student-health/classes/{classId}` | Swagger chỉ ghi `object`, thiếu danh sách `students` kèm các chỉ số đo (`height`, `weight`, `bmi`, `whoZScores`). | Gọi bằng giáo viên test trả 200 với hồ sơ thể chất học sinh. | Đã xác nhận trên lớp phân công của giáo viên. |
+| `POST /student-health/classes/{classId}/records` | Swagger thiếu cấu trúc mảng `records: [{ studentId, height, weight, note }]`. | Gửi danh sách học sinh có chiều cao và cân nặng hợp lệ trả 200, backend tự động tính chỉ số BMI và WHO z-score. | Không cho phép đo vào ngày tương lai (trả 400). |
+| `GET /parent/schedule` | Swagger thiếu mô tả cấu trúc `routineSlots`, `homeroomClass`. | Gọi bằng phụ huynh test trả 200 với thời khóa biểu các khung giờ sinh hoạt trong ngày của trẻ. | Đã kiểm tra trên tài khoản phụ huynh test. |

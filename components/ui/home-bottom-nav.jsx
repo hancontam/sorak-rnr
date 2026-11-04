@@ -40,6 +40,8 @@ export function HomeBottomNav({
   showSearch = false,
   search = '',
   onSearchChange,
+  onAuthorizationPress,
+  onNotificationPress,
 }) {
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
@@ -96,13 +98,19 @@ export function HomeBottomNav({
           icon={isParent ? Inbox : UserRoundCheck}
           label={isParent ? 'Gửi yêu cầu uỷ quyền đón trẻ' : 'Đơn uỷ quyền đón trẻ'}
           count={authorizationCount}
+          onPress={onAuthorizationPress}
         />
         <View className="h-10 flex-1 items-center justify-center rounded-lg border border-b-0 border-border bg-background">
           <Text className="text-base font-light tracking-tight text-foreground" numberOfLines={1}>
             {className}
           </Text>
         </View>
-        <NavAction icon={Bell} label="Thông báo" count={notificationCount} />
+        <NavAction
+          icon={Bell}
+          label="Thông báo"
+          count={notificationCount}
+          onPress={onNotificationPress}
+        />
       </View>
       <Svg
         pointerEvents="none"

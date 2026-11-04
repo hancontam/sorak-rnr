@@ -1,5 +1,6 @@
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { useRouter } from 'expo-router';
 import {
   CalendarCheck2,
   CalendarDays,
@@ -21,20 +22,23 @@ const TAB_GAP = 8;
 const TRANSITION_DURATION = 260;
 
 const RECORD_ITEMS = [
-  { label: 'Ghi nhận điểm danh', icon: CalendarCheck2 },
-  { label: 'Ghi nhận đón trẻ', icon: UserRoundCheck },
-  { label: 'Ghi nhận sức khoẻ', icon: HeartPulse },
+  { label: 'Ghi nhận điểm danh', icon: CalendarCheck2, route: '/daily/attendance' },
+  { label: 'Ghi nhận đón trẻ', icon: UserRoundCheck, route: '/daily/pickup' },
+  { label: 'Ghi nhận sức khoẻ', icon: HeartPulse, route: '/daily/health' },
 ];
 
-function DailyRecordMenu() {
+function DailyRecordMenu({ onItemPress }) {
   return (
     <View className="absolute left-0 right-0 top-14 z-20 border border-border bg-popover px-6 py-2 shadow-lg shadow-black/15">
-      {RECORD_ITEMS.map(({ label, icon }) => (
-        <View key={label} className="h-10 flex-row items-center gap-3 rounded-md pl-4 pr-2">
+      {RECORD_ITEMS.map(({ label, icon, route }) => (
+        <Pressable
+          key={label}
+          onPress={() => onItemPress?.(route)}
+          className="h-10 flex-row items-center gap-3 rounded-md pl-4 pr-2 active:bg-accent/20">
           <Icon as={icon} size={16} strokeWidth={2} className="text-foreground" />
           <Text className="flex-1 text-sm font-medium text-popover-foreground">{label}</Text>
           <Icon as={ChevronRight} size={14} strokeWidth={2} className="text-foreground" />
-        </View>
+        </Pressable>
       ))}
     </View>
   );
@@ -123,6 +127,7 @@ function HomeTabButton({
 }
 
 export function HomeSectionTabs({ isParent, children, onTabChange }) {
+  const router = useRouter();
   const carouselRef = React.useRef(null);
   const progress = useSharedValue(1);
   const { width } = useWindowDimensions();
@@ -190,7 +195,12 @@ export function HomeSectionTabs({ isParent, children, onTabChange }) {
             accessibilityLabel="Đóng menu ghi nhận"
             style={{ position: 'absolute', top: 56, left: 0, right: 0, bottom: 0, zIndex: 10 }}
           />
-          <DailyRecordMenu />
+          <DailyRecordMenu
+            onItemPress={(route) => {
+              setMenuOpen(false);
+              router.push(route);
+            }}
+          />
         </>
       ) : null}
     </View>

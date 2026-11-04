@@ -1,5 +1,10 @@
 import { apiClient } from '@/shared/api/client';
 
+export async function fetchAssessmentClassStudents(classId) {
+  const response = await apiClient.get(`/classes/${encodeURIComponent(classId)}/students`);
+  return response.data.data;
+}
+
 // Giáo viên: đánh giá học kỳ của lớp được phân công.
 export async function fetchSemesterAssessment({ classId, semester = 'SEMESTER_1' }) {
   const response = await apiClient.get(`/assessment/classes/${classId}/semester`, {

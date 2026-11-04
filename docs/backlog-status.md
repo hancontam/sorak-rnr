@@ -9,9 +9,9 @@
 | 1.1 | Auth | Tất cả | Welcome | Màn chào | **Done** |  |  |
 | 1.2 | Auth | Tất cả | Chọn vai trò | Điều hướng đăng nhập | **Done** |  | Nếu kết quả là BGH, mobile có thể hiện thông báo “Tài khoản BGH vui lòng sử dụng dashboard web” và không mở Home giáo viên. Việc kiểm tra này phải diễn ra sau khi nhận kết quả đăng nhập, hoặc sau OTP nếu tài khoản bật 2FA; |
 | 1.2.1.1 | Auth | Phụ huynh | Nhập tài khoản | Form tài khoản | **Done** |  |  |
-| 1.2.1.2 | Auth | Phụ huynh | Nhập mật khẩu | Form mật khẩu | **Done** | Đã thay hoàn toàn bypass bằng WebView native Turnstile, cấp quyền INTERNET/ACCESS_NETWORK_STATE trong app.json. Tài khoản test2 hiện dùng HS26003; cần xác minh lại trên bản tester. |  |
+| 1.2.1.2 | Auth | Phụ huynh | Nhập mật khẩu | Form mật khẩu | **Done** | Đã thay hoàn toàn bypass bằng WebView native Turnstile, cấp quyền INTERNET/ACCESS_NETWORK_STATE trong app.json. Đã kiểm thử thành công tài khoản PH HS26003 trên Staging test2. |  |
 | 1.2.2.1 | Auth | Giáo viên | Nhập tài khoản | Form tài khoản | **Done** |  |  |
-| 1.2.2.2 | Auth | Giáo viên | Nhập mật khẩu | Form mật khẩu | **Done** | Đã thay hoàn toàn bypass bằng WebView native Turnstile và luồng 2FA OTP. Đã kiểm thử thành công tài khoản CB26002 trên Staging test2. |  |
+| 1.2.2.2 | Auth | Giáo viên | Nhập mật khẩu | Form mật khẩu | **Done** | WebView native Turnstile và 2FA đã nối staging test2. Tài khoản giáo viên test hiện là CB26002; cần xác minh lại đăng nhập trên bản tester. |  |
 | 1.3 | Auth | Phụ huynh | Quên mật khẩu | Thông báo liên hệ | **Done** |  |  |
 | 1.3.1 | Auth | Giáo viên | Xác nhận tài khoản | Yêu cầu OTP | **Done** | Dùng mã cán bộ đã nhập, không nhập email; OTP gửi đến email liên kết và chỉ hiện email đã che. Đã kiểm tra staging. |  |
 | 1.3.2 | Auth | Giáo viên | Nhập OTP | Xác thực OTP | **Done** | OTP giáo viên đã code và nhánh đúng mã đã kiểm tra staging. Tester kiểm tra thêm mã sai/hết hạn, bàn phím; phát hiện lỗi thì mở lại. | cái này có thể cho done, business rule test lại và báo nếu sai thì sửa |

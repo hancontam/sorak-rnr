@@ -56,7 +56,11 @@ export default function RootLayout() {
               <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
               <Stack.Screen
                 name="settings"
-                options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+                options={{
+                  presentation: 'transparentModal',
+                  animation: 'slide_from_bottom',
+                  contentStyle: { backgroundColor: 'transparent' },
+                }}
               />
               <Stack.Protected guard={isTeacher}>
                 <Stack.Screen

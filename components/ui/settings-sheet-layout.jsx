@@ -8,7 +8,7 @@ export function SettingsSheetLayout({ title, onBack, children }) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View className="flex-1 bg-secondary">
+    <View className="flex-1 bg-transparent">
       <Pressable
         style={{ height: insets.top + 24 }}
         onPress={onBack}

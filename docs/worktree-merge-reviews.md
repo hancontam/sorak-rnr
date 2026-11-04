@@ -196,3 +196,12 @@ Nguồn chính thức: [Cloudflare mobile WebView](https://developers.cloudflare
 - Kiểm tra test2 bằng HTTP tương đương Postman: student-report/good-behavior/requests/schedule trả 200; stats khớp đơn mẫu; phản hồi rỗng trả 400. Không gửi lời nhắn thật hoặc tạo/hủy đơn trong lượt này. Cả hai tài khoản PH được cấp đều có semesterAssessments=[]; tài khoản bổ sung kiểm tra cả hai học kỳ vẫn rỗng, student-report xác nhận hasSem1=false/hasSem2=false. Chưa xác nhận việc backend đã bỏ mock trong nhánh có dữ liệu. Không tìm thấy API phản hồi học kỳ riêng; phản hồi hiện thuộc Sổ liên lạc tháng.
 - UI web cục bộ với dữ liệu staging qua proxy và fixture riêng cho login/CAPTCHA: Hồ sơ trẻ không có danh sách, tab sức khỏe hiển thị WHO, Nhật ký không có tác vụ GV, menu Kết quả mở cả hai học kỳ và sổ liên lạc; form phản hồi rỗng bị khóa và nhập nội dung thì bật; lịch sử đơn hiện stats. Không gọi endpoint lớp của GV trong toàn bộ luồng; không có page error. Người dùng đã xác nhận cả ba tab hiển thị trên app native. Script/ảnh kiểm tra nằm ngoài repo; không tạo test file. Web export 27 route và Android Hermes export thành công.
 - Cần backend để hoàn tất QA: mẫu phụ huynh có đánh giá học kỳ thật (domains, nhận xét), xác nhận field của nhánh có dữ liệu; bổ sung Swagger cho `/parent/student-report`, schema thống kê đơn và response/period của good-behavior; endpoint phản hồi học kỳ nếu sản phẩm yêu cầu gửi riêng ở đó. Cần kiểm tra gửi phản hồi thật từ thiết bị khi người dùng chủ động gửi.
+
+## 10. Setting phủ trực tiếp trên Home — 05/11/2026
+
+- Ảnh thiết bị cho thấy hai lớp: iOS modal kiểu page sheet bao ngoài, sau đó SettingsSheetLayout lại có nền secondary và card bo góc riêng. Nền modal/spacer trắng che Home và tạo cảm giác sheet nằm trong một màn trắng khác.
+- Đổi route settings ở root sang transparentModal với contentStyle trong suốt; đặt contentStyle trong suốt cho stack con và bỏ nền secondary của SettingsSheetLayout. Chỉ giữ một lớp dim ở layout settings, bên dưới navigator, để khi push/pop không cộng nhiều lớp dim. Card vẫn dùng token bg-card và cùng khoảng cách/bo góc.
+- Home được giữ bên dưới; menu Setting mở từ dưới lên; các màn con vẫn slide_from_right và back theo stack cũ. Cả GV/PH dùng chung sửa đổi. Không thay đổi API, hook hoặc flow OTP.
+- Kiểm tra parse JSX và diff; cần reload ứng dụng vì thay presentation của route. Đang chờ xác nhận giao diện native, không dùng kết quả parse để coi đã QA ảnh thiết bị.
+
+Tham chiếu: [React Navigation Native Stack — transparentModal](https://reactnavigation.org/docs/native-stack-navigator/).

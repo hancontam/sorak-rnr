@@ -6,11 +6,14 @@ import ParentReportScreen from '@/features/report/screens/ParentReportScreen';
 import ReportListScreen from '@/features/report/screens/ReportListScreen';
 import { useRouter } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
+import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [activeTabIndex, setActiveTabIndex] = useState(1);
+  const [studentSearch, setStudentSearch] = useState('');
   const user = useAuthStore((state) => state.user);
   const name = user?.fullName || user?.name || user?.username || 'Sorak';
   const username = user?.username || user?.employeeCode || name;
@@ -48,14 +51,25 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       </View>
-      <HomeSectionTabs isParent={isParent}>
-        {isParent ? <ParentReportScreen /> : <ReportListScreen classId={classId} />}
+      <HomeSectionTabs isParent={isParent} onTabChange={setActiveTabIndex}>
+        {isParent ? (
+          <ParentReportScreen />
+        ) : (
+          <ReportListScreen classId={classId} search={studentSearch} />
+        )}
         <Text className="text-xl font-semibold">Xin chào, {name}</Text>
         <Text className="text-xl font-semibold">
           {isParent ? 'Kết quả đánh giá' : 'Đánh giá giai đoạn'}
         </Text>
       </HomeSectionTabs>
-      <HomeBottomNav isParent={isParent} className={className} notificationCount={2} />
+      <HomeBottomNav
+        isParent={isParent}
+        className={className}
+        notificationCount={2}
+        showSearch={!isParent && activeTabIndex === 0}
+        search={studentSearch}
+        onSearchChange={setStudentSearch}
+      />
     </SafeAreaView>
   );
 }

@@ -50,7 +50,7 @@ export default function RootLayout() {
             </Stack.Protected>
             <Stack.Protected guard={!!user || isRestoring}>
               <Stack.Screen name="home" />
-              <Stack.Screen name="report" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="report/[studentId]" options={{ animation: 'slide_from_right' }} />
               <Stack.Screen
                 name="settings"
                 options={{ presentation: 'modal', animation: 'slide_from_bottom' }}

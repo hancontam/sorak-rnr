@@ -122,7 +122,7 @@ function HomeTabButton({
   );
 }
 
-export function HomeSectionTabs({ isParent, children }) {
+export function HomeSectionTabs({ isParent, children, onTabChange }) {
   const carouselRef = React.useRef(null);
   const progress = useSharedValue(1);
   const { width } = useWindowDimensions();
@@ -171,8 +171,13 @@ export function HomeSectionTabs({ isParent, children }) {
         loop={false}
         progress={progress}
         animation={{ type: 'timing', duration: TRANSITION_DURATION }}
+        onConfigurePanGesture={(gesture) => {
+          gesture.activeOffsetX([-12, 12]);
+          gesture.failOffsetY([-10, 10]);
+        }}
         onSnapToItem={(index) => {
           setSelectedIndex(index);
+          onTabChange?.(index);
           setMenuOpen(false);
         }}
         keyExtractor={(item) => item}

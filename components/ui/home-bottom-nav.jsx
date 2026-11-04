@@ -1,11 +1,13 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
+import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { THEME } from '@/lib/theme';
 import { Bell, Inbox, UserRoundCheck } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
-import { View } from 'react-native';
+import * as React from 'react';
+import { Keyboard, Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
@@ -35,18 +37,37 @@ export function HomeBottomNav({
   className,
   authorizationCount = 0,
   notificationCount = 0,
+  showSearch = false,
+  search = '',
+  onSearchChange,
 }) {
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
+  const [iosKeyboardHeight, setIosKeyboardHeight] = React.useState(0);
+  React.useEffect(() => {
+    if (Platform.OS !== 'ios') return undefined;
+    if (!showSearch) {
+      setIosKeyboardHeight(0);
+      return undefined;
+    }
+    const show = Keyboard.addListener('keyboardWillShow', (event) => {
+      setIosKeyboardHeight(event.endCoordinates?.height || 0);
+    });
+    const hide = Keyboard.addListener('keyboardWillHide', () => setIosKeyboardHeight(0));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, [showSearch]);
   const footerBottom = Math.max(insets.bottom - 12, 22);
-  const fadeHeight = footerBottom + 56;
+  const fadeHeight = footerBottom + 56 + (showSearch ? 64 : 0);
   const backgroundColor = THEME[colorScheme === 'dark' ? 'dark' : 'light'].background;
 
   return (
     <View
       pointerEvents="box-none"
-      className="absolute bottom-0 left-0 right-0"
-      style={{ height: fadeHeight }}>
+      className="absolute left-0 right-0"
+      style={{ bottom: showSearch ? iosKeyboardHeight : 0, height: fadeHeight }}>
       <Svg pointerEvents="none" width="100%" height="100%" style={{ position: 'absolute' }}>
         <Defs>
           <LinearGradient id="home-footer-fade" x1="0" y1="0" x2="0" y2="1">
@@ -57,6 +78,17 @@ export function HomeBottomNav({
         </Defs>
         <Rect width="100%" height="100%" fill="url(#home-footer-fade)" />
       </Svg>
+      {showSearch ? (
+        <Input
+          value={search}
+          onChangeText={onSearchChange}
+          placeholder="Tìm học sinh..."
+          accessibilityLabel="Tìm học sinh theo tên hoặc mã"
+          autoCorrect={false}
+          className="absolute h-12 w-auto rounded-lg border-border bg-background px-4 text-base shadow-none"
+          style={{ left: 16, right: 16, bottom: footerBottom + 56 }}
+        />
+      ) : null}
       <View
         className="absolute left-4 right-4 h-10 flex-row items-center gap-2"
         style={{ bottom: footerBottom }}>

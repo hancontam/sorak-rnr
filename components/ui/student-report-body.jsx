@@ -5,7 +5,9 @@ import { Text } from '@/components/ui/text';
 import { WhoGrowthCharts } from '@/components/ui/who-growth-chart';
 import { formatDate, formatGender } from '@/features/report/lib/report-format';
 import { useRef, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import { Carousel } from 'react-native-reanimated-carousel';
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 const TABS = [
   ['profile', 'Hồ sơ lý lịch'],
@@ -14,6 +16,31 @@ const TABS = [
   ['assessment', 'Đánh giá Hoạt động'],
   ['authorization', 'Ủy quyền đưa đón'],
 ];
+const TAB_TRANSITION_DURATION = 280;
+
+function ReportTabButton({ label, index, selected, progress, onPress, onLayout }) {
+  const activeStyle = useAnimatedStyle(() => ({
+    opacity: Math.max(0, 1 - Math.abs(progress.value - index)),
+  }));
+  return (
+    <Pressable
+      onPress={onPress}
+      onLayout={onLayout}
+      accessibilityRole="tab"
+      accessibilityState={{ selected }}
+      className="h-10 items-center justify-center rounded-md px-3">
+      <Animated.View
+        pointerEvents="none"
+        style={activeStyle}
+        className="absolute inset-0 rounded-md border border-border bg-background shadow-sm shadow-black/5"
+      />
+      <Text
+        className={`text-[13px] font-medium ${selected ? 'text-foreground' : 'text-muted-foreground'}`}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
 
 function SectionTitle({ children, detail }) {
   return (
@@ -274,10 +301,26 @@ function AuthorizationTab({ authorizations, semesterInfo }) {
 }
 
 export function StudentReportBody({ student, report, bottomInset = 40 }) {
-  const [tab, setTab] = useState('profile');
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const tabScroll = useRef(null);
+  const carousel = useRef(null);
+  const tabLayouts = useRef({});
+  const progress = useSharedValue(0);
+  const { width } = useWindowDimensions();
   const className = student?.currentClass?.className || report?.classInfo?.name;
   const status = student?.status === 'STUDYING' ? 'Đang học' : student?.status || 'Đang học';
+  const showTab = (tab) => {
+    if (tab === 'profile') return <ProfileTab student={student} />;
+    if (tab === 'health') return <HealthTab student={student} health={report?.health} />;
+    if (tab === 'attendance') return <AttendanceTab attendance={report?.attendance} />;
+    if (tab === 'assessment') return <AssessmentTab assessments={report?.assessments} />;
+    return (
+      <AuthorizationTab
+        authorizations={report?.authorizations}
+        semesterInfo={report?.semesterInfo}
+      />
+    );
+  };
 
   return (
     <View className="flex-1">
@@ -302,40 +345,55 @@ export function StudentReportBody({ student, report, bottomInset = 40 }) {
         contentContainerStyle={{ paddingHorizontal: 24, gap: 8 }}
         className="max-h-12 min-h-12">
         {TABS.map(([value, label], index) => (
-          <Pressable
+          <ReportTabButton
             key={value}
-            onPress={() => {
-              setTab(value);
-              tabScroll.current?.scrollTo({ x: Math.max(0, index * 128 - 60), animated: true });
+            label={label}
+            index={index}
+            selected={selectedIndex === index}
+            progress={progress}
+            onLayout={(event) => {
+              tabLayouts.current[index] = event.nativeEvent.layout;
             }}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: tab === value }}
-            className={`h-10 items-center justify-center rounded-md bg-background px-3 ${tab === value ? 'border border-border shadow-sm shadow-black/5' : ''}`}>
-            <Text
-              className={`text-[13px] font-medium ${tab === value ? 'text-foreground' : 'text-muted-foreground'}`}>
-              {label}
-            </Text>
-          </Pressable>
+            onPress={() => carousel.current?.scrollTo({ index })}
+          />
         ))}
       </ScrollView>
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{
-          paddingHorizontal: 24,
-          paddingTop: 16,
-          paddingBottom: bottomInset,
-        }}>
-        {tab === 'profile' ? <ProfileTab student={student} /> : null}
-        {tab === 'health' ? <HealthTab student={student} health={report?.health} /> : null}
-        {tab === 'attendance' ? <AttendanceTab attendance={report?.attendance} /> : null}
-        {tab === 'assessment' ? <AssessmentTab assessments={report?.assessments} /> : null}
-        {tab === 'authorization' ? (
-          <AuthorizationTab
-            authorizations={report?.authorizations}
-            semesterInfo={report?.semesterInfo}
-          />
-        ) : null}
-      </ScrollView>
+      <Carousel
+        ref={carousel}
+        style={{ flex: 1, width: '100%' }}
+        data={TABS}
+        defaultIndex={0}
+        loop={false}
+        progress={progress}
+        animation={{ type: 'timing', duration: TAB_TRANSITION_DURATION }}
+        onConfigurePanGesture={(gesture) => {
+          gesture.activeOffsetX([-12, 12]);
+          gesture.failOffsetY([-10, 10]);
+        }}
+        onSnapToItem={(index) => {
+          setSelectedIndex(index);
+          const layout = tabLayouts.current[index];
+          if (layout) {
+            tabScroll.current?.scrollTo({
+              x: Math.max(0, layout.x + layout.width / 2 - width / 2),
+              animated: true,
+            });
+          }
+        }}
+        keyExtractor={([value]) => value}
+        renderItem={({ item }) => (
+          <ScrollView
+            nestedScrollEnabled
+            className="flex-1"
+            contentContainerStyle={{
+              paddingHorizontal: 24,
+              paddingTop: 16,
+              paddingBottom: bottomInset,
+            }}>
+            {showTab(item[0])}
+          </ScrollView>
+        )}
+      />
     </View>
   );
 }

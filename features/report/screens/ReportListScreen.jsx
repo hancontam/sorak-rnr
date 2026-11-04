@@ -1,38 +1,17 @@
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { StudentListCard } from '@/components/ui/student-list-card';
 import { Text } from '@/components/ui/text';
 import { getClassStudents } from '@/features/report/api/report.api';
 import { getRequestError } from '@/features/report/lib/report-format';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Keyboard,
-  Platform,
-  RefreshControl,
-  View,
-} from 'react-native';
+import { useMemo } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function ReportListScreen({ classId }) {
+export default function ReportListScreen({ classId, search }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [search, setSearch] = useState('');
-  const [iosKeyboardHeight, setIosKeyboardHeight] = useState(0);
-  useEffect(() => {
-    if (Platform.OS !== 'ios') return undefined;
-    const show = Keyboard.addListener('keyboardWillShow', (event) => {
-      setIosKeyboardHeight(event.endCoordinates?.height || 0);
-    });
-    const hide = Keyboard.addListener('keyboardWillHide', () => setIosKeyboardHeight(0));
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
   const { data, isPending, isRefetching, error, refetch } = useQuery({
     queryKey: ['class-students', classId],
     queryFn: () => getClassStudents(classId),
@@ -48,9 +27,7 @@ export default function ReportListScreen({ classId }) {
         .includes(term)
     );
   }, [search, students]);
-  const searchBottom = iosKeyboardHeight
-    ? iosKeyboardHeight + 16
-    : Math.max(insets.bottom - 12, 22) + 56;
+  const footerSpace = Math.max(insets.bottom - 12, 22) + 120;
 
   return (
     <View className="flex-1">
@@ -84,7 +61,8 @@ export default function ReportListScreen({ classId }) {
             />
           )}
           ItemSeparatorComponent={() => <View className="h-2" />}
-          contentContainerStyle={{ paddingBottom: searchBottom + 66 }}
+          contentContainerStyle={{ paddingBottom: footerSpace }}
+          nestedScrollEnabled
           keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
           ListEmptyComponent={
@@ -94,18 +72,6 @@ export default function ReportListScreen({ classId }) {
           }
         />
       )}
-      <View
-        className="absolute left-0 right-0 rounded-lg border border-border bg-background p-0.5 shadow-sm shadow-black/5"
-        style={{ bottom: searchBottom }}>
-        <Input
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Tìm học sinh..."
-          accessibilityLabel="Tìm học sinh theo tên hoặc mã"
-          autoCorrect={false}
-          className="h-11 border-0 bg-background shadow-none"
-        />
-      </View>
     </View>
   );
 }

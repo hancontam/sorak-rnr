@@ -1,0 +1,173 @@
+name: Build Tester (Android APK & iOS IPA)
+
+on:
+  push:
+    branches:
+      - 'release/tester'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL || 'https://testmamnonhontre.sorak.io.vn/api' }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Expo Prebuild (Android)
+        run: npx expo prebuild --platform android --clean
+
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon || ./gradlew assembleDebug --no-daemon
+
+      - name: Sign & Package Tester APK
+        run: |
+          set -euo pipefail
+          APK_NAME="sorak-android-${{ github.sha }}.apk"
+
+          RELEASE_APK="$(find android/app/build/outputs/apk/release -name '*.apk' | head -n 1 || true)"
+          if [ -n "$RELEASE_APK" ]; then
+            if [[ "$RELEASE_APK" == *"unsigned"* ]]; then
+              echo "Signing unsigned release APK with tester keystore..."
+              keytool -genkey -v -keystore tester.keystore \
+                -alias androidtester -keyalg RSA -keysize 2048 -validity 10000 \
+                -storepass android -keypass android \
+                -dname "CN=Sorak Tester, OU=QA, O=Sorak, L=HCM, ST=HCM, C=VN"
+
+              BUILD_TOOLS_DIR=$(find $ANDROID_HOME/build-tools -maxdepth 1 -type d | sort -V | tail -n 1)
+              echo "Using apksigner from: $BUILD_TOOLS_DIR"
+              $BUILD_TOOLS_DIR/apksigner sign \
+                --ks tester.keystore \
+                --ks-pass pass:android \
+                --key-pass pass:android \
+                --out "$APK_NAME" \
+                "$RELEASE_APK"
+            else
+              echo "Release APK is already signed."
+              cp "$RELEASE_APK" "$APK_NAME"
+            fi
+          else
+            echo "Falling back to debug APK..."
+            DEBUG_APK="$(find android/app/build/outputs/apk/debug -name '*.apk' | head -n 1)"
+            cp "$DEBUG_APK" "$APK_NAME"
+          fi
+
+          echo "Prepared APK: $APK_NAME"
+          ls -lh "$APK_NAME"
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: sorak-android-${{ github.sha }}
+          path: sorak-android-${{ github.sha }}.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  build-ios:
+    name: Build iOS IPA (Unsigned for Sideloadly)
+    runs-on: macos-14
+    env:
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL || 'https://testmamnonhontre.sorak.io.vn/api' }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Expo Prebuild (iOS)
+        run: npx expo prebuild --platform ios --clean
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Build Xcode Release (Unsigned)
+        run: |
+          cd ios
+          WORKSPACE="$(find . -name '*.xcworkspace' -maxdepth 1 | head -n 1)"
+          SCHEME="$(xcodebuild -workspace "$WORKSPACE" -list -json | node -e "const fs = require('fs'); const data = JSON.parse(fs.readFileSync(0, 'utf8')); console.log(data.workspace.schemes[0]);")"
+          echo "Building workspace: $WORKSPACE with scheme: $SCHEME (Unsigned Release)"
+
+          xcodebuild -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build
+
+      - name: Package Unsigned IPA (Payload/*.app)
+        run: |
+          set -euo pipefail
+          APP_PATH="$(find ios/build/Build/Products/Release-iphoneos -name '*.app' -type d | head -n 1 || true)"
+          if [ -z "$APP_PATH" ]; then
+            echo "Searching across build directory for .app bundle..."
+            APP_PATH="$(find ios/build -name '*.app' -type d | grep -v 'DerivedData.*Intermediate' | head -n 1)"
+          fi
+
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: .app bundle not found under ios/build"
+            find ios/build -maxdepth 5 -type d || true
+            exit 1
+          fi
+
+          echo "Packaging: $APP_PATH"
+          STAGE="$(mktemp -d)"
+          mkdir -p "$STAGE/Payload"
+          cp -R "$APP_PATH" "$STAGE/Payload/"
+
+          IPA_NAME="sorak-ios-${{ github.sha }}.ipa"
+          (
+            cd "$STAGE"
+            zip -qry "$GITHUB_WORKSPACE/$IPA_NAME" Payload
+          )
+
+          ls -lh "$GITHUB_WORKSPACE/$IPA_NAME"
+
+      - name: Upload iOS IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: sorak-ios-${{ github.sha }}
+          path: sorak-ios-${{ github.sha }}.ipa
+          if-no-files-found: error
+          retention-days: 14

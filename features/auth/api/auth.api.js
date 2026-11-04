@@ -1,25 +1,22 @@
 import { apiClient } from '@/shared/api/client';
 
-const STAGING_API_URLS = new Set(['https://testmamnonhontre.sorak.io.vn/api']);
-
-function getStagingCaptchaToken() {
+export function getMobileChallengeUrl() {
   const baseURL = apiClient.defaults.baseURL?.replace(/\/+$/, '');
-
-  if (!STAGING_API_URLS.has(baseURL)) {
-    throw new Error('The staging CAPTCHA bypass cannot be used with this API URL');
+  if (!baseURL?.startsWith('https://')) {
+    throw new Error('Trang xác minh bảo mật cần API HTTPS.');
   }
-
-  return 'sorak-mobile-bypass';
+  return `${baseURL}/auth/mobile-challenge`;
 }
 
-export async function loginWithPassword({ username, password, role }) {
+export async function loginWithPassword({ username, password, role, captchaToken }) {
+  if (!captchaToken) throw new Error('Vui lòng hoàn tất xác minh bảo mật.');
   const response = await apiClient.post(
     '/auth/login',
     {
       username,
       password,
       role,
-      captchaToken: getStagingCaptchaToken(),
+      captchaToken,
     },
     { skipAuth: true }
   );

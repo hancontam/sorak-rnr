@@ -4,6 +4,7 @@ export { AssessmentScreenHeader } from './assessment-screen-header';
 export { AssessmentEmpty, AssessmentError, AssessmentLoading } from './assessment-state';
 export { AuthScreenHeader } from './auth-screen-header';
 export { Button } from './button';
+export { CaptchaChallengeModal } from './captcha-challenge-modal';
 export { ForgotPasswordSheet } from './forgot-password-sheet';
 export { FlowerCriteriaSheet } from './flower-criteria-sheet';
 export { GoodChildStudentCard } from './good-child-student-card';

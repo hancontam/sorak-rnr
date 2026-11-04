@@ -4,8 +4,8 @@ import { useMutation } from '@tanstack/react-query';
 
 export function useLogin() {
   return useMutation({
-    mutationFn: async ({ username, password, role }) => {
-      const payload = await loginWithPassword({ username, password, role });
+    mutationFn: async ({ username, password, role, captchaToken }) => {
+      const payload = await loginWithPassword({ username, password, role, captchaToken });
 
       if (payload?.requires2FA) {
         return {

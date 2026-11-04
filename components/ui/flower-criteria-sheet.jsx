@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Icon } from '@/components/ui/icon';
+import { BottomSheetContent, Dialog } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { ThemedSpinner } from '@/components/ui/themed-spinner';
@@ -11,8 +10,7 @@ import {
   HEALTH_STATUS_OPTIONS,
 } from '@/features/assessment/lib/flower-criteria';
 import * as React from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, View } from 'react-native';
 
 function PresetRow({ presets, value, onSelect }) {
   return (
@@ -30,7 +28,9 @@ function PresetRow({ presets, value, onSelect }) {
             accessibilityState={{ selected: active }}
             accessibilityLabel={`${preset} phần trăm`}>
             <Text
-              className={`text-[13px] font-medium ${active ? 'text-primary-foreground' : 'text-foreground'}`}>
+              className={`text-[13px] font-medium ${
+                active ? 'text-primary-foreground' : 'text-foreground'
+              }`}>
               {preset}%
             </Text>
           </Pressable>
@@ -49,10 +49,11 @@ export function FlowerCriteriaSheet({
   isSaving,
   error,
 }) {
-  const insets = useSafeAreaInsets();
   const [attendance, setAttendance] = React.useState(initialCriteria.minAttendanceRate);
   const [goals, setGoals] = React.useState(initialCriteria.minGoalsRate);
-  const [healthStatuses, setHealthStatuses] = React.useState(initialCriteria.allowedHealthStatuses);
+  const [healthStatuses, setHealthStatuses] = React.useState(
+    initialCriteria.allowedHealthStatuses
+  );
   const [attendanceText, setAttendanceText] = React.useState('');
   const [goalsText, setGoalsText] = React.useState('');
 
@@ -84,105 +85,99 @@ export function FlowerCriteriaSheet({
     if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 100) setGoals(parsed);
   }
 
-  function submit() {
-    onSave({
-      minAttendanceRate: attendance,
-      minGoalsRate: goals,
-      allowedHealthStatuses: healthStatuses,
-    });
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        overlayClassName="items-end justify-end bg-foreground/35 p-0"
-        className="mx-0 w-full max-w-full gap-0 rounded-b-none rounded-t-[36px] border-border bg-card px-6 pt-6 shadow-lg shadow-black/20"
-        style={{ paddingBottom: Math.max(insets.bottom, 24) }}>
-        <DialogTitle className="text-[17px] font-semibold">Cấu hình gợi ý tặng hoa</DialogTitle>
+      <BottomSheetContent open={open} title="Cấu hình gợi ý tặng hoa">
         <Text className="mt-1 text-xs text-muted-foreground">
           Đặt tiêu chí để đề xuất tặng hoa hồng nhanh
         </Text>
-        <ScrollView
-          className="mt-4"
-          showsVerticalScrollIndicator={false}
-          style={{ maxHeight: 420 }}>
-          <View className="gap-2">
-            <Text className="text-sm font-semibold">1. Chuyên cần tuần tối thiểu</Text>
-            <Text className="text-[11px] text-muted-foreground">
-              Tỷ lệ số ngày bé đi học đủ trong tuần
-            </Text>
-            <PresetRow
-              presets={ATTENDANCE_PRESETS}
-              value={attendance}
-              onSelect={(value) => {
-                setAttendance(value);
-                setAttendanceText('');
-              }}
-            />
-            <Input
-              className="h-9 w-60"
-              value={attendanceText}
-              onChangeText={applyCustomAttendance}
-              placeholder="Nhập % chuyên cần khác"
-              keyboardType="number-pad"
-              accessibilityLabel="Nhập phần trăm chuyên cần khác"
-            />
-          </View>
 
-          <View className="mt-6 gap-2">
-            <Text className="text-sm font-semibold">2. Mục tiêu bài học tối thiểu</Text>
-            <Text className="text-[11px] text-muted-foreground">
-              Tỷ lệ mục tiêu giáo dục trong tuần đạt yêu cầu
-            </Text>
-            <PresetRow
-              presets={GOAL_PRESETS}
-              value={goals}
-              onSelect={(value) => {
-                setGoals(value);
-                setGoalsText('');
-              }}
-            />
-            <Input
-              className="h-9 w-60"
-              value={goalsText}
-              onChangeText={applyCustomGoals}
-              placeholder="Nhập % mục tiêu khác"
-              keyboardType="number-pad"
-              accessibilityLabel="Nhập phần trăm mục tiêu khác"
-            />
-          </View>
+        <View className="mt-4 gap-2">
+          <Text className="text-sm font-semibold">1. Chuyên cần tuần tối thiểu</Text>
+          <Text className="text-[11px] text-muted-foreground">
+            Tỷ lệ số ngày bé đi học đủ trong tuần
+          </Text>
+          <PresetRow
+            presets={ATTENDANCE_PRESETS}
+            value={attendance}
+            onSelect={(value) => {
+              setAttendance(value);
+              setAttendanceText('');
+            }}
+          />
+          <Input
+            className="h-9 w-60"
+            value={attendanceText}
+            onChangeText={applyCustomAttendance}
+            placeholder="Nhập % chuyên cần khác"
+            keyboardType="number-pad"
+            accessibilityLabel="Nhập phần trăm chuyên cần khác"
+          />
+        </View>
 
-          <View className="mt-6 gap-2">
-            <Text className="text-sm font-semibold">3. Tiêu chuẩn sức khoẻ</Text>
-            <Text className="text-[11px] text-muted-foreground">
-              Chọn trạng thái đủ điều kiện nhận hoa
-            </Text>
-            {HEALTH_STATUS_OPTIONS.map((status) => (
-              <Pressable
-                key={status}
-                className="flex-row items-center gap-2 py-1"
-                onPress={() => toggleHealth(status)}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: healthStatuses.includes(status) }}
-                accessibilityLabel={status}>
+        <View className="mt-6 gap-2">
+          <Text className="text-sm font-semibold">2. Mục tiêu bài học tối thiểu</Text>
+          <Text className="text-[11px] text-muted-foreground">
+            Tỷ lệ mục tiêu giáo dục trong tuần đạt yêu cầu
+          </Text>
+          <PresetRow
+            presets={GOAL_PRESETS}
+            value={goals}
+            onSelect={(value) => {
+              setGoals(value);
+              setGoalsText('');
+            }}
+          />
+          <Input
+            className="h-9 w-60"
+            value={goalsText}
+            onChangeText={applyCustomGoals}
+            placeholder="Nhập % mục tiêu khác"
+            keyboardType="number-pad"
+            accessibilityLabel="Nhập phần trăm mục tiêu khác"
+          />
+        </View>
+
+        <View className="mt-6 gap-2">
+          <Text className="text-sm font-semibold">3. Tiêu chuẩn sức khoẻ</Text>
+          <Text className="text-[11px] text-muted-foreground">
+            Chọn trạng thái đủ điều kiện nhận hoa
+          </Text>
+          {HEALTH_STATUS_OPTIONS.map((status) => (
+            <Pressable
+              key={status}
+              className="flex-row items-center gap-2 py-1.5"
+              onPress={() => toggleHealth(status)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: healthStatuses.includes(status) }}
+              accessibilityLabel={status}>
+              <View pointerEvents="none">
                 <Checkbox
                   checked={healthStatuses.includes(status)}
                   onCheckedChange={() => toggleHealth(status)}
                 />
-                <Text className="text-xs font-medium">{status}</Text>
-              </Pressable>
-            ))}
-          </View>
+              </View>
+              <Text className="flex-1 text-xs font-medium">{status}</Text>
+            </Pressable>
+          ))}
+        </View>
 
-          {error ? <Text className="mt-3 text-xs text-destructive">{error}</Text> : null}
-        </ScrollView>
+        {error ? <Text className="mt-3 text-xs text-destructive">{error}</Text> : null}
 
-        <View className="mt-4 flex-row justify-end gap-2">
+        <View className="mt-5 flex-row justify-end gap-2">
           <Button variant="outline" size="sm" onPress={() => onOpenChange(false)}>
             <Text>Huỷ</Text>
           </Button>
-          <Button size="sm" onPress={submit} disabled={isSaving}>
+          <Button
+            size="sm"
+            disabled={isSaving}
+            onPress={() =>
+              onSave({
+                minAttendanceRate: attendance,
+                minGoalsRate: goals,
+                allowedHealthStatuses: healthStatuses,
+              })
+            }>
             {isSaving ? (
               <ThemedSpinner />
             ) : (
@@ -190,7 +185,7 @@ export function FlowerCriteriaSheet({
             )}
           </Button>
         </View>
-      </DialogContent>
+      </BottomSheetContent>
     </Dialog>
   );
 }

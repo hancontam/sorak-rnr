@@ -1,11 +1,10 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { BottomSheetContent, Dialog } from '@/components/ui/dialog';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function formatFeedbackTime(value) {
   if (!value) return '';
@@ -16,11 +15,11 @@ function formatFeedbackTime(value) {
 }
 
 // Bottom sheet xem ý kiến phản hồi của phụ huynh (Figma 2289:3115).
-// Giáo viên xem toàn bộ phản hồi trong tháng nhưng mỗi lần tập trung một phụ huynh, chuyển vòng bằng nút trước/sau.
+// Giáo viên xem toàn bộ phản hồi của tháng nhưng mỗi lần tập trung một phụ huynh,
+// chuyển vòng bằng nút trước/sau.
 export function ParentFeedbackSheet({ open, onOpenChange, items, initialIndex = 0 }) {
-  const insets = useSafeAreaInsets();
-  const [index, setIndex] = React.useState(initialIndex);
   const total = items.length;
+  const [index, setIndex] = React.useState(initialIndex);
 
   React.useEffect(() => {
     if (open) setIndex(Math.min(initialIndex, Math.max(total - 1, 0)));
@@ -35,14 +34,7 @@ export function ParentFeedbackSheet({ open, onOpenChange, items, initialIndex = 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        overlayClassName="items-end justify-end bg-foreground/35 p-0"
-        className="mx-0 w-full max-w-full gap-0 rounded-b-none rounded-t-[36px] border-border bg-card px-6 pt-6 shadow-lg shadow-black/20"
-        style={{ paddingBottom: Math.max(insets.bottom, 24) }}>
-        <DialogTitle className="text-[17px] font-semibold">
-          Ý kiến phản hồi từ phụ huynh
-        </DialogTitle>
+      <BottomSheetContent open={open} title="Ý kiến phản hồi từ phụ huynh">
         <Text className="mt-1 text-xs text-muted-foreground">
           {total > 0
             ? `${Math.min(index, total - 1) + 1} / ${total} phản hồi trong tháng`
@@ -50,7 +42,7 @@ export function ParentFeedbackSheet({ open, onOpenChange, items, initialIndex = 
         </Text>
 
         {current ? (
-          <View className="mt-4 gap-2 rounded-xl border border-border bg-background px-4 py-4">
+          <View className="mt-4 gap-2 rounded-xl border border-border bg-card px-4 py-4">
             <Text className="text-sm font-semibold text-foreground">
               {current.name} · {current.code}
             </Text>
@@ -64,7 +56,7 @@ export function ParentFeedbackSheet({ open, onOpenChange, items, initialIndex = 
             </Text>
           </View>
         ) : (
-          <View className="mt-4 rounded-xl border border-border bg-background px-4 py-6">
+          <View className="mt-4 rounded-xl border border-border bg-card px-4 py-6">
             <Text className="text-center text-xs text-muted-foreground">
               Giáo viên chưa nhận được phản hồi nào cho tháng này.
             </Text>
@@ -92,7 +84,7 @@ export function ParentFeedbackSheet({ open, onOpenChange, items, initialIndex = 
             <Text className="text-primary-foreground">Đóng</Text>
           </Button>
         </View>
-      </DialogContent>
+      </BottomSheetContent>
     </Dialog>
   );
 }

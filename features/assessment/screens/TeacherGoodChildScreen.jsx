@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { ParentFeedbackSheet } from '@/components/ui/parent-feedback-sheet';
 import { StudentInitialAvatar } from '@/components/ui/student-initial-avatar';
 import { Text } from '@/components/ui/text';
+import { Textarea } from '@/components/ui/textarea';
 import { ThemedSpinner } from '@/components/ui/themed-spinner';
 import { useClassStudents } from '@/features/assessment/hooks/useClassStudents';
 import { useFlowerCriteria } from '@/features/assessment/hooks/useFlowerCriteria';
@@ -179,6 +180,13 @@ export default function TeacherGoodChildScreen() {
         ...current[studentId],
         [weekKey]: !current[studentId]?.[weekKey],
       },
+    }));
+  }
+
+  function setTeacherNote(studentId, value) {
+    setDraft((current) => ({
+      ...current,
+      [studentId]: { ...current[studentId], teacherNotes: value },
     }));
   }
 
@@ -398,11 +406,17 @@ export default function TeacherGoodChildScreen() {
                             Mốc hoa sen: {lotusTargetFor(totalWeeks)}/{totalWeeks} hoa
                           </Text>
 
-                          <Text className="text-[11px] text-foreground">
-                            {record.teacherNotes?.trim()
-                              ? record.teacherNotes
-                              : 'Chưa có lời bình của giáo viên.'}
+                          <Text className="text-[11px] font-medium text-muted-foreground">
+                            Lời bình của cô
                           </Text>
+                          <Textarea
+                            className="min-h-14"
+                            numberOfLines={3}
+                            value={record.teacherNotes ?? ''}
+                            onChangeText={(value) => setTeacherNote(student.id, value)}
+                            placeholder="Nhập lời bình cho bé..."
+                            accessibilityLabel={`Lời bình của giáo viên cho ${student.name}`}
+                          />
 
                           {hasFeedback ? (
                             <Pressable

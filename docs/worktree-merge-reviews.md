@@ -128,6 +128,23 @@ Swagger hiện có `GET /parent/good-behavior`, nhưng không có endpoint phụ
 
 ---
 
+## 5. Rà soát Setting sau khi merge
+
+**Kết luận:** cấu trúc sheet → stack và phần lớn UI đã có cho giáo viên/phụ huynh; chưa thể gọi là full flow chức năng.
+
+| Mục | Hiện trạng code | Còn cần làm |
+| --- | --- | --- |
+| Mở Setting, hồ sơ, điều hướng stack, đăng xuất | Có route và UI; hồ sơ đọc từ phiên đăng nhập. | Kiểm tra chuyển màn, quay lại và đăng xuất trên bản release. |
+| Giao diện Sáng/Tối/Tự động | Có `useThemePreference`, đổi NativeWind và lưu AsyncStorage. | QA màu và trạng thái sau khởi động lại trên Android/iOS. |
+| Ngôn ngữ | Màn chỉ hiện Tiếng Việt và English; chưa chọn/dịch. Đây là phần người dùng chủ động hoãn. | Chốt phạm vi dịch rồi triển khai nếu cần. |
+| Thông báo trong Setting | Hai cấp stack có UI, nhưng `SettingsSwitchRow` đặt `disabled` cho mọi công tắc. | Chốt cách lưu tùy chọn/contract với backend trước khi nối; phân biệt với danh sách thông báo đã có. |
+| Quản lý tài khoản | Bật/tắt 2FA qua email có hook/API. Hàng “Đổi mật khẩu” chưa có `onPress` dù Swagger có `/auth/change-password`. | Đối chiếu staging rồi làm form đổi mật khẩu; QA OTP/2FA trên thiết bị. |
+| Giới thiệu | Có UI, nhưng phiên bản đang ghi cứng `v1.0.0`; hàng pháp lý/tài liệu chưa mở nội dung. | Lấy phiên bản app thật và nối link/nội dung được sản phẩm xác nhận. |
+
+**Thứ tự trao đổi từng bước:** (1) QA Setting hiện có trên máy, (2) đổi mật khẩu, (3) quyết định tùy chọn thông báo, (4) xử lý pháp lý/tài liệu, (5) dịch hai ngôn ngữ khi được duyệt. Không tự mở rộng sang chức năng ngôn ngữ đang hoãn.
+
+---
+
 ## 4. Chuyển đăng nhập từ CAPTCHA bypass sang Turnstile WebView
 
 - **Branch:** `feat/native-captcha-and-backend-brief`. **Ngày rà soát:** 04/11/2026.

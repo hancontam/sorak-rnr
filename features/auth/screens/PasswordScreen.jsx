@@ -1,6 +1,7 @@
 import {
   AuthScreenHeader,
   Button,
+  CaptchaChallengeModal,
   ForgotPasswordSheet,
   Icon,
   Input,
@@ -8,6 +9,7 @@ import {
   Text,
   ThemedSpinner,
 } from '@/components/ui';
+import { getMobileChallengeUrl } from '@/features/auth/api/auth.api';
 import { useLogin } from '@/features/auth/hooks/useLogin';
 import { useLoginOtp } from '@/features/auth/hooks/useLoginOtp';
 import { usePasswordRecovery } from '@/features/auth/hooks/usePasswordRecovery';
@@ -24,6 +26,7 @@ export default function PasswordScreen() {
   const [password, setPassword] = React.useState('');
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
   const [notice, setNotice] = React.useState('');
+  const [captchaOpen, setCaptchaOpen] = React.useState(false);
   const [loginChallenge, setLoginChallenge] = React.useState(null);
   const [loginOtpCode, setLoginOtpCode] = React.useState('');
   const [loginOtpError, setLoginOtpError] = React.useState('');
@@ -31,14 +34,25 @@ export default function PasswordScreen() {
   const loginOtp = useLoginOtp();
   const recovery = usePasswordRecovery();
 
-  async function submitLogin() {
+  function submitLogin() {
     if (!password) {
       setNotice('Vui lòng nhập mật khẩu.');
       return;
     }
     setNotice('');
+    Keyboard.dismiss();
     try {
-      const result = await login.mutateAsync({ username, password, role });
+      getMobileChallengeUrl();
+      setCaptchaOpen(true);
+    } catch (error) {
+      setNotice(error.message);
+    }
+  }
+
+  async function completeCaptcha(captchaToken) {
+    setCaptchaOpen(false);
+    try {
+      const result = await login.mutateAsync({ username, password, role, captchaToken });
       if (result.kind === 'web-only') {
         setNotice('Tài khoản Ban giám hiệu vui lòng dùng dashboard web.');
       } else if (result.kind === 'requires-2fa') {
@@ -129,11 +143,11 @@ export default function PasswordScreen() {
             </View>
             <Button
               className="bg-brand active:bg-brand/90 w-full opacity-100"
-              disabled={login.isPending}
-              accessibilityState={{ busy: login.isPending }}
-              accessibilityLabel={login.isPending ? 'Đang đăng nhập' : 'Đăng nhập'}
+              disabled={captchaOpen || login.isPending}
+              accessibilityState={{ busy: captchaOpen || login.isPending }}
+              accessibilityLabel={captchaOpen || login.isPending ? 'Đang đăng nhập' : 'Đăng nhập'}
               onPress={submitLogin}>
-              {login.isPending ? (
+              {captchaOpen || login.isPending ? (
                 <ThemedSpinner />
               ) : (
                 <Text className="text-brand-foreground">Đăng nhập</Text>
@@ -145,6 +159,14 @@ export default function PasswordScreen() {
           </Button>
         </View>
       </KeyboardAvoidingView>
+      {captchaOpen ? (
+        <CaptchaChallengeModal
+          open={captchaOpen}
+          challengeUrl={getMobileChallengeUrl()}
+          onSuccess={completeCaptcha}
+          onClose={() => setCaptchaOpen(false)}
+        />
+      ) : null}
       <ForgotPasswordSheet
         open={recovery.open}
         onOpenChange={recovery.setOpen}

@@ -42,7 +42,6 @@ jobs:
           git fetch origin main
 
           echo "── Merging main into dev/client ──"
-          # Accept main's changes for conflicts, then re-add expo-dev-client
           git merge origin/main -X theirs --no-edit || {
             echo "::warning::Merge conflict, resolving with theirs..."
             git checkout --theirs .
@@ -56,12 +55,17 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      # ── Install deps FIRST so local expo module is available ──
+      - name: Install dependencies
+        run: npm install
+
+      # ── Now expo is available, safe to run npx expo install ──
       - name: Ensure expo-dev-client & dev:client script
         run: |
-          # Re-add expo-dev-client (merge may have removed it)
+          echo "── Ensuring expo-dev-client ──"
           npx expo install expo-dev-client
 
-          # Ensure dev:client script exists
+          echo "── Ensuring dev:client script ──"
           node -e "
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -75,9 +79,6 @@ jobs:
             git commit -m "ci: ensure expo-dev-client after merge from main"
           fi
           git push origin dev/client
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Verify Xcode & Swift versions
         run: |

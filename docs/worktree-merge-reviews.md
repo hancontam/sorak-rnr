@@ -123,8 +123,8 @@ Swagger hiện có `GET /parent/good-behavior`, nhưng không có endpoint phụ
 - **Branch:** `feat/native-captcha-and-backend-brief`.
 - **Thay đổi:** cài `react-native-webview` theo phiên bản Expo SDK 56; mở challenge từ API base URL qua `/auth/mobile-challenge`; nhận `TURNSTILE_TOKEN` bằng `postMessage` rồi đưa token vào `useLogin` → `POST /auth/login`. Bỏ chuỗi bypass cố định. Mỗi lần đăng nhập thử lại đều mở challenge mới; token không lưu vào storage và không ghi log. Nền web dùng iframe cùng trang challenge để bundle/web preview hoạt động.
 - **Contract đã kiểm tra:** GET `https://testmamnonhontre.sorak.io.vn/api/auth/mobile-challenge` trả 200, HTML có bridge `window.ReactNativeWebView.postMessage` cho `TURNSTILE_TOKEN` và `TURNSTILE_ERROR`. Body login giữ `username`, `password`, `role`, `captchaToken` như staging đã xác nhận.
-- **Kiểm tra build:** Babel parse các file đổi, xuất web 25 route và Android JavaScript bundle thành công. Xuất Android Hermes bytecode trên máy Windows hiện báo `permission denied` khi tạo `index.hbc` trong thư mục Temp ở hai lần thử; chưa xác định là cấu hình máy hay pipeline. Chưa xác minh Turnstile hoàn tất và login thật trên emulator/máy, nên không đánh dấu auth production đã hoàn thành.
-- **Bước tiếp theo:** chạy app native, xác minh challenge hiển thị, token đến app, đăng nhập thường và 2FA thành công; kiểm tra bản release Android/iOS. Nếu build Hermes trên CI cũng lỗi thì xử lý môi trường build trước khi phát hành.
+- **Kiểm tra build:** Babel parse các file đổi, xuất web 25 route và Android Hermes bytecode thành công. Lần đầu Hermes trên Windows báo `permission denied` với thư mục Temp mặc định; đặt `TEMP`/`TMP` vào `.expo/temp` trong worktree rồi xuất Android thành công. Chưa xác minh Turnstile hoàn tất và login thật trên emulator/máy, nên không đánh dấu auth production đã hoàn thành.
+- **Bước tiếp theo:** chạy app native, xác minh challenge hiển thị, token đến app, đăng nhập thường và 2FA thành công; kiểm tra bản release Android/iOS.
 
 ---
 
@@ -142,12 +142,3 @@ Swagger hiện có `GET /parent/good-behavior`, nhưng không có endpoint phụ
 | Giới thiệu | Có UI, nhưng phiên bản đang ghi cứng `v1.0.0`; hàng pháp lý/tài liệu chưa mở nội dung. | Lấy phiên bản app thật và nối link/nội dung được sản phẩm xác nhận. |
 
 **Thứ tự trao đổi từng bước:** (1) QA Setting hiện có trên máy, (2) đổi mật khẩu, (3) quyết định tùy chọn thông báo, (4) xử lý pháp lý/tài liệu, (5) dịch hai ngôn ngữ khi được duyệt. Không tự mở rộng sang chức năng ngôn ngữ đang hoãn.
-
----
-
-## 4. Chuyển đăng nhập từ CAPTCHA bypass sang Turnstile WebView
-
-- **Branch:** `feat/native-captcha-and-backend-brief`. **Ngày rà soát:** 04/11/2026.
-- Màn mật khẩu mở trang `GET /auth/mobile-challenge` trên cùng host với `EXPO_PUBLIC_API_URL`, nhận `TURNSTILE_TOKEN` qua `postMessage`, chuyển token một lần vào `useLogin` → `POST /auth/login`. Đã bỏ chuỗi bypass khỏi source; token không được ghi vào storage hoặc log. Có nút đóng/thử lại khi challenge lỗi. Cài `react-native-webview` bằng `npx expo install` theo Expo SDK 56.
-- Endpoint challenge staging đã trả HTML 200 và có bridge `ReactNativeWebView.postMessage`. Bundle web xuất được. Lần xuất Android đầu đi qua Metro nhưng Hermes trên Windows không ghi được file tạm (`permission denied`); đây chưa phải xác nhận app chạy trên thiết bị. Cần kiểm tra đăng nhập giáo viên, phụ huynh và nhánh 2FA trên máy Android/iOS trước release.
-- Phần Setting hiện có UI và điều hướng profile, theme, language, notification, about, account. Theme và 2FA có xử lý; đổi ngôn ngữ được hoãn, công tắc tùy chọn thông báo chỉ là UI, đổi mật khẩu chưa nối dù Swagger có endpoint. Vì vậy **Setting flow chưa hoàn tất về chức năng**; backlog ghi trạng thái theo từng màn, không gộp thành Done.

@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SorakMark from '@/assets/images/sorak-mark.svg';
 import { HomeBottomNav, HomeSectionTabs, Icon, Text } from '@/components/ui';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import DailyTimetableScreen from '@/features/daily/screens/DailyTimetableScreen';
 import { getNotifications } from '@/features/notification/api/notification.api';
 import {
   getParentRequests,
@@ -84,7 +85,7 @@ export default function HomeScreen() {
         ) : (
           <ReportListScreen classId={classId} search={studentSearch} />
         )}
-        <Text className="text-xl font-semibold">Xin chào, {name}</Text>
+        <DailyTimetableScreen isParent={isParent} classId={classId} />
         <Text className="text-xl font-semibold">
           {isParent ? 'Kết quả đánh giá' : 'Đánh giá giai đoạn'}
         </Text>

@@ -6,10 +6,7 @@ import ParentAssessmentMenuScreen from '@/features/assessment/screens/ParentAsse
 import TeacherAssessmentMenuScreen from '@/features/assessment/screens/TeacherAssessmentMenuScreen';
 import DailyTimetableScreen from '@/features/daily/screens/DailyTimetableScreen';
 import { getNotifications } from '@/features/notification/api/notification.api';
-import {
-  getParentRequests,
-  getTeacherAuthorizations,
-} from '@/features/request/api/request.api';
+import { getParentRequests, getTeacherAuthorizations } from '@/features/request/api/request.api';
 import ParentReportScreen from '@/features/report/screens/ParentReportScreen';
 import ReportListScreen from '@/features/report/screens/ReportListScreen';
 import { useQuery } from '@tanstack/react-query';
@@ -24,17 +21,21 @@ export default function HomeScreen() {
   const [activeTabIndex, setActiveTabIndex] = useState(1);
   const [studentSearch, setStudentSearch] = useState('');
   const user = useAuthStore((state) => state.user);
-  const name = user?.fullName || user?.name || user?.username || 'Sorak';
-  const username = user?.username || user?.employeeCode || name;
-  const avatar = user?.avatar || user?.avatarUrl;
   const isParent = user?.role === 'PARENT_PH';
+  const name = user?.fullName || user?.name || user?.username || 'Sorak';
+  const username =
+    user?.username ||
+    (isParent ? user?.student?.studentCode : user?.employeeCode) ||
+    user?.identifier ||
+    name;
+  const avatar = user?.avatar || user?.avatarUrl;
   const assignedClass = user?.assignedClasses?.[0] || user?.teacher?.assignedClasses?.[0];
   const classId = assignedClass?.classId;
   const className =
     (isParent ? user?.student?.className : assignedClass?.className) || 'Chưa có lớp';
 
   const { data: notificationData } = useQuery({
-    queryKey: ['notifications'],
+    queryKey: ['notifications', user?.id],
     queryFn: getNotifications,
   });
 
@@ -45,16 +46,16 @@ export default function HomeScreen() {
   });
 
   const { data: parentRequestData } = useQuery({
-    queryKey: ['parent-requests'],
+    queryKey: ['parent-requests', user?.id],
     queryFn: getParentRequests,
     enabled: isParent,
   });
 
   const authorizationCount = isParent
-    ? parentRequestData?.stats?.pendingCount ??
+    ? (parentRequestData?.stats?.pendingCount ??
       parentRequestData?.requests?.filter((r) => r.status === 'PENDING')?.length ??
-      0
-    : teacherAuthData?.stats?.pendingCount ?? 0;
+      0)
+    : (teacherAuthData?.stats?.pendingCount ?? 0);
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -83,7 +84,7 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       </View>
-      <HomeSectionTabs isParent={isParent} onTabChange={setActiveTabIndex}>
+      <HomeSectionTabs key={user?.id} isParent={isParent} onTabChange={setActiveTabIndex}>
         {isParent ? (
           <ParentReportScreen />
         ) : (

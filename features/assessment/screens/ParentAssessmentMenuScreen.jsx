@@ -25,7 +25,7 @@ export default function ParentAssessmentMenuScreen() {
         <AssessmentOptionCard
           icon={ClipboardCheck}
           title="Đánh giá học kỳ"
-          description="Xem kết quả học kỳ và ghi nhận xét"
+          description="Xem kết quả học kỳ của con"
           onPress={() => router.push('/assessment/parent-semester')}
         />
       </View>

@@ -9,6 +9,7 @@ import {
 } from '@/features/notification/api/notification.api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
+import { useAuthStore } from '@/features/auth/store/auth.store';
 import {
   Bell,
   CalendarX,
@@ -72,11 +73,12 @@ function getNotificationIcon(item) {
 }
 
 export default function NotificationListScreen() {
+  const accountId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('unread'); // 'unread' | 'read'
 
   const { data, isLoading, isRefetching, refetch } = useQuery({
-    queryKey: ['notifications'],
+    queryKey: ['notifications', accountId],
     queryFn: getNotifications,
   });
 

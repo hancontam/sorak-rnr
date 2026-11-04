@@ -41,8 +41,8 @@ export async function saveMonthlyAssessment({ classId, month, year, records }) {
 }
 
 // Phụ huynh: một endpoint trả cả sổ liên lạc theo tháng và đánh giá học kỳ của con.
-export async function fetchParentResults() {
-  const response = await apiClient.get('/parent/good-behavior');
+export async function fetchParentResults(params = {}) {
+  const response = await apiClient.get('/parent/good-behavior', { params });
   return response.data.data;
 }
 

@@ -6,6 +6,8 @@ import { Text } from '@/components/ui/text';
 import { ThemedSpinner } from '@/components/ui/themed-spinner';
 import { getParentSchedule, getTimetable } from '@/features/daily/api/daily.api';
 import { getTeacherDayActivities } from '@/features/daily/lib/daily-timetable';
+import { getParentDayActivities } from '@/features/daily/lib/parent-timetable';
+import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import {
@@ -45,42 +47,35 @@ function formatDateISO(date) {
 
 export default function DailyTimetableScreen({ isParent = false, classId }) {
   const router = useRouter();
+  const accountId = useAuthStore((state) => state.user?.id);
   const today = React.useMemo(() => new Date(), []);
   const [selectedDate, setSelectedDate] = React.useState(today);
+  const [expandedKey, setExpandedKey] = React.useState(null);
 
   const currentWeek = React.useMemo(() => getWeekDates(selectedDate), [selectedDate]);
   const selectedDateStr = React.useMemo(() => formatDateISO(selectedDate), [selectedDate]);
 
-  const { data: teacherTimetable, isLoading: isLoadingTeacher } = useQuery({
+  const teacherQuery = useQuery({
     queryKey: ['daily-timetable-teacher', classId, selectedDateStr],
     queryFn: () => getTimetable(classId, { date: selectedDateStr }),
     enabled: !isParent,
   });
 
-  const { data: parentSchedule, isLoading: isLoadingParent } = useQuery({
-    queryKey: ['daily-timetable-parent', selectedDateStr],
+  const parentQuery = useQuery({
+    queryKey: ['daily-timetable-parent', accountId, selectedDateStr],
     queryFn: () => getParentSchedule({ date: selectedDateStr }),
     enabled: isParent,
   });
 
-  const isLoading = isParent ? isLoadingParent : isLoadingTeacher;
+  const teacherTimetable = teacherQuery.data;
+  const parentSchedule = parentQuery.data;
+  const activeQuery = isParent ? parentQuery : teacherQuery;
+  const isLoading = activeQuery.isLoading;
 
   // Extract live activities from backend
   const activities = React.useMemo(() => {
     if (isParent) {
-      const routineSlots =
-        parentSchedule?.timetable?.routineSlots || parentSchedule?.routineSlots || [];
-      if (routineSlots.length > 0) {
-        return routineSlots.map((s) => ({
-          id: s.id,
-          time: s.time?.split('–')?.[0]?.trim() || s.time || '08:00',
-          endTime: s.time?.split('–')?.[1]?.trim(),
-          activity: s.title || s.activity || 'Lịch sinh hoạt',
-          description: s.description || s.content || '',
-          category: s.category || s.slot,
-        }));
-      }
-      return [];
+      return getParentDayActivities(parentSchedule, selectedDateStr);
     }
 
     return teacherTimetable ? getTeacherDayActivities(teacherTimetable.slots, selectedDateStr) : [];
@@ -102,6 +97,16 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
 
   const isRecorded = teacherTimetable?.stats?.isRecorded;
   const isDismissed = teacherTimetable?.stats?.isDismissalRecorded;
+  const ownAttendance = parentSchedule?.attendance?.records?.find(
+    (item) => item.isoDate === selectedDateStr
+  );
+  const dayStatus = isParent
+    ? ownAttendance?.statusLabel || 'Chưa điểm danh'
+    : isDismissed
+      ? 'Đã đón'
+      : isRecorded
+        ? 'Đã điểm danh'
+        : 'Đang diễn ra';
 
   return (
     <View className="flex-1">
@@ -224,9 +229,7 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="text-sm font-semibold text-foreground">{fullDayLabel}</Text>
         <Badge variant="secondary" className="px-2 py-0.5">
-          <Text className="text-xs font-medium text-secondary-foreground">
-            {isDismissed ? 'Đã đón' : isRecorded ? 'Đã điểm danh' : 'Đang diễn ra'}
-          </Text>
+          <Text className="text-xs font-medium text-secondary-foreground">{dayStatus}</Text>
         </Badge>
       </View>
 
@@ -235,6 +238,15 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
         <View className="flex-1 items-center justify-center py-10">
           <ThemedSpinner size="large" />
           <Text className="mt-2 text-xs text-muted-foreground">Đang tải lịch sinh hoạt...</Text>
+        </View>
+      ) : activeQuery.isError ? (
+        <View className="flex-1 items-center justify-center gap-3 px-6">
+          <Text className="text-center text-sm text-destructive">
+            {activeQuery.error?.response?.data?.message || activeQuery.error.message}
+          </Text>
+          <Button variant="outline" onPress={() => activeQuery.refetch()}>
+            <Text>Thử lại</Text>
+          </Button>
         </View>
       ) : activities.length === 0 ? (
         <View className="flex-1 items-center justify-center px-6 py-12">
@@ -259,19 +271,31 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
                 </View>
                 <Pressable
                   className="flex-1"
-                  disabled={isParent || !item.activityId}
-                  accessibilityRole={isParent ? undefined : 'button'}
+                  disabled={isParent ? item.isPlaceholder : !item.activityId}
+                  accessibilityRole="button"
                   accessibilityLabel={
-                    isParent ? undefined : `Xem nội dung và đánh giá ${item.activity}`
+                    isParent
+                      ? `Xem nội dung ${item.activity}`
+                      : `Xem nội dung và đánh giá ${item.activity}`
                   }
                   onPress={() =>
-                    router.push({
-                      pathname: '/daily/activity-assessment',
-                      params: { slotId: String(item.id), date: selectedDateStr },
-                    })
+                    isParent
+                      ? setExpandedKey((key) =>
+                          key === `${selectedDateStr}:${item.id}`
+                            ? null
+                            : `${selectedDateStr}:${item.id}`
+                        )
+                      : router.push({
+                          pathname: '/daily/activity-assessment',
+                          params: { slotId: String(item.id), date: selectedDateStr },
+                        })
                   }>
                   <Card className="gap-2 p-3">
-                    <Text className="text-sm font-semibold text-foreground" numberOfLines={3}>
+                    <Text
+                      className="text-sm font-semibold text-foreground"
+                      numberOfLines={
+                        isParent && expandedKey === `${selectedDateStr}:${item.id}` ? undefined : 3
+                      }>
                       {item.activity}
                     </Text>
                     {item.statusLabel ? (
@@ -282,9 +306,33 @@ export default function DailyTimetableScreen({ isParent = false, classId }) {
                     {item.description ? (
                       <Text
                         className="text-[13px] leading-5 text-muted-foreground"
-                        numberOfLines={3}>
+                        numberOfLines={
+                          isParent && expandedKey === `${selectedDateStr}:${item.id}`
+                            ? undefined
+                            : 3
+                        }>
                         {item.description}
                       </Text>
+                    ) : null}
+                    {isParent && item.note ? (
+                      <Text className="text-xs leading-5 text-muted-foreground">
+                        {item.evaluatorName ? `${item.evaluatorName}: ` : ''}
+                        {item.note}
+                      </Text>
+                    ) : null}
+                    {isParent && expandedKey === `${selectedDateStr}:${item.id}` ? (
+                      <>
+                        {item.preparation ? (
+                          <Text className="text-xs leading-5 text-muted-foreground">
+                            Chuẩn bị: {item.preparation}
+                          </Text>
+                        ) : null}
+                        {item.procedure ? (
+                          <Text className="text-xs leading-5 text-muted-foreground">
+                            Tổ chức hoạt động: {item.procedure}
+                          </Text>
+                        ) : null}
+                      </>
                     ) : null}
                   </Card>
                 </Pressable>

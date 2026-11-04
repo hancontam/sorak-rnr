@@ -61,8 +61,13 @@ export default function ParentRequestScreen() {
   const [formError, setFormError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const { data: requestData, isLoading: loadingRequests } = useQuery({
-    queryKey: ['parent-requests'],
+  const {
+    data: requestData,
+    isLoading: loadingRequests,
+    error: requestsError,
+    refetch: refetchRequests,
+  } = useQuery({
+    queryKey: ['parent-requests', user?.id],
     queryFn: getParentRequests,
   });
 
@@ -92,8 +97,7 @@ export default function ParentRequestScreen() {
     },
   });
 
-  const studentName =
-    requestData?.student?.fullName || user?.student?.fullName || 'Học sinh';
+  const studentName = requestData?.student?.fullName || user?.student?.fullName || 'Học sinh';
   const requests = requestData?.requests || [];
 
   const handleSubmit = () => {
@@ -167,7 +171,7 @@ export default function ParentRequestScreen() {
             setActiveTab('create');
             setSuccessMessage('');
           }}
-          className={`flex-row items-center gap-1.5 border-b-2 py-3 mr-6 ${
+          className={`mr-6 flex-row items-center gap-1.5 border-b-2 py-3 ${
             activeTab === 'create' ? 'border-primary' : 'border-transparent'
           }`}>
           <Icon
@@ -199,7 +203,7 @@ export default function ParentRequestScreen() {
             className={`text-sm font-medium ${
               activeTab === 'history' ? 'text-foreground' : 'text-muted-foreground'
             }`}>
-            Lịch sử đơn ({requests.length})
+            Lịch sử đơn ({requestData?.stats?.totalCount ?? requests.length})
           </Text>
         </Pressable>
       </View>
@@ -216,17 +220,16 @@ export default function ParentRequestScreen() {
             <View className="flex-row items-start gap-3 rounded-lg border border-border bg-card p-4">
               <Icon as={ShieldCheck} size={20} strokeWidth={2} className="mt-0.5 text-primary" />
               <View className="flex-1">
-                <Text className="text-sm font-medium text-foreground">
-                  Xác minh người đón
-                </Text>
-                <Text className="mt-1 text-xs text-muted-foreground leading-4">
-                  Giáo viên sẽ đối chiếu số điện thoại, CCCD và thông tin ủy thác khi bàn giao bé tại lớp.
+                <Text className="text-sm font-medium text-foreground">Xác minh người đón</Text>
+                <Text className="mt-1 text-xs leading-4 text-muted-foreground">
+                  Giáo viên sẽ đối chiếu số điện thoại, CCCD và thông tin ủy thác khi bàn giao bé
+                  tại lớp.
                 </Text>
               </View>
             </View>
 
             {successMessage ? (
-              <View className="mt-4 flex-row items-center gap-2 rounded-lg bg-emerald-500/10 p-3 border border-emerald-500/20">
+              <View className="mt-4 flex-row items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3">
                 <Icon as={CheckCircle2} size={18} strokeWidth={2} className="text-emerald-600" />
                 <Text className="flex-1 text-xs font-medium text-emerald-700">
                   {successMessage}
@@ -235,11 +238,9 @@ export default function ParentRequestScreen() {
             ) : null}
 
             {formError ? (
-              <View className="mt-4 flex-row items-center gap-2 rounded-lg bg-destructive/10 p-3 border border-destructive/20">
+              <View className="mt-4 flex-row items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3">
                 <Icon as={XCircle} size={18} strokeWidth={2} className="text-destructive" />
-                <Text className="flex-1 text-xs font-medium text-destructive">
-                  {formError}
-                </Text>
+                <Text className="flex-1 text-xs font-medium text-destructive">{formError}</Text>
               </View>
             ) : null}
 
@@ -258,9 +259,7 @@ export default function ParentRequestScreen() {
               </View>
 
               <View>
-                <Text className="text-xs font-medium text-foreground">
-                  Số điện thoại liên hệ *
-                </Text>
+                <Text className="text-xs font-medium text-foreground">Số điện thoại liên hệ *</Text>
                 <Input
                   value={pickupPersonPhone}
                   onChangeText={setPickupPersonPhone}
@@ -271,9 +270,7 @@ export default function ParentRequestScreen() {
               </View>
 
               <View>
-                <Text className="text-xs font-medium text-foreground">
-                  Mối quan hệ với bé *
-                </Text>
+                <Text className="text-xs font-medium text-foreground">Mối quan hệ với bé *</Text>
                 <Input
                   value={relationship}
                   onChangeText={setRelationship}
@@ -338,7 +335,7 @@ export default function ParentRequestScreen() {
               <Button
                 variant="outline"
                 onPress={() => router.back()}
-                className="h-10 px-5 rounded-md">
+                className="h-10 rounded-md px-5">
                 <Text className="text-sm font-medium text-foreground">Hủy</Text>
               </Button>
 
@@ -357,17 +354,45 @@ export default function ParentRequestScreen() {
             </View>
           </ScrollView>
         ) : (
-          <ScrollView
-            className="flex-1 px-6 pt-4"
-            contentContainerStyle={{ paddingBottom: 40 }}>
+          <ScrollView className="flex-1 px-6 pt-4" contentContainerStyle={{ paddingBottom: 40 }}>
+            {requestData?.stats ? (
+              <View className="mb-4 flex-row flex-wrap gap-2">
+                {[
+                  ['Chờ duyệt', requestData.stats.pendingCount],
+                  ['Đã duyệt', requestData.stats.approvedCount],
+                  ['Từ chối', requestData.stats.rejectedCount],
+                ].map(([label, count]) => (
+                  <View
+                    key={label}
+                    className="flex-1 items-center gap-1 rounded-lg border border-border bg-card py-3">
+                    <Text className="text-lg font-semibold">{count}</Text>
+                    <Text className="text-[11px] text-muted-foreground">{label}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
             {loadingRequests ? (
               <View className="mt-20 items-center justify-center">
                 <ActivityIndicator size="large" className="text-primary" />
               </View>
+            ) : requestsError ? (
+              <View className="mt-10 gap-3">
+                <Text className="text-center text-sm text-destructive">
+                  {requestsError.response?.data?.message || requestsError.message}
+                </Text>
+                <Button variant="outline" onPress={() => refetchRequests()}>
+                  <Text>Thử lại</Text>
+                </Button>
+              </View>
             ) : requests.length === 0 ? (
               <View className="mt-20 items-center justify-center px-4">
                 <View className="size-16 items-center justify-center rounded-full bg-secondary">
-                  <Icon as={UserCheck} size={28} strokeWidth={2} className="text-muted-foreground" />
+                  <Icon
+                    as={UserCheck}
+                    size={28}
+                    strokeWidth={2}
+                    className="text-muted-foreground"
+                  />
                 </View>
                 <Text className="mt-4 text-center text-base font-medium text-foreground">
                   Chưa có đơn ủy thác nào
@@ -379,7 +404,9 @@ export default function ParentRequestScreen() {
             ) : (
               <View className="flex-col gap-3">
                 {requests.map((req) => (
-                  <Card key={req.id} className="rounded-xl border border-border bg-card p-4 shadow-none">
+                  <Card
+                    key={req.id}
+                    className="rounded-xl border border-border bg-card p-4 shadow-none">
                     <View className="flex-row items-center justify-between">
                       <View className="flex-1">
                         <Text className="text-sm font-semibold text-foreground">
@@ -394,17 +421,17 @@ export default function ParentRequestScreen() {
                           req.status === 'APPROVED'
                             ? 'default'
                             : req.status === 'REJECTED'
-                            ? 'destructive'
-                            : 'secondary'
+                              ? 'destructive'
+                              : 'secondary'
                         }>
                         <Text className="text-[11px] font-medium">
                           {req.status === 'APPROVED'
                             ? 'Đã duyệt'
                             : req.status === 'REJECTED'
-                            ? 'Đã từ chối'
-                            : req.status === 'CANCELLED'
-                            ? 'Đã hủy'
-                            : 'Chờ duyệt'}
+                              ? 'Đã từ chối'
+                              : req.status === 'CANCELLED'
+                                ? 'Đã hủy'
+                                : 'Chờ duyệt'}
                         </Text>
                       </Badge>
                     </View>
@@ -414,9 +441,7 @@ export default function ParentRequestScreen() {
                         Hiệu lực: {req.start_date || req.startDate} – {req.end_date || req.endDate}
                       </Text>
                       {req.note ? (
-                        <Text className="mt-1 text-xs text-foreground italic">
-                          "{req.note}"
-                        </Text>
+                        <Text className="mt-1 text-xs italic text-foreground">"{req.note}"</Text>
                       ) : null}
                     </View>
 
@@ -427,7 +452,7 @@ export default function ParentRequestScreen() {
                           size="sm"
                           onPress={() => handleCancel(req.id)}
                           disabled={cancelMutation.isPending}
-                          className="h-8 px-3 rounded-md">
+                          className="h-8 rounded-md px-3">
                           <Text className="text-xs font-medium text-destructive-foreground">
                             Hủy đơn
                           </Text>

@@ -46,6 +46,10 @@ export default function ParentContactBookScreen() {
       Alert.alert('Chưa có nội dung', 'Vui lòng nhập nhận xét trước khi lưu.');
       return;
     }
+    if (!query.data?.period?.month || !query.data?.period?.year) {
+      Alert.alert('Chưa gửi được', 'Chưa xác định được tháng đánh giá. Vui lòng tải lại.');
+      return;
+    }
     try {
       await feedback.mutateAsync({
         month: query.data?.period?.month,
@@ -176,13 +180,17 @@ export default function ParentContactBookScreen() {
                 <Button
                   className="w-full"
                   onPress={submitFeedback}
-                  disabled={feedback.isPending}
+                  disabled={
+                    feedback.isPending ||
+                    !draft.trim() ||
+                    draft.trim() === (record?.parentFeedback || '').trim()
+                  }
                   accessibilityState={{ busy: feedback.isPending }}
                   accessibilityLabel={feedback.isPending ? 'Đang lưu phản hồi' : 'Lưu phản hồi'}>
                   {feedback.isPending ? (
                     <ThemedSpinner />
                   ) : (
-                    <Text className="text-primary-foreground">Lưu phản hồi</Text>
+                    <Text className="text-primary-foreground">Gửi phản hồi cho giáo viên</Text>
                   )}
                 </Button>
               </View>

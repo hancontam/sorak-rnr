@@ -2,8 +2,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SorakMark from '@/assets/images/sorak-mark.svg';
 import { HomeBottomNav, HomeSectionTabs, Icon, Text } from '@/components/ui';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { getNotifications } from '@/features/notification/api/notification.api';
 import ParentReportScreen from '@/features/report/screens/ParentReportScreen';
 import ReportListScreen from '@/features/report/screens/ReportListScreen';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import { useState } from 'react';
@@ -23,6 +25,11 @@ export default function HomeScreen() {
   const classId = assignedClass?.classId;
   const className =
     (isParent ? user?.student?.className : assignedClass?.className) || 'Chưa có lớp';
+
+  const { data: notificationData } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: getNotifications,
+  });
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -65,10 +72,11 @@ export default function HomeScreen() {
       <HomeBottomNav
         isParent={isParent}
         className={className}
-        notificationCount={2}
+        notificationCount={notificationData?.unreadCount ?? 0}
         showSearch={!isParent && activeTabIndex === 0}
         search={studentSearch}
         onSearchChange={setStudentSearch}
+        onNotificationPress={() => router.push('/notifications')}
       />
     </SafeAreaView>
   );

@@ -85,7 +85,7 @@ Nguồn tham khảo: [OpenAPI JSON](https://mamnonhontre.sorak.io.vn/docs.json),
 | `GET /parent/notifications` | Swagger chỉ mô tả route dưới nhóm Parent, thiếu mô tả cấu trúc `data.unreadCount` và `data.notifications`. Thiếu tài liệu cho vai trò Giáo viên. | Staging cho phép cả Phụ huynh và Giáo viên test gọi và nhận 200; `data` có `{ unreadCount, notifications }` lọc theo `account_id` của tài khoản đăng nhập. | Tài khoản test hiện có `unreadCount: 0` và danh sách rỗng. |
 | `PATCH /parent/notifications/{id}/read` | Response `data` chỉ ghi `object`. | Staging nhận publicId của thông báo và cập nhật `is_read = true`, trả 200. | Chưa có endpoint riêng `/teachers/notifications` hay `/teacher/notifications` (trả 404), mobile dùng endpoint `/parent/notifications` chung. |
 
-## Yêu cầu đón hộ / Ủy quyền đón trẻ & Xin nghỉ — kiểm tra 04/11/2026 (UTC+7)
+## Yêu cầu ủy quyền đưa đón trẻ — kiểm tra 04/11/2026 (UTC+7)
 
 | Method/path | Swagger sai hoặc thiếu | Staging đã quan sát / cách kiểm tra | Giới hạn |
 | --- | --- | --- | --- |

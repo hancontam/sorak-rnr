@@ -1,52 +1,30 @@
 # Yêu Cầu Hỗ Trợ Backend (Backend Support Requirements)
 **Hệ thống Quản lý Mầm non Sorak**  
 *Môi trường Staging mục tiêu:* `https://test2mamnonhontre.sorak.io.vn/api`  
-*Ngày lập:* 04/11/2026  
+*Ngày cập nhật:* 04/11/2026 (Đã chuẩn hóa phạm vi: Nghiệp vụ hệ thống chỉ có Đơn ủy quyền đưa đón, KHÔNG CÓ đơn xin nghỉ học)  
 *Căn cứ phân tích:* Codebase API (`C:\Users\HCT\Desktop\Code\sorak-api`), Web (`C:\Users\HCT\Desktop\Code\sorak-web`), và Mobile React Native (`sorak-rnr`).
 
 ---
 
-## 1. Bổ sung Endpoint Đơn Xin Nghỉ Học Cho Phụ Huynh & Duyệt Đơn Giáo Viên
-
-### Cần làm gì?
-1. **Phía Phụ huynh:**
-   - Bổ sung endpoint `POST /parent/requests/leave` cho phép phụ huynh tạo đơn xin nghỉ học:
-     ```json
-     {
-       "startDate": "2026-11-05",
-       "endDate": "2026-11-06",
-       "session": "ALL_DAY", // "ALL_DAY" | "MORNING" | "AFTERNOON"
-       "reason": "Bé bị sốt phát ban cần theo dõi tại nhà",
-       "note": "Gia đình đã đưa đi khám, xin phép cô cho bé nghỉ 2 ngày."
-     }
-     ```
-   - Bổ sung endpoint `POST /parent/requests/leave/:requestId/cancel` để phụ huynh có thể hủy đơn khi kế hoạch thay đổi (trước khi giáo viên duyệt).
-   - Cập nhật endpoint `GET /parent/requests` để trả về cả hai danh mục đơn: `PICKUP` (Đón hộ) và `LEAVE` (Xin nghỉ học), kèm `type` và `status` (`PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`).
-2. **Phía Giáo viên:**
-   - Cập nhật endpoint danh sách đơn của lớp `GET /attendance/classes/:classId/authorizations` (hoặc mở rộng thành `GET /attendance/classes/:classId/requests`):
-     - Bao gồm cả danh sách đơn đón hộ và đơn xin nghỉ học.
-     - Trả về thống kê số đơn chờ duyệt: `stats: { pendingCount: number, totalCount: number }`.
-   - Bổ sung endpoint duyệt/từ chối đơn xin nghỉ:
-     - `PATCH /attendance/classes/:classId/requests/leave/:requestId/approve`
-     - `PATCH /attendance/classes/:classId/requests/leave/:requestId/reject` (kèm body `{ "reason": "Lý do từ chối" }`).
-   - **Tự động hóa dữ liệu:** Khi giáo viên bấm Duyệt đơn nghỉ học (`approve`), backend tự động tạo/cập nhật bản ghi chuyên cần `AttendanceRecord` cho học sinh trong các ngày tương ứng với trạng thái `EXCUSED_ABSENCE` (Nghỉ học có phép).
-
-### Để làm gì?
-- Giúp phụ huynh thao tác trực tiếp trên ứng dụng di động để gửi đơn xin nghỉ có phép cho con mà không phải liên hệ thủ công qua tin nhắn/gọi điện riêng.
-- Giúp giáo viên quản lý toàn bộ đơn từ (đón hộ và xin nghỉ) tại một nơi duy nhất trên màn hình "Duyệt đơn", kiểm tra nhanh lý do và phê duyệt.
-- Tự động hóa cập nhật sổ điểm danh của lớp mà không cần giáo viên phải nhớ tay từng học sinh có đơn xin nghỉ.
-
-### Vì sao phải làm vậy?
-- Hiện tại trong `sorak-api/src/routes/parent.routes.js`, hệ thống chỉ mới có endpoint cho đơn đón hộ (`/parent/requests/pickup`).
-- Trong mã nguồn Web (`sorak-web/src/features/parent/pages/ParentRequestsPage.jsx` dòng 197–201), khi phụ huynh nhấn nút "Tạo yêu cầu" cho mục Xin nghỉ học, hệ thống chỉ hiển thị thông báo toast: *"Vui lòng liên hệ trực tiếp giáo viên phụ trách hoặc gửi tin nhắn..."*.
-- Điều này tạo ra một "lỗ hổng luồng dữ liệu", khiến quy trình điểm danh có phép và báo cáo chuyên cần cuối tháng không có nguồn dữ liệu đối soát chính quy.
+## 📌 Làm Rõ Nghiệp Vụ Đơn Từ (Scope Clarification)
+- **Hệ thống Sorak chỉ quản lý Đơn ủy quyền đưa đón trẻ (Pickup Authorization)**, hoàn toàn không có luồng nghiệp vụ "Đơn xin nghỉ học".
+- **Bottom Navigation (icon bên trái trang Home):**
+  - **Phụ huynh (`PARENT_PH`):** Chạm vào icon mở màn hình tạo đơn ủy quyền đưa đón trẻ (`/request/new`). Backend đã hỗ trợ đầy đủ các API:
+    - `GET /parent/requests` (Lấy danh sách đơn)
+    - `POST /parent/requests/pickup` (Tạo đơn ủy quyền mới)
+    - `POST /parent/requests/pickup/:requestId/cancel` (Hủy đơn khi còn ở trạng thái PENDING)
+  - **Giáo viên (`TEACHER_GV`):** Chạm vào icon mở màn hình duyệt đơn ủy quyền đưa đón của lớp (`/request/approval`). Backend đã hỗ trợ:
+    - `GET /attendance/classes/:classId/authorizations` (Danh sách đơn của lớp)
+    - `PATCH /attendance/classes/:classId/authorizations/:authId/approve` (Duyệt đơn)
+    - `PATCH /attendance/classes/:classId/authorizations/:authId/reject` (Từ chối đơn)
+- **Trạng thái hiện tại:** Luồng nghiệp vụ ủy quyền đưa đón trên Mobile đã hoàn thành 100% và kết nối API thật trên Staging `test2`.
 
 ---
 
-## 2. Loại bỏ Mock Cứng 5 Lĩnh Vực Đánh Giá Học Kỳ (`GET /parent/good-behavior`)
+## 1. Loại Bỏ Mock Cứng 5 Lĩnh Vực Đánh Giá Học Kỳ (`GET /parent/good-behavior`)
 
 ### Cần làm gì?
-- Trong file `sorak-api/src/services/parent.service.js` (dòng 1245–1251):
+- Tại file `sorak-api/src/services/parent.service.js` (dòng 1245–1251):
   - **Hiện trạng:** Backend đang trả mảng tĩnh cho mọi học sinh:
     ```javascript
     domains: [
@@ -65,27 +43,31 @@
 - Phụ huynh chỉ nhìn thấy kết quả khi giáo viên chủ nhiệm đã thực sự chấm điểm và hoàn thành đánh giá cuối kỳ.
 
 ### Vì sao phải làm vậy?
-- Khi backend trả về điểm số tĩnh (95, 92, 98, 96, 90), mọi học sinh dù chưa được giáo viên đánh giá đều hiển thị giống hệt nhau, gây nhầm lẫn nghiêm trọng cho phụ huynh và làm mất giá trị của quy trình đánh giá thực tế của giáo viên mầm non.
+- Khi backend trả về điểm số tĩnh (95, 92, 98, 96, 90), mọi học sinh dù chưa được giáo viên đánh giá đều hiển thị giống hệt nhau, làm sai lệch kết quả giáo dục thực tế.
 
 ---
 
-## 3. Thống Nhất Chỉ Số Badge Số Lượng Đơn Chờ Duyệt (Home Bottom Bar)
+## 2. Bổ Sung Thống Kê `stats.pendingCount` Trong API `GET /parent/requests`
 
 ### Cần làm gì?
-- Cập nhật API `GET /parent/requests` để trả về thống kê:
+- Cập nhật API `GET /parent/requests` để trả về thêm object thống kê:
   ```json
-  "stats": {
-    "pendingCount": 1,
-    "totalCount": 5
+  "data": {
+    "requests": [ ... ],
+    "student": { ... },
+    "siblings": [ ... ],
+    "stats": {
+      "pendingCount": 1,
+      "approvedCount": 3,
+      "totalCount": 4
+    }
   }
   ```
-  (Trong đó `pendingCount` là số đơn đang ở trạng thái `PENDING` của học sinh).
-- Đảm bảo API `GET /attendance/classes/:classId/authorizations` trả về `stats.pendingCount` phản ánh số lượng đơn chưa duyệt của giáo viên lớp đó.
+  Trong đó `pendingCount` là số lượng đơn ủy quyền của học sinh đang ở trạng thái `PENDING`.
 
 ### Để làm gì?
-- Hiển thị badge số lượng màu đỏ nổi bật trên icon "Đơn từ" ở thanh Bottom Navigation:
-  - **Với Phụ huynh:** Báo số lượng đơn của con đang chờ giáo viên xử lý (thay vì đếm tổng số lượng đơn trong lịch sử như trước).
-  - **Với Giáo viên:** Báo số đơn mới nhận từ phụ huynh cần phê duyệt gấp.
+- Đồng bộ cấu trúc với API phía giáo viên (`GET /attendance/classes/:classId/authorizations` vốn đã có `stats: { pendingCount }`).
+- Giúp Badge số lượng màu đỏ trên icon "Đơn ủy quyền" ở thanh Bottom Bar (Home) của Phụ huynh hiển thị chính xác số đơn đang chờ cô giáo duyệt (thay vì phải filter mảng client-side).
 
 ### Vì sao phải làm vậy?
-- Giúp người dùng nắm bắt hành động cần làm ngay lập tức khi mở app, tránh tình trạng bỏ sót đơn đưa đón hoặc đơn xin nghỉ của phụ huynh.
+- Chuẩn hóa response theo RESTful API thống nhất giữa luồng Phụ huynh và Giáo viên, giúp client hiển thị badge thông báo tức thời, chính xác và tối ưu hiệu năng.

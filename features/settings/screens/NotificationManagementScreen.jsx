@@ -23,7 +23,7 @@ export default function NotificationManagementScreen() {
             onCheckedChange={(val) => updatePrefs({ emailClassAttendance: val })}
           />
           <SettingsSwitchRow
-            label="Đơn xin nghỉ & chuyển lớp"
+            label="Đơn ủy quyền & chuyển lớp"
             description={
               isParent
                 ? 'Cập nhật trạng thái yêu cầu của con'

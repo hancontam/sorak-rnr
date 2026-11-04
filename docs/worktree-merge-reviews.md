@@ -53,7 +53,7 @@ Swagger hiện có `GET /parent/good-behavior`, nhưng không có endpoint phụ
    - Màn hình `NotificationListScreen.jsx`, route `/notifications`.
    - Lọc danh sách Chưa đọc / Đã đọc, hỗ trợ đánh dấu đã đọc từng thông báo hoặc toàn bộ.
    - Nối badge số lượng thông báo chưa đọc vào thanh điều hướng `HomeBottomNav`.
-2. **Yêu cầu & Đơn từ đón hộ / Xin nghỉ (`features/request`):**
+2. **Yêu cầu & Đơn từ đón hộ / ủy quyền (`features/request`):**
    - Phụ huynh (`ParentRequestScreen.jsx`, route `/request/new`): Tạo đơn đón hộ/ủy quyền đón trẻ, nhập thông tin người đón, ngày hiệu lực, dặn dò; theo dõi trạng thái đơn và thao tác hủy đơn.
    - Giáo viên (`TeacherApprovalScreen.jsx`, route `/request/approval`): Danh sách đơn ủy thác đón trẻ theo lớp, lọc theo trạng thái (Tất cả, Chưa duyệt, Đã duyệt), thao tác duyệt hoặc hủy đơn kèm lý do.
    - Nối badge số đơn chờ duyệt vào `HomeBottomNav`.

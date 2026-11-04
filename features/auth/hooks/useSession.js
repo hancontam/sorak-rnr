@@ -1,5 +1,5 @@
 import { getCurrentUser, logoutSession, refreshSession } from '@/features/auth/api/auth.api';
-import { useAuthStore } from '@/features/auth/store/auth.store';
+import { isMobileRole, useAuthStore } from '@/features/auth/store/auth.store';
 import { configureSessionClient } from '@/shared/api/client';
 import {
   clearSessionTokens,
@@ -44,6 +44,10 @@ export function useRestoreSession() {
 
         useAuthStore.getState().setAccessToken(stored.accessToken);
         const user = await getCurrentUser();
+        if (!isMobileRole(user.role)) {
+          await clearLocalSession();
+          return;
+        }
         if (active) {
           useAuthStore.getState().setSession({
             user,

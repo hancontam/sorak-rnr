@@ -11,7 +11,7 @@ import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRestoreSession } from '@/features/auth/hooks/useSession';
-import { useAuthStore } from '@/features/auth/store/auth.store';
+import { isMobileRole, useAuthStore } from '@/features/auth/store/auth.store';
 import { useRestoreThemePreference } from '@/features/settings/hooks/useThemePreference';
 import { usePreferencesStore } from '@/features/settings/store/preferences.store';
 
@@ -25,7 +25,9 @@ export default function RootLayout() {
   useRestoreSession();
   useRestoreThemePreference();
   const user = useAuthStore((state) => state.user);
-  const isRestoring = useAuthStore((state) => state.isRestoring);
+  const isMobileUser = isMobileRole(user?.role);
+  const isParent = user?.role === 'PARENT_PH';
+  const isTeacher = user?.role === 'TEACHER_GV';
   const isThemeReady = usePreferencesStore((state) => state.isThemeReady);
   const { colorScheme } = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({
@@ -44,18 +46,28 @@ export default function RootLayout() {
         <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
           <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
           <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Protected guard={!user}>
+            <Stack.Protected guard={!isMobileUser}>
               <Stack.Screen name="index" />
               <Stack.Screen name="auth" />
             </Stack.Protected>
-            <Stack.Protected guard={!!user || isRestoring}>
+            <Stack.Protected guard={isMobileUser}>
               <Stack.Screen name="home" />
-              <Stack.Screen name="report/[studentId]" options={{ animation: 'slide_from_right' }} />
               <Stack.Screen name="assessment" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
               <Stack.Screen
                 name="settings"
                 options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
               />
+              <Stack.Protected guard={isTeacher}>
+                <Stack.Screen name="report/[studentId]" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="daily/attendance" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="daily/pickup" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="daily/health" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="request/approval" options={{ animation: 'slide_from_right' }} />
+              </Stack.Protected>
+              <Stack.Protected guard={isParent}>
+                <Stack.Screen name="request/new" options={{ animation: 'slide_from_right' }} />
+              </Stack.Protected>
             </Stack.Protected>
           </Stack>
           <PortalHost />

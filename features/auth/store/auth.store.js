@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { saveSessionTokens } from '@/shared/storage/auth.storage';
 
+export function isMobileRole(role) {
+  return role === 'PARENT_PH' || role === 'TEACHER_GV';
+}
+
 export const useAuthStore = create((set) => ({
   user: null,
   accessToken: null,

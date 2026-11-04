@@ -42,6 +42,9 @@ jobs:
       - name: Expo Prebuild (Android)
         run: npx expo prebuild --platform android --clean
 
+      - name: Expo Doctor Check
+        run: npx expo-doctor || true
+
       - name: Build Android APK
         run: |
           cd android
@@ -127,8 +130,18 @@ jobs:
         run: |
           cd ios
           WORKSPACE="$(find . -name '*.xcworkspace' -maxdepth 1 | head -n 1)"
-          SCHEME="$(xcodebuild -workspace "$WORKSPACE" -list -json | node -e "const fs = require('fs'); const data = JSON.parse(fs.readFileSync(0, 'utf8')); console.log(data.workspace.schemes[0]);")"
-          echo "Building workspace: $WORKSPACE with scheme: $SCHEME (Unsigned Release)"
+          SCHEMES_JSON="$(xcodebuild -workspace "$WORKSPACE" -list -json)"
+          echo "Available schemes: $SCHEMES_JSON"
+          SCHEME="$(echo "$SCHEMES_JSON" | node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync(0, 'utf8'));
+            const schemes = (data.workspace && data.workspace.schemes) || [];
+            const found = schemes.find(s => s === 'sorakrnr' || s === 'sorak-rnr')
+              || schemes.find(s => !s.startsWith('Pods') && !s.startsWith('EX') && !s.startsWith('React'))
+              || 'sorakrnr';
+            console.log(found);
+          ")"
+          echo "Building workspace '$WORKSPACE' with scheme '$SCHEME' (Unsigned Release)"
 
           xcodebuild -workspace "$WORKSPACE" \
             -scheme "$SCHEME" \
@@ -139,6 +152,8 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            COMPILER_INDEX_STORE_ENABLE=NO \
             clean build
 
       - name: Package Unsigned IPA (Payload/*.app)

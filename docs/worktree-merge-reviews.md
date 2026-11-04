@@ -142,3 +142,28 @@ Swagger hiện có `GET /parent/good-behavior`, nhưng không có endpoint phụ
 | Giới thiệu | Có UI, nhưng phiên bản đang ghi cứng `v1.0.0`; hàng pháp lý/tài liệu chưa mở nội dung. | Lấy phiên bản app thật và nối link/nội dung được sản phẩm xác nhận. |
 
 **Thứ tự trao đổi từng bước:** (1) QA Setting hiện có trên máy, (2) đổi mật khẩu, (3) quyết định tùy chọn thông báo, (4) xử lý pháp lý/tài liệu, (5) dịch hai ngôn ngữ khi được duyệt. Không tự mở rộng sang chức năng ngôn ngữ đang hoãn.
+
+## 6. Chẩn đoán Turnstile chặn đăng nhập — 04/11/2026
+
+**Trạng thái:** người dùng xác nhận “vào được rồi” sau khi reload bản sửa qua Metro và thử đăng nhập trên thiết bị đang gặp lỗi. App giữ base URL test2 và lấy token từ callback Turnstile, không thêm bypass/token giả. Đây là xác nhận cho lần thử này, chưa bao phủ hai vai trò, 2FA hoặc APK release. Ghi chú cũ “đã kiểm thử thành công test2” trước lần chẩn đoán này không có đủ bằng chứng native. Backlog chỉ theo dõi ở Google Sheet; bỏ hai bản sao `docs/backlog-status.md` và `docs/sheet_export.csv`.
+
+**Đối chiếu server:** GET `/api/auth/mobile-challenge` trên `testmamnonhontre.sorak.io.vn` và `test2mamnonhontre.sorak.io.vn` đều trả 200, cùng HTML 3438 ký tự, sitekey và CSP. Web đang deploy cũng dùng cùng sitekey; code context mô tả Invisible mode. Invisible mode không có widget hiển thị nên ảnh trắng trong trình duyệt riêng lẻ không chứng minh challenge thất bại hoặc thành công. Trang hiện không đổi nội dung sau success. Không tự đổi base URL của app: đổi host còn đổi môi trường tài khoản/dữ liệu và chưa chứng minh giải quyết được challenge.
+
+**Kiểm tra từ terminal:** Chrome headless trên cả hai server tải được Turnstile API, nhận `TURNSTILE_ERROR` và console `600010`, không nhận token trong khoảng quan sát 15 giây. Trình duyệt tự động có thể bị Cloudflare phát hiện, vì vậy không gán mã này cho thiết bị người dùng. Không log token hay thông tin đăng nhập. Script chẩn đoán mới đã chuyển đúng mã `600010` từ console sang bridge trong lần kiểm tra headless.
+
+**Kiểm tra POST bổ sung:** gửi tài khoản giả không tồn tại, mật khẩu giả và `captchaToken: invalid-audit-token` với header mobile tới cả hai staging đều nhận 401 `UNAUTHORIZED` / tài khoản hoặc mật khẩu không chính xác. Không tạo phiên/OTP hay thay đổi dữ liệu. Code context kiểm tra CAPTCHA trước thông tin đăng nhập và dự kiến trả 400 nếu token sai; hành vi deploy khác hoặc staging đang tắt kiểm tra CAPTCHA. Chưa đủ bằng chứng để khẳng định cờ môi trường nào đang bật/tắt; cần backend xác nhận. Không dùng kết quả này để coi đăng nhập thật qua CAPTCHA đã đạt.
+
+**Phần mobile sửa được:** `captcha-challenge-modal.native.jsx` hiển thị tiến trình, giới hạn chờ 30 giây, thông báo lỗi tải script/trang/HTTP và mã lỗi Turnstile nếu có, cho phép thử lại. Cho phép `about:blank`/`about:srcdoc` theo hướng dẫn Cloudflare và bật third-party cookies. Không giả User Agent, không dùng token giả. Do server đang bỏ mã lỗi, tạm đọc riêng chuỗi mã lỗi công khai của Cloudflare từ console; không chuyển các đối số console hay token ra log. Khi backend sửa callback chính thức, ưu tiên mã `code`/`errorCode` trong bridge và bỏ cách đọc console nếu không còn cần thiết.
+
+**Backend cần hỗ trợ để chốt nguyên nhân:**
+
+1. Trang challenge nhận `errorCode` từ `'error-callback'`, gửi `{ type: 'TURNSTILE_ERROR', code: String(errorCode) }` qua bridge thay vì bỏ đối số như hiện tại. Nhánh `catch` của `turnstile.render` phải gửi lỗi; thêm xử lý script tải thất bại và timeout. Có thể hiển thị trạng thái success/error trên trang để kiểm tra bằng trình duyệt thông thường.
+2. Kiểm tra widget trong Cloudflare: sitekey đang dùng, mode và danh sách hostname của hai staging. Mã `110200` mới là bằng chứng hostname chưa được cho phép; `200500` là iframe tải lỗi; họ `600*` là challenge thất bại. Không kết luận sai domain chỉ từ ảnh trắng.
+3. Khi POST `/auth/login` nhận token, backend gọi Siteverify với secret riêng của server. Log kết quả `success`, `error-codes`, `hostname`, `action` và traceId theo mức cần thiết; không log secret, token hay mật khẩu. Code context chỉ trả `Boolean(data.success)` nên làm mất lý do Siteverify từ chối. Đây là code context, chưa xác minh log/cách xử lý của bản backend deploy.
+4. GET challenge trả 200 chỉ cho biết HTML được phục vụ. Nếu client không nhận token thì chưa gọi POST login; backend sẽ không có log login cho lần chờ đó. Cần mã lỗi từ client trước khi kết luận lỗi cấp token, hoặc log Siteverify khi token đã đến backend.
+
+**Giới hạn kết luận:** lần đăng nhập sau reload thành công nhưng chưa tách riêng tác động của việc cho phép `about:blank`/`about:srcdoc`, cookies (Android vốn mặc định bật third-party cookies) và việc thử lại challenge. Không khẳng định backend hỏng, hostname sai hoặc một prop riêng lẻ đã sửa nguyên nhân. Không đổi staging cũ. Nếu lỗi lặp lại, lấy mã từ modal để xử lý đúng lớp.
+
+**Kiểm tra mã:** Babel parse JSX và JavaScript chẩn đoán hợp lệ; Android Hermes export thành công (4042 modules). Lần export đầu gặp lỗi quyền ghi Temp của Hermes trên Windows; chạy lại với TEMP/TMP trong `.expo/turnstile-temp` thành công. Không tạo test file hoặc thay cấu hình môi trường lâu dài.
+
+Nguồn chính thức: [Cloudflare mobile WebView](https://developers.cloudflare.com/turnstile/get-started/mobile-implementation/), [widget modes](https://developers.cloudflare.com/turnstile/concepts/widget/), [error codes](https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/error-codes/).

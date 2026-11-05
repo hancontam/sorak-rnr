@@ -302,6 +302,7 @@ function AuthorizationTab({ authorizations, semesterInfo }) {
 
 export function StudentReportBody({ student, report, bottomInset = 40 }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [viewport, setViewport] = useState({ width: 0, height: 0 });
   const tabScroll = useRef(null);
   const carousel = useRef(null);
   const tabLayouts = useRef({});
@@ -358,42 +359,55 @@ export function StudentReportBody({ student, report, bottomInset = 40 }) {
           />
         ))}
       </ScrollView>
-      <Carousel
-        ref={carousel}
-        style={{ flex: 1, width: '100%' }}
-        data={TABS}
-        defaultIndex={0}
-        loop={false}
-        progress={progress}
-        animation={{ type: 'timing', duration: TAB_TRANSITION_DURATION }}
-        onConfigurePanGesture={(gesture) => {
-          gesture.activeOffsetX([-12, 12]);
-          gesture.failOffsetY([-10, 10]);
-        }}
-        onSnapToItem={(index) => {
-          setSelectedIndex(index);
-          const layout = tabLayouts.current[index];
-          if (layout) {
-            tabScroll.current?.scrollTo({
-              x: Math.max(0, layout.x + layout.width / 2 - width / 2),
-              animated: true,
-            });
-          }
-        }}
-        keyExtractor={([value]) => value}
-        renderItem={({ item }) => (
-          <ScrollView
-            nestedScrollEnabled
-            className="flex-1"
-            contentContainerStyle={{
-              paddingHorizontal: 24,
-              paddingTop: 16,
-              paddingBottom: bottomInset,
-            }}>
-            {showTab(item[0])}
-          </ScrollView>
-        )}
-      />
+      {/* This pager can be nested in Home; use its own available size. */}
+      <View
+        style={{ flex: 1 }}
+        onLayout={({ nativeEvent: { layout } }) => {
+          const { width, height } = layout;
+          setViewport((current) =>
+            current.width === width && current.height === height ? current : { width, height }
+          );
+        }}>
+        {viewport.width > 0 && viewport.height > 0 ? (
+          <Carousel
+            ref={carousel}
+            style={{ width: viewport.width, height: viewport.height }}
+            itemSize={viewport.width}
+            data={TABS}
+            defaultIndex={0}
+            loop={false}
+            progress={progress}
+            animation={{ type: 'timing', duration: TAB_TRANSITION_DURATION }}
+            onConfigurePanGesture={(gesture) => {
+              gesture.activeOffsetX([-12, 12]);
+              gesture.failOffsetY([-10, 10]);
+            }}
+            onSnapToItem={(index) => {
+              setSelectedIndex(index);
+              const layout = tabLayouts.current[index];
+              if (layout) {
+                tabScroll.current?.scrollTo({
+                  x: Math.max(0, layout.x + layout.width / 2 - width / 2),
+                  animated: true,
+                });
+              }
+            }}
+            keyExtractor={([value]) => value}
+            renderItem={({ item }) => (
+              <ScrollView
+                nestedScrollEnabled
+                className="flex-1"
+                contentContainerStyle={{
+                  paddingHorizontal: 24,
+                  paddingTop: 16,
+                  paddingBottom: bottomInset,
+                }}>
+                {showTab(item[0])}
+              </ScrollView>
+            )}
+          />
+        ) : null}
+      </View>
     </View>
   );
 }

@@ -206,3 +206,10 @@ Nguồn chính thức: [Cloudflare mobile WebView](https://developers.cloudflare
 - Kiểm tra parse JSX, định dạng và diff. Người dùng đã xác nhận bản sửa hiển thị được trên thiết bị sau reload; cho phép commit và đưa vào bản tester. Xác nhận này thuộc lỗi nền/sheet, không thay thế QA toàn bộ chức năng Setting.
 
 Tham chiếu: [React Navigation Native Stack — transparentModal](https://reactnavigation.org/docs/native-stack-navigator/).
+
+## 11. Nội dung tab Home phụ huynh trắng trên native — 05/11/2026
+
+- Người dùng xác nhận vẫn thấy ba nút tab, nhưng bấm không hiện nội dung trên app nối Metro; đồng thời có cảnh báo `Sending onAnimatedValueUpdate with no listeners registered`. Không coi cảnh báo riêng lẻ là bằng chứng nguyên nhân mất nội dung và không tắt log để che lỗi.
+- HomeSectionTabs và StudentReportBody trước đó để carousel tự đo với width 100% / flex. Thay bằng vùng chứa flex được đo qua onLayout; chỉ mount carousel khi có kích thước dương, truyền width/height và itemSize bằng số đo thực tế. Pager hồ sơ trẻ lấy kích thước riêng vì có thể nằm trong pager Home. Giữ hiệu ứng trượt, thanh tab và API/phân quyền hiện tại; không thêm thư viện hoặc sửa source dependency.
+- Người dùng kiểm tra lại trên thiết bị và xác nhận cả ba tab hiện nội dung, không còn cảnh báo trong lần thử. Không khẳng định đã xử lý mọi trường hợp cảnh báo Animated ở navigator khác.
+- Kiểm tra JSX parse, định dạng, diff; kiểm tra trình duyệt qua Metro với fixture riêng cho phiên/API: nội dung ba tab hiện sau khi chọn, đổi kích thước cửa sổ vẫn mở được hồ sơ, không có page error. Đây là kiểm tra layout, không dùng fixture làm bằng chứng contract hoặc dữ liệu staging. Không thêm test file hoặc ảnh kiểm tra vào repo.

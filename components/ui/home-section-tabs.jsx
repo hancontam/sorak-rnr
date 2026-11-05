@@ -133,6 +133,7 @@ export function HomeSectionTabs({ isParent, children, onTabChange }) {
   const { width } = useWindowDimensions();
   const [selectedIndex, setSelectedIndex] = React.useState(1);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [viewport, setViewport] = React.useState({ width: 0, height: 0 });
   const slides = React.Children.toArray(children);
   const navWidth = width - 48;
   const activeWidth = Math.max(INACTIVE_WIDTH, navWidth - INACTIVE_WIDTH * 2 - TAB_GAP * 2);
@@ -172,26 +173,39 @@ export function HomeSectionTabs({ isParent, children, onTabChange }) {
           />
         ))}
       </View>
-      <Carousel
-        ref={carouselRef}
-        style={{ flex: 1, width: '100%' }}
-        data={TAB_VALUES}
-        defaultIndex={1}
-        loop={false}
-        progress={progress}
-        animation={{ type: 'timing', duration: TRANSITION_DURATION }}
-        onConfigurePanGesture={(gesture) => {
-          gesture.activeOffsetX([-12, 12]);
-          gesture.failOffsetY([-10, 10]);
-        }}
-        onSnapToItem={(index) => {
-          setSelectedIndex(index);
-          onTabChange?.(index);
-          setMenuOpen(false);
-        }}
-        keyExtractor={(item) => item}
-        renderItem={({ index }) => <View className="flex-1 px-6 pt-6">{slides[index]}</View>}
-      />
+      {/* Measure the available pane before mounting the native pager. */}
+      <View
+        style={{ flex: 1 }}
+        onLayout={({ nativeEvent: { layout } }) => {
+          const { width, height } = layout;
+          setViewport((current) =>
+            current.width === width && current.height === height ? current : { width, height }
+          );
+        }}>
+        {viewport.width > 0 && viewport.height > 0 ? (
+          <Carousel
+            ref={carouselRef}
+            style={{ width: viewport.width, height: viewport.height }}
+            itemSize={viewport.width}
+            data={TAB_VALUES}
+            defaultIndex={1}
+            loop={false}
+            progress={progress}
+            animation={{ type: 'timing', duration: TRANSITION_DURATION }}
+            onConfigurePanGesture={(gesture) => {
+              gesture.activeOffsetX([-12, 12]);
+              gesture.failOffsetY([-10, 10]);
+            }}
+            onSnapToItem={(index) => {
+              setSelectedIndex(index);
+              onTabChange?.(index);
+              setMenuOpen(false);
+            }}
+            keyExtractor={(item) => item}
+            renderItem={({ index }) => <View className="flex-1 px-6 pt-6">{slides[index]}</View>}
+          />
+        ) : null}
+      </View>
       {menuOpen ? (
         <>
           <Pressable

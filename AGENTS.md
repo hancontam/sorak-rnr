@@ -5,6 +5,7 @@
 - Làm từng bước nhỏ. Trước khi sửa code, giải thích mục tiêu, các file sẽ sửa/thêm, luồng dữ liệu và lý do chọn cách làm; chờ người dùng đồng ý với bước đó. Nếu người dùng đã cho phép rõ ràng chính bước đang làm, tiếp tục mà không hỏi lại.
 - Không tự mở rộng phạm vi, dựng sẵn nhiều feature, đổi kiến trúc hoặc cài thêm thư viện ngoài bước đã được duyệt.
 - Sau khi hoàn thành một bước đã duyệt, giải thích thay đổi và cách đã kiểm tra, rồi commit và push theo quy trình dự án. Không commit bản nháp khi người dùng yêu cầu xem trước.
+- Commit/push code thông thường lên `main` không đồng nghĩa với phát hành bản tester. Chỉ merge/cập nhật và push `release/tester`, hoặc chạy thủ công workflow Build Tester, khi người dùng yêu cầu rõ ràng cho lượt phát hành đó (ví dụ “merge main sang release/tester để build” hoặc “lên bản mới cho tester”). Không tự lặp lại việc phát hành sau mỗi lần sửa/commit dựa vào yêu cầu build trước đó.
 - Người dùng tự đánh dấu trạng thái trong backlog; không tự sửa Google Sheet.
 - Không tạo test file, test framework hoặc bộ test mới trừ khi người dùng đổi yêu cầu.
 - Giữ nguyên thay đổi chưa commit của người dùng. Không reset, ghi đè hoặc xóa code của họ khi chưa trao đổi.

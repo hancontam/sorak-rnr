@@ -1,0 +1,42 @@
+# Yêu cầu backend cho Sorak Mobile
+
+Ngày 05/11/2026, môi trường test2. Tập trung yêu cầu/nghiệm thu, không thay backlog Google Sheet. Schema mong muốn là đề xuất, chưa phải contract xác nhận. Người dùng chuyển yêu cầu cho team; agent không tự gửi tin nhắn.
+
+## BE-01 — Thông báo theo tài khoản và thiết bị
+
+**Trạng thái:** người dùng đã gửi câu hỏi, chờ trả lời. Chưa chốt push trong đợt 08/11.
+
+**Cần gì:**
+
+1. API danh sách/đánh dấu đọc cho GV/PH, read-all nếu có; phân trang, thứ tự, thời gian có timezone, loại thông báo rõ.
+2. Tổng unreadCount tài khoản độc lập trang hiện tại. Trả cùng danh sách hoặc API thống kê đều được, không bắt tạo endpoint mới nếu hiện tại đủ.
+3. Xác nhận push đã có chưa; Expo token hay native FCM/APNs; API đăng ký/cập nhật/gỡ token theo thiết bị và payload mở đúng màn.
+4. API tùy chọn nhận thông báo/email nếu có. Mobile không dùng switch local để giả ngừng email server.
+
+**Vì sao:** cần dữ liệu thật, badge đúng, mở nội dung đúng quyền. Backend gửi push đến thiết bị đã đăng ký; mobile xin quyền và xử lý khi bấm. Logout/đổi tài khoản phải xử lý liên kết thiết bị để không gửi nhầm dữ liệu.
+
+**Bằng chứng:** Swagger có hai path PH; context count trong 30 bản ghi. Chưa kiểm chứng backend mới còn thế không. Không thấy contract thiết bị/preferences trong Swagger đã đọc không có nghĩa server chắc chắn chưa có.
+
+**Contract cần làm rõ:** response mẫu danh sách/badge/read/read-all, cách cập nhật mới (refetch/poll, socket, push). Push nếu có cần notification id/type và định danh nghiệp vụ hợp lệ; không coi URL tùy ý là route tin cậy. Xác định preference nào theo tài khoản, cái nào theo thiết bị.
+
+**Quyền/nghiệm thu:** chỉ đọc/đánh dấu thông báo mình; read lặp không sai count; tổng đúng dù nhiều trang; lỗi không giả count=0. Nếu có push: nền/đóng app, bấm mở đúng màn sau auth, logout/đổi tài khoản không lộ dữ liệu. Badge icon hệ điều hành là yêu cầu riêng, khác badge chuông trong app.
+
+**Dữ liệu/thời gian cần:** GV/PH có thông báo đọc/chưa đọc, đủ kiểm tra phân trang; thiết bị test push nếu có. Đề nghị team báo thời gian contract/deploy có thể thử để đánh giá mốc 08/11.
+
+## BE-02 — Học kỳ riêng của học sinh PH
+
+**Trạng thái:** người dùng xác nhận backend đang sửa. Mobile chỉ xem; không cần endpoint phản hồi/ghi học kỳ.
+
+**Cần gì:** contract test2 phần học kỳ của `GET /parent/good-behavior`, mẫu học sinh có dữ liệu thật, query chọn học kỳ/năm học, ý nghĩa lĩnh vực/mức đánh giá, chưa có kết quả, phân biệt thiếu dữ liệu với số 0.
+
+**Vì sao:** mẫu rỗng trước đó không kiểm chứng được màn có kết quả. Mobile không tạo điểm hoặc lấy API lớp rồi lọc con.
+
+**Bằng chứng:** audit main `5318a02` ghi hai tài khoản thử trả semesterAssessments rỗng; đây là lịch sử, không phải test lại lúc rebuild.
+
+**Quyền/nghiệm thu:** chỉ dữ liệu con gắn với phiên, không cả lớp; nguồn đánh giá thật; đổi kỳ không lẫn dữ liệu; rỗng hợp lệ khác server lỗi. BE cung cấp tài khoản test qua kênh riêng, không ghi mật khẩu trong docs.
+
+**Ảnh hưởng:** không coi nhánh học kỳ có dữ liệu hoàn tất trước khi deploy bản sửa và kiểm tra native. Không đề nghị endpoint mới nếu endpoint hiện có đủ sau sửa.
+
+## Mẫu yêu cầu mới
+
+Vai trò/flow bị chặn; cần gì/vì sao; bằng chứng ngày/môi trường; endpoint hiện có và phần thiếu; request/response đề xuất; quyền/empty/error; dữ liệu test; nghiệm thu; ảnh hưởng thời hạn; phản hồi BE. Không ghi bug client, nghiệp vụ đã bỏ (xin nghỉ/ghi học kỳ GV) hoặc điều chưa điều tra thành lỗi BE chắc chắn.

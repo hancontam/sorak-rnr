@@ -4,6 +4,12 @@ Khởi tạo 05/11/2026. Môi trường đích `https://test2mamnonhontre.sorak.
 
 Chưa có endpoint nghiệp vụ được gọi lại từ bản làm lại. Không đánh dấu kiểm chứng chỉ vì main cũ từng chạy. Không lưu credentials/token/OTP hoặc thông tin cá nhân đầy đủ.
 
+## Kết nối HTTP nền — 05/11/2026
+
+| Endpoint/môi trường | Swagger | Quan sát thực tế | Giới hạn |
+| --- | --- | --- | --- |
+| `GET https://test2mamnonhontre.sorak.io.vn/api/health`, không token | Path `/health` mô tả 200, không khai báo security ở operation hoặc root trong JSON đã đọc | Axios client nhận HTTP 401, JSON `code: UNAUTHORIZED`, `message: Missing access token` | Xác nhận request tới server và lỗi HTTP được giữ nguyên; không coi health hoạt động công khai hoặc auth đã được kiểm chứng. Chưa thử có token vì bước auth chưa triển khai. |
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

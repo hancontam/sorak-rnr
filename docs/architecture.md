@@ -1,12 +1,14 @@
 # Kiến trúc và kế hoạch Sorak Mobile
 
-Chốt ngày 05/11/2026. Đây là thiết kế đích, không phải chức năng đã triển khai. Bước hiện tại chỉ chuẩn bị quy ước/kế hoạch, source vẫn ở nền `52ae38c`.
+Chốt ngày 05/11/2026. Đây là thiết kế đích; không coi các route/feature minh họa dưới đây là chức năng đã triển khai. Các bước được triển khai và duyệt commit riêng từ nền `52ae38c`.
 
 ## Mục tiêu
 
 Đọc hiểu một feature thì đọc được feature khác theo cùng cách. JavaScript, Expo Router, RNR/NativeWind, Zustand, TanStack Query, Axios. Figma dùng hiểu flow, chấp nhận UI chuẩn framework thay vì khôi phục các animation/navigation tùy biến cũ.
 
 Worktree `C:/Users/HCT/Desktop/sorak-rnr/wt-rebuild`, branch `rebuild/mobile-foundation`, base `52ae38cebf5bb28bc314457f526acf6316a3e66b`. Main đối chiếu lúc bắt đầu `5318a02`. Không reset main; chỉ chuyển code đã hiểu, phù hợp phạm vi mới và có kiểm chứng.
+
+Người dùng duyệt nâng Expo SDK 56 -> 57 trong bước nền ngày 05/11/2026: Expo 57.0.32, React Native 0.86.3, Reanimated 4.5.1 và Worklets 0.10.1 theo bộ dependency SDK. Lý do là regression bộ nhớ Hermes của SDK 56; đây không phải thay kiến trúc hoặc viết lại component RNR. Giữ NativeWind 4.2.7/Tailwind 3. Tham khảo [Expo SDK 57](https://expo.dev/changelog/sdk-57#known-regressions) và [NativeWind 4](https://www.nativewind.dev/docs/getting-started/installation). Dev client dùng thư viện native SDK 56 phải build lại trước khi chạy source SDK 57; bundle JS không thay thế việc đó.
 
 Hạn mục tiêu 08/11/2026 có phụ thuộc backend và kiểm tra native. Người dùng chọn hoàn tất phạm vi trước bàn giao, không giảm phạm vi âm thầm hoặc đánh Done chỉ vì có UI/bundle chạy.
 
@@ -113,6 +115,14 @@ Khi ghi: screen đưa form values vào action của hook -> `useMutation` -> API
 | Tính toán thuần | Hàm thường | Format ngày, kiểm tra form |
 
 Welcome chỉ hiển thị/điều hướng không có `useWelcome` rỗng. `useState` UI ở screen vẫn hợp lệ. Query/mutation nghiệp vụ luôn tách vào hook; không tạo bản sao dữ liệu server trong Zustand.
+
+Nền dùng chung có API nhỏ để các feature sử dụng:
+
+- `shared/api/client.js`: Axios instance đọc `EXPO_PUBLIC_API_URL`, timeout 15 giây. `.env.example` chứa URL test2; `.env.local` của máy không đưa vào Git. Header phiên/refresh được nối ở bước auth, không suy diễn contract ở bước nền.
+- `shared/api/query-client.js`: tạo QueryClient; root giữ một instance bằng `useState`. Query được coi còn mới trong 30 giây; query/mutation không tự retry mặc định. Root chuyển AppState native cho focusManager; đây chưa phải listener mạng hoặc listener đổi màn.
+- `shared/storage/token.storage.js`: `readTokens`, `writeTokens`, `clearTokens`; cặp token ghi chung một giá trị SecureStore. Đọc không có phiên trả null, dữ liệu hỏng/I/O lỗi thì báo lỗi để bước auth xử lý. Không lưu token vào AsyncStorage hoặc fallback web localStorage.
+- `shared/storage/preferences.storage.js`: `readThemeMode`, `writeThemeMode`, chỉ nhận light/dark/system. Chưa có lựa chọn hoặc giá trị cũ không hợp lệ thì dùng system; lỗi I/O vẫn được đưa lên caller. Việc áp dụng/khôi phục theme qua hook/store sẽ nối ở bước Settings, không tự sinh feature trong bước nền.
+- Token màu brand light/dark nằm trong `global.css`, ánh xạ class tại `tailwind.config.js`; `lib/theme.js` giữ giá trị tương ứng cho API native cần màu JS. Khi đổi màu phải giữ hai biểu diễn CSS/JS khớp nhau.
 
 ## Navigation và session
 

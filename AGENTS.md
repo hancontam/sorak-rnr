@@ -14,7 +14,7 @@
 
 ## Stack và UI
 
-- JavaScript `.js`/JSX `.jsx`; Expo, React Native, Expo Router, RNR, NativeWind. Không tự nâng SDK hoặc đổi stack. File type tự sinh trong `.expo/` không phải source dự án.
+- JavaScript `.js`/JSX `.jsx`; Expo, React Native, Expo Router, RNR, NativeWind. Người dùng đã duyệt nâng nền lên Expo SDK 57 ngày 05/11/2026 để xử lý regression Hermes của SDK 56; giữ NativeWind 4 (từ 4.2.7 có hỗ trợ SDK 57) và RNR. Căn chỉnh module native theo SDK bằng Expo CLI; không tự nâng SDK tiếp hoặc đổi stack. File type tự sinh trong `.expo/` không phải source dự án.
 - Zustand giữ state app/phiên trong RAM; TanStack Query giữ dữ liệu server/cache/request; Axios gửi HTTP. SecureStore lưu token bền vững; AsyncStorage lưu tùy chọn không nhạy cảm.
 - Dùng Expo Router JavaScript Bottom Tabs riêng theo vai trò, Stack cho chi tiết. Không dùng carousel thay navigator. Figma làm rõ flow; ưu tiên UI chuẩn Expo/RNR, không chạy theo hiệu ứng thiết kế cũ.
 - Phân loại component theo trách nhiệm: `components/ui/` chứa UI nền RNR và primitive chung (Button, Input, Card); `components/shared/` chứa component ghép dùng chung nhiều feature (trạng thái rỗng, ô OTP); `features/<feature>/components/` chứa UI riêng nghiệp vụ (thẻ học sinh, thẻ hoạt động). Component tự viết vẫn có thể ở ui nếu là primitive chung, không phân loại chỉ theo nguồn RNR/tự viết.

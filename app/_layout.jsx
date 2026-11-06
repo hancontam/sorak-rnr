@@ -1,21 +1,47 @@
 import '@/global.css';
-import { NAV_THEME } from '@/lib/theme';
-import { ThemeProvider } from 'expo-router/react-navigation';
+
 import { PortalHost } from '@rn-primitives/portal';
+import { focusManager, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
+import { ThemeProvider } from 'expo-router/react-navigation';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
+import { useEffect, useState } from 'react';
+import { AppState, Platform } from 'react-native';
+
+import { NAV_THEME } from '@/lib/theme';
+import { createQueryClient } from '@/shared/api/query-client';
+
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 export default function RootLayout() {
+  const [queryClient] = useState(createQueryClient);
   const { colorScheme } = useColorScheme();
+
+  useEffect(() => {
+    // Web đã có listener focus của TanStack Query; native dùng AppState.
+    if (Platform.OS === 'web') return;
+
+    if (AppState.currentState) {
+      focusManager.setFocused(AppState.currentState === 'active');
+    }
+
+    const subscription = AppState.addEventListener('change', (state) => {
+      focusManager.setFocused(state === 'active');
+    });
+
+    return () => subscription.remove();
+  }, []);
+
   return (
-    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack />
-      <PortalHost />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <Stack />
+        <PortalHost />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

@@ -24,6 +24,12 @@ Chỉ ghi nhận các hành vi đã quan sát trong từng mục. Không đánh 
 - Với mã tài khoản không tồn tại và header Android, `POST /auth/forgot-password` nhận `identifier` và trả 404. `POST /auth/verify-otp` nhận `email` và `otp` rồi từ chối mã không hợp lệ. `POST /auth/reset-password` nhận `email`, `resetToken`, `password` rồi từ chối token giả. Đây là kiểm tra contract nhánh lỗi.
 - Nhánh thành công trên `main` từng xác nhận mã cán bộ có thể truyền trong trường `email` ở hai bước cuối. Context API cho thấy cooldown gửi lại 60 giây, OTP có hạn 5 phút và tối đa 5 lần thử. Bản làm lại dùng mốc cooldown đó và xử lý phản hồi chờ/hết hạn từ server. Chưa kiểm chứng gửi email và đổi mật khẩu thật từ bản làm lại.
 
+## Shell/Settings trên test2 — 09/11/2026
+
+- Android, phiên giáo viên thật: `GET /auth/sessions` trả 200 với hai phiên. Cookie `sorak_refresh` từ refresh token hiện tại cho đúng một phiên có `isCurrent: true`; giá trị đối chứng sai cho không phiên nào khớp. Cookie chỉ được gắn vào request này trên native, kể cả khi client gửi lại sau refresh.
+- Android, phiên phụ huynh thật qua Turnstile: app hiển thị hồ sơ chỉ đọc và form đổi mật khẩu, ẩn mục 2FA dành cho giáo viên. Danh sách phiên hiển thị đúng một phiên **Thiết bị này** và hai phiên khác. Sau **Làm mới**, app vẫn nhận diện phiên hiện tại. Kiểm tra xác nhận đăng xuất tất cả bằng nút **Hủy**. Sau khi tắt và mở lại Expo Go, app khôi phục phiên và giao diện Tối. Cuối lượt kiểm tra, chỉ đăng xuất phiên thử nghiệm vừa tạo.
+- Với phiên giáo viên thật, `POST /auth/change-password`, `POST /auth/2fa/confirm-enable` và `POST /auth/2fa/disable` trả 400 với body rỗng. Tên trường và đường dẫn theo Swagger, web và code backend tham chiếu. Chưa thử đổi mật khẩu thành công, gửi OTP, bật/tắt 2FA hoặc thu hồi tất cả phiên. Chưa kiểm chứng danh sách phiên trên iOS.
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

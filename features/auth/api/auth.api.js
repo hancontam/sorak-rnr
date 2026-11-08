@@ -111,3 +111,7 @@ export async function revokeSession({ accessToken, refreshToken }) {
   );
   readData(response);
 }
+
+export async function revokeAllSessions() {
+  readData(await apiClient.delete('/auth/sessions'));
+}

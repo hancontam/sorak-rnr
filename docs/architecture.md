@@ -158,10 +158,16 @@ Sau khi server xác nhận đổi mật khẩu, app trở lại form giáo viên
 | Nhật ký ngày | Lịch; điểm danh/đón trẻ/sức khỏe; đánh giá HĐGD từ slot | Chỉ xem con mình | Ngày/slot đúng; khung trống không giả hoạt động/ID |
 | Đánh giá giai đoạn | Sổ bé ngoan/học kỳ chỉ xem | Xem; phản hồi Sổ bé ngoan | Không có tặng hoa/ghi học kỳ ở mobile; không phản hồi học kỳ |
 | Ủy quyền đón trẻ | Xem/xử lý theo nghiệp vụ | Tạo/xem/hủy theo điều kiện BE | Badge thật, chuyển trạng thái đúng, tránh gửi trùng |
-| Settings | Hồ sơ, đổi MK, 2FA theo quyền/contract; theme, giới thiệu, logout | Chức năng đúng quyền PH | Không có hàng/công tắc giả; xác minh quyền tài khoản với API |
+| Settings | Xem hồ sơ và ảnh đại diện; đổi mật khẩu, 2FA, quản lý phiên theo quyền; theme, giới thiệu, đăng xuất | Xem hồ sơ và ảnh đại diện; các thao tác tài khoản theo quyền PH | Hồ sơ chỉ đọc ở cả hai vai trò. Dùng ảnh từ API và chỉ hiển thị thao tác tài khoản đã xác minh |
 | Thông báo | Chờ xác nhận endpoint/quyền GV | Có đầu mối API PH cần kiểm chứng | Push/email preference đang chờ backend-requests |
 
-Không có xin nghỉ học, BGH mobile, chọn nhiều lớp/con hoặc tiếng Anh trong đợt này. Không có lựa chọn English giả hoạt động. Hồ sơ được sửa trường nào, hành động tài khoản nào cho PH cần đối chiếu contract trước khi làm, không bịa endpoint. Nội dung chính sách/hướng dẫn tự soạn là bản dự thảo cần chủ sản phẩm duyệt, không tự nhận chính thức.
+Không có xin nghỉ học, BGH mobile, chọn nhiều lớp/con hoặc tiếng Anh trong đợt này. Giao diện bước 3 dùng Tiếng Việt. Bộ chọn chỉ có Tiếng Việt và English khi bản dịch toàn app sẵn sàng. Hồ sơ GV/PH chỉ đọc, gồm cả ảnh đại diện. Dùng ảnh của tài khoản do API trả về; dùng chữ cái đầu khi ảnh thiếu hoặc tải lỗi. Nội dung chính sách/hướng dẫn tự soạn là bản dự thảo cần chủ sản phẩm duyệt, không tự nhận chính thức.
+
+### Quản lý phiên trong Settings
+
+Màn Tài khoản mở `app/settings/_layout.jsx` trong nhánh đã đăng nhập. Settings và Hồ sơ đọc user của phiên hiện tại. Root khôi phục lựa chọn giao diện qua `useThemePreference` và `preferences.storage.js`; chế độ Tự động theo giao diện hệ thống.
+
+Hiển thị phiên hiện tại và các phiên khác theo dữ liệu API. Có nút Làm mới và xác nhận trước khi Đăng xuất tất cả thiết bị. Khi server xác nhận thu hồi tất cả, mobile dọn phiên và cache của tài khoản hiện tại rồi trở về luồng đăng nhập. Cần xác minh trên test2 với cả GV và PH. Nhãn Thiết bị này cần được xác nhận bằng phiên thực tế, độc lập với thứ tự đăng nhập.
 
 ## Bước triển khai và điểm duyệt
 
@@ -172,7 +178,7 @@ Không có xin nghỉ học, BGH mobile, chọn nhiều lớp/con hoặc tiếng
 | 0 Quy ước | AGENTS, kiến trúc, audit, yêu cầu BE | Chỉ docs, người dùng hiểu ranh giới/dependency |
 | 1 Nền | Package cần thiết; env test2; Axios/QueryClient; storage; RNR/theme | Đúng phiên bản Expo hiện tại; import/bundle phù hợp; không dựng feature giả |
 | 2 Auth | API/hook/store, WebView Turnstile, restore/refresh/logout, guard | Native GV/PH; OTP cùng người dùng; lỗi mạng/403/401; đổi tài khoản; không bypass |
-| 3 Shell/Settings | Tabs/stack, Settings tiêu chuẩn, theme persist, profile/account | Back/route theo quyền; GV 0 lớp; theme sau mở lại; thao tác tài khoản đúng contract |
+| 3 Shell/Settings | Màn Tài khoản tạm mở Settings bằng stack toàn màn hình; theme lưu trên thiết bị; hồ sơ chỉ xem; quản lý tài khoản và phiên | Back về Tài khoản; GV 0 lớp vẫn vào Settings; theme giữ sau mở lại; dữ liệu và thao tác đúng contract. Tabs Home triển khai ở bước sau |
 | 4 Báo cáo | GV list/detail, PH own-report, WHO | Đúng HS; dữ liệu/nguồn chart/đơn vị/giới hạn tuổi rõ; native scroll/loading/error/empty |
 | 5 Nhật ký/ủy quyền | Lịch ngày, HĐGD slot, tác vụ GV, PH xem, đơn đón trẻ | Đọc lại sau ghi; ngày/slot đúng; quyền PH; tác động test được duyệt |
 | 6 Kết quả/thông báo | Assessment chỉ xem, PH phản hồi tháng, notification theo BE xác nhận | Học kỳ thật sau BE sửa; phản hồi đúng tháng; badge/read đúng; push native nếu chốt vào phạm vi |

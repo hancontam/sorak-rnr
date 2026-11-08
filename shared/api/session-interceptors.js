@@ -1,4 +1,5 @@
 import { CanceledError } from 'axios';
+import { Platform } from 'react-native';
 
 export function attachSessionInterceptors(client, { getSession, refreshSession }) {
   function isStale(config) {
@@ -10,11 +11,22 @@ export function attachSessionInterceptors(client, { getSession, refreshSession }
       if (config.skipSession) return config;
       if (isStale(config)) throw new CanceledError();
 
-      const { version, accessToken } = getSession();
+      const { version, accessToken, refreshToken } = getSession();
       config.sessionVersion = version;
       config.sentAccessToken = accessToken;
       if (accessToken) config.headers.set('Authorization', `Bearer ${accessToken}`);
       else config.headers.delete('Authorization');
+      if (
+        config.identifyCurrentSession &&
+        config.url === '/auth/sessions' &&
+        Platform.OS !== 'web'
+      ) {
+        // API nhận diện phiên hiện tại qua cookie sorak_refresh. Dùng đúng token sau refresh.
+        config.withCredentials = false;
+        if (refreshToken)
+          config.headers.set('Cookie', `sorak_refresh=${encodeURIComponent(refreshToken)}`);
+        else config.headers.delete('Cookie');
+      }
       return config;
     },
     (error) => {

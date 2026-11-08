@@ -1,7 +1,9 @@
-import { CircleAlert, LogOut, UserRound } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { CircleAlert, LogOut, Settings } from 'lucide-react-native';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AccountAvatar } from '@/components/shared/AccountAvatar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +17,7 @@ import { useSession } from '../hooks/useSession';
 import { roleLabel } from '../utils/auth-roles';
 
 export default function SessionScreen() {
+  const router = useRouter();
   const { user, notice, signOut, loginSucceeded, dismissLoginSuccess } = useSession();
   const typography = useAuthTypography();
   if (!user) return null;
@@ -32,9 +35,7 @@ export default function SessionScreen() {
           contentContainerClassName="mx-auto w-full max-w-md gap-4 p-4">
           <Card className="rounded-2xl py-4">
             <CardContent className="flex-row items-center gap-3 px-4">
-              <View className="size-10 items-center justify-center rounded-full bg-muted">
-                <Icon as={UserRound} size={18} />
-              </View>
+              <AccountAvatar user={user} className="size-10" />
               <View className="min-w-0 flex-1 gap-1">
                 <Text className="text-sm leading-5" style={typography.semiBold}>
                   {user.fullName || user.username || 'Tài khoản Sorak'}
@@ -57,6 +58,12 @@ export default function SessionScreen() {
               </AlertDescription>
             </Alert>
           ) : null}
+          <Button variant="outline" size="sm" onPress={() => router.push('/settings')}>
+            <Icon as={Settings} size={14} />
+            <Text className="text-xs" style={typography.medium}>
+              Cài đặt
+            </Text>
+          </Button>
           <Button variant="outline" size="sm" onPress={signOut}>
             <Icon as={LogOut} size={14} />
             <Text className="text-xs" style={typography.medium}>

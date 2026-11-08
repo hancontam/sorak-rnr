@@ -11,6 +11,7 @@ import { AppState, Platform } from 'react-native';
 
 import { SessionGate } from '@/features/auth/components/SessionGate';
 import { useSessionBootstrap } from '@/features/auth/hooks/useSessionBootstrap';
+import { useRestoreThemePreference } from '@/features/settings/hooks/useThemePreference';
 import { NAV_THEME } from '@/lib/theme';
 import { createQueryClient } from '@/shared/api/query-client';
 
@@ -21,6 +22,7 @@ export {
 export default function RootLayout() {
   const [queryClient] = useState(createQueryClient);
   const { colorScheme } = useColorScheme();
+  useRestoreThemePreference();
 
   useEffect(() => {
     // Web đã có listener focus của TanStack Query; native dùng AppState.
@@ -60,6 +62,7 @@ function AuthStack() {
         </Stack.Protected>
         <Stack.Protected guard={status === 'signed-in'}>
           <Stack.Screen name="session" options={{ title: 'Tài khoản', headerShown: false }} />
+          <Stack.Screen name="settings" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>
     </SessionGate>

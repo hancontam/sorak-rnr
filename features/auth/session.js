@@ -4,7 +4,7 @@ import { apiClient } from '@/shared/api/client';
 import { attachSessionInterceptors } from '@/shared/api/session-interceptors';
 import { clearTokens, readTokens, writeTokens } from '@/shared/storage/token.storage';
 
-import { getCurrentUser, refreshTokens, revokeSession } from './api/auth.api';
+import { getCurrentUser, refreshTokens, revokeAllSessions, revokeSession } from './api/auth.api';
 import { useAuthStore } from './store/auth.store';
 import { isMobileRole, WEB_ACCOUNT_NOTICE } from './utils/auth-roles';
 
@@ -25,7 +25,7 @@ function queueStorage(operation) {
 }
 
 function getSession() {
-  return { version, accessToken: tokens?.accessToken ?? null };
+  return { version, accessToken: tokens?.accessToken ?? null, refreshToken: tokens?.refreshToken };
 }
 
 export function connectSessionClient(client) {
@@ -80,6 +80,14 @@ async function endSession({ revoke = false, notice = '' } = {}) {
 export function signOut() {
   if (useAuthStore.getState().status === 'signing-out') return;
   return endSession({ revoke: true });
+}
+
+export async function revokeAllSessionsAndSignOut() {
+  const expectedVersion = version;
+  await revokeAllSessions();
+  if (version === expectedVersion) {
+    await endSession({ notice: 'Đã đăng xuất khỏi tất cả thiết bị.' });
+  }
 }
 
 function refreshSession(expectedVersion) {

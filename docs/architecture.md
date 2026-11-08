@@ -143,6 +143,12 @@ Nền dùng chung có API nhỏ để các feature sử dụng:
 
 `shared/api/session-interceptors.js` nhận callback từ session để gắn Bearer token. Các request nhận 401 dùng chung lần refresh nếu cùng token và chỉ gửi lại một lần. Lỗi mạng và 403 giữ phiên. Khi mở lại app, phiên đã lưu được kiểm tra qua `/auth/me`.
 
+### Cách đọc Auth 2B
+
+Từ form giáo viên, `LoginScreen` mở `PasswordRecoveryScreen` với mã cán bộ điền sẵn. Screen dùng `usePasswordRecovery` để gửi OTP qua email liên kết. Người dùng nhập OTP và mật khẩu mới trên cùng màn. Hook gọi verify trước rồi mới gọi reset. Nếu lưu thất bại sau khi OTP đã đúng, hook giữ reset token trong RAM để thử lại. Nếu server báo mã hoặc phiên hết hiệu lực, người dùng yêu cầu OTP mới.
+
+Sau khi server xác nhận đổi mật khẩu, app trở lại form giáo viên với mã đã dùng và ô mật khẩu trống. Đăng nhập tiếp qua Turnstile của 2A. OTP, mật khẩu và reset token thuộc luồng recovery đang mở. Phụ huynh xem hướng dẫn liên hệ giáo viên chủ nhiệm.
+
 ## Ma trận phạm vi
 
 | Flow | GV | PH | Điều kiện kiểm chứng |

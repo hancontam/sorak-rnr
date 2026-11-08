@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { TextInput, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +6,7 @@ import { Text } from '@/components/ui/text';
 
 import { AuthSubmitButton } from './AuthSubmitButton';
 import { LoginError } from './LoginError';
+import { OtpCodeInput } from './OtpCodeInput';
 
 export function LoginOtpForm({
   emailMasked,
@@ -18,7 +18,6 @@ export function LoginOtpForm({
   onEdit,
 }) {
   const [otp, setOtp] = useState('');
-  const [focused, setFocused] = useState(false);
 
   function submit() {
     if (!pending && otp.length === 6) onSubmit(otp);
@@ -37,40 +36,16 @@ export function LoginOtpForm({
         </CardDescription>
       </CardHeader>
       <CardContent className="gap-3.5 px-4">
-        <View className="relative">
-          <View
-            className="flex-row gap-2"
-            importantForAccessibility="no-hide-descendants"
-            aria-hidden>
-            {Array.from({ length: 6 }, (_, index) => (
-              <View
-                key={index}
-                className={`min-h-11 flex-1 items-center justify-center rounded-lg border py-1 ${focused && index === Math.min(otp.length, 5) ? 'border-primary' : 'border-input'}`}>
-                <Text className="text-sm leading-5" style={typography.monoSemiBold}>
-                  {otp[index] || ''}
-                </Text>
-              </View>
-            ))}
-          </View>
-          <TextInput
-            className="absolute inset-0 h-full w-full opacity-0"
-            accessibilityLabel="Mã xác thực, 6 chữ số"
-            keyboardType="number-pad"
-            autoComplete="one-time-code"
-            caretHidden
-            maxLength={6}
-            value={otp}
-            onChangeText={(value) => {
-              setOtp(value.replace(/\D/g, ''));
-              onEdit();
-            }}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            editable={!pending}
-            returnKeyType="done"
-            onSubmitEditing={submit}
-          />
-        </View>
+        <OtpCodeInput
+          otp={otp}
+          typography={typography}
+          pending={pending}
+          onChange={(value) => {
+            setOtp(value);
+            onEdit();
+          }}
+          onSubmit={submit}
+        />
         <LoginError message={error} typography={typography} />
         <AuthSubmitButton
           label="Xác minh"

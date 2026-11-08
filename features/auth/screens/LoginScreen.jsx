@@ -6,12 +6,13 @@ import {
   Eye,
   EyeOff,
   GraduationCap,
+  KeyRound,
   School,
   UsersRound,
 } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Keyboard, Platform, ScrollView, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/text';
 
 import { AuthSubmitButton } from '../components/AuthSubmitButton';
+import { AuthSuccessToast } from '../components/AuthSuccessToast';
 import { LoginError } from '../components/LoginError';
 import { LoginOtpForm } from '../components/LoginOtpForm';
 import { RoleSheet } from '../components/RoleSheet';
@@ -30,6 +32,7 @@ import { TurnstileChallenge } from '../components/TurnstileChallenge';
 import { useAuthTypography } from '../hooks/useAuthTypography';
 import { useLogin } from '../hooks/useLogin';
 import { AUTH_ROLES, isMobileRole, roleLabel } from '../utils/auth-roles';
+import { PasswordRecoveryScreen } from './PasswordRecoveryScreen';
 
 export default function LoginScreen() {
   const { role } = useLocalSearchParams();
@@ -57,6 +60,7 @@ export default function LoginScreen() {
 
 function LoginFlow({ role }) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const typography = useAuthTypography();
   const parent = role === AUTH_ROLES.parent;
   const accountLabel = parent ? 'Mã học sinh' : 'Mã cán bộ';
@@ -66,6 +70,10 @@ function LoginFlow({ role }) {
   const [remember, setRemember] = useState(true);
   const [showChallenge, setShowChallenge] = useState(false);
   const [roleSheetOpen, setRoleSheetOpen] = useState(false);
+  const [recovering, setRecovering] = useState(false);
+  const [passwordReset, setPasswordReset] = useState(false);
+  const dismissResetToast = useCallback(() => setPasswordReset(false), []);
+  const closeRecovery = useCallback(() => setRecovering(false), []);
   const challengeOpen = useRef(false);
   const passwordField = useRef(null);
   const {
@@ -100,6 +108,31 @@ function LoginFlow({ role }) {
     setShowPassword(false);
     setPassword('');
     void submitLogin({ username: username.trim(), password, captchaToken, remember });
+  }
+
+  function openRecovery() {
+    if (parent || isPending || needsOtp) return;
+    Keyboard.dismiss();
+    setPassword('');
+    setShowPassword(false);
+    setPasswordReset(false);
+    clearError();
+    setRecovering(true);
+  }
+
+  if (recovering) {
+    return (
+      <PasswordRecoveryScreen
+        initialIdentifier={username.trim()}
+        typography={typography}
+        onBack={closeRecovery}
+        onComplete={(identifier) => {
+          setUsername(identifier);
+          setRecovering(false);
+          setPasswordReset(true);
+        }}
+      />
+    );
   }
 
   return (
@@ -196,12 +229,27 @@ function LoginFlow({ role }) {
                   />
                 </View>
                 <View className="gap-1.5">
-                  <Label
-                    nativeID="password-label"
-                    className="text-xs leading-4"
-                    style={typography.medium}>
-                    Mật khẩu
-                  </Label>
+                  <View className="flex-row flex-wrap items-center justify-between gap-x-2">
+                    <Label
+                      nativeID="password-label"
+                      className="text-xs leading-4"
+                      style={typography.medium}>
+                      Mật khẩu
+                    </Label>
+                    {!parent ? (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto px-0 py-0"
+                        hitSlop={8}
+                        disabled={isPending}
+                        onPress={openRecovery}>
+                        <Text className="text-xs leading-4 underline" style={typography.medium}>
+                          Quên mật khẩu?
+                        </Text>
+                      </Button>
+                    ) : null}
+                  </View>
                   <View className="min-h-[34px] flex-row items-center overflow-hidden rounded-lg border border-input bg-background shadow-sm shadow-black/5 dark:bg-input/30">
                     <Input
                       ref={passwordField}
@@ -286,10 +334,42 @@ function LoginFlow({ role }) {
                   Phụ huynh vui lòng liên hệ giáo viên chủ nhiệm để được hỗ trợ.
                 </AlertDescription>
               </Alert>
-            ) : null}
+            ) : (
+              <Alert icon={KeyRound}>
+                <AlertTitle className="text-xs" style={typography.semiBold}>
+                  Giáo viên tìm lại mật khẩu
+                </AlertTitle>
+                <AlertDescription className="text-[11px] leading-[15px]" style={typography.regular}>
+                  Nhận mã OTP qua email đã liên kết với tài khoản cán bộ.
+                </AlertDescription>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="ml-6 h-auto self-start px-0 py-1"
+                  disabled={isPending}
+                  onPress={openRecovery}>
+                  <Text className="text-xs text-brand-link" style={typography.semiBold}>
+                    Tìm lại mật khẩu ngay
+                  </Text>
+                </Button>
+              </Alert>
+            )}
           </>
         )}
       </ScrollView>
+      {passwordReset ? (
+        <View
+          className="absolute inset-x-0 z-10 items-center px-4"
+          style={{ top: insets.top + 12, elevation: 12 }}
+          pointerEvents="box-none">
+          <AuthSuccessToast
+            title="Đã đặt lại mật khẩu"
+            description="Đăng nhập bằng mật khẩu mới để tiếp tục."
+            typography={typography}
+            onDismiss={dismissResetToast}
+          />
+        </View>
+      ) : null}
       <RoleSheet
         visible={roleSheetOpen}
         typography={typography}

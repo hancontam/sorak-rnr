@@ -19,6 +19,11 @@ Chỉ ghi nhận các hành vi đã quan sát trong từng mục. Không đánh 
 | `POST /auth/verify-2fa` | Body rỗng trả 400, yêu cầu `tempToken` và `otp`. Swagger khai báo `totpCode` | Chưa gửi OTP thật trong lượt này |
 | `GET /auth/me`, `POST /auth/refresh` | Không có token trả 401 | Restore, refresh rotation và logout với token thật cần kiểm tra sau đăng nhập native |
 
+## Auth 2B trên test2 — 08/11/2026
+
+- Với mã tài khoản không tồn tại và header Android, `POST /auth/forgot-password` nhận `identifier` và trả 404. `POST /auth/verify-otp` nhận `email` và `otp` rồi từ chối mã không hợp lệ. `POST /auth/reset-password` nhận `email`, `resetToken`, `password` rồi từ chối token giả. Đây là kiểm tra contract nhánh lỗi.
+- Nhánh thành công trên `main` từng xác nhận mã cán bộ có thể truyền trong trường `email` ở hai bước cuối. Context API cho thấy cooldown gửi lại 60 giây, OTP có hạn 5 phút và tối đa 5 lần thử. Bản làm lại dùng mốc cooldown đó và xử lý phản hồi chờ/hết hạn từ server. Chưa kiểm chứng gửi email và đổi mật khẩu thật từ bản làm lại.
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

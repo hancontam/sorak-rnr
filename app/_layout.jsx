@@ -9,6 +9,8 @@ import { useColorScheme } from 'nativewind';
 import { useEffect, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 
+import { SessionGate } from '@/features/auth/components/SessionGate';
+import { useSessionBootstrap } from '@/features/auth/hooks/useSessionBootstrap';
 import { NAV_THEME } from '@/lib/theme';
 import { createQueryClient } from '@/shared/api/query-client';
 
@@ -39,9 +41,27 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <Stack />
+        <AuthStack />
         <PortalHost />
       </ThemeProvider>
     </QueryClientProvider>
+  );
+}
+
+function AuthStack() {
+  const { status, error, retry, signOut } = useSessionBootstrap();
+
+  return (
+    <SessionGate status={status} error={error} onRetry={retry} onSignOut={signOut}>
+      <Stack>
+        <Stack.Protected guard={status === 'signed-out'}>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/login" options={{ title: 'Đăng nhập', headerShown: false }} />
+        </Stack.Protected>
+        <Stack.Protected guard={status === 'signed-in'}>
+          <Stack.Screen name="session" options={{ title: 'Tài khoản', headerShown: false }} />
+        </Stack.Protected>
+      </Stack>
+    </SessionGate>
   );
 }

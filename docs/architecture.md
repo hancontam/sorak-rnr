@@ -133,6 +133,16 @@ Nền dùng chung có API nhỏ để các feature sử dụng:
 - GV 0/1 lớp, PH đúng 1 HS. Không lớp vẫn dùng Settings, vùng dữ liệu lớp hiện chưa phân công; không default classId. PH không lấy cả lớp rồi lọc.
 - Stack/Tabs tiêu chuẩn; cách trình bày Settings review ở bước UI, không chồng lớp nền/navigator để mô phỏng sheet cũ. Ưu tiên back behavior ổn định.
 
+### Cách đọc Auth 2A
+
+1. `package.json` khai báo `expo-router/entry`. `app/_layout.jsx` dựng các provider và gọi `useSessionBootstrap` để khôi phục phiên trước khi mở route.
+2. `app/index.jsx` mở Welcome. `app/auth/login.jsx` mở form theo vai trò được chọn trong sheet. Shell WebView hiển thị host và tiến trình tải thật. Khi Turnstile trả token, nút **Cho phép & Tiếp tục vào Sorak** xuất hiện. Chỉ khi bấm nút, form nhận token để đăng nhập.
+3. `useLogin` gửi dữ liệu qua `auth.api.js` và Axios. Nếu server yêu cầu OTP, hook giữ `tempToken` và lựa chọn ghi nhớ của lần đăng nhập đó. Lỗi request được trả về form để hiện RNR Alert.
+4. Khi server trả user và token, `features/auth/session.js` kiểm tra vai trò rồi cập nhật Zustand. Cặp token giữ trong RAM. Khi chọn **Ghi nhớ phiên đăng nhập**, cặp token cũng được lưu vào SecureStore và cập nhật sau refresh. Phiên chỉ lưu trong RAM vẫn refresh được khi app còn chạy.
+5. Guard mở `app/session.jsx` khi đăng nhập thành công. Màn Tài khoản tạm hiện toast có thể vuốt lên để tắt hoặc tự ẩn, cho xem user thực và đăng xuất. Khi đăng xuất, session dọn cache, xóa token và đổi số phiên để bỏ phản hồi cũ.
+
+`shared/api/session-interceptors.js` nhận callback từ session để gắn Bearer token. Các request nhận 401 dùng chung lần refresh nếu cùng token và chỉ gửi lại một lần. Lỗi mạng và 403 giữ phiên. Khi mở lại app, phiên đã lưu được kiểm tra qua `/auth/me`.
+
 ## Ma trận phạm vi
 
 | Flow | GV | PH | Điều kiện kiểm chứng |

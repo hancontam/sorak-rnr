@@ -24,6 +24,32 @@
 - Nhóm import bằng dòng trống theo thứ tự: thư viện ngoài, module dùng chung qua alias, module nội bộ feature. Không cần comment cho từng nhóm; tránh import vòng và không gom mọi thứ vào một file index chỉ để giảm số dòng.
 - Ảnh ngang cấp `assets/images/`. Lucide mặc định stroke 2; ngoại lệ cần lý do UI được duyệt. Màu theo token light/dark, kể cả xanh thương hiệu, không hardcode từng screen.
 
+## Chuyển prototype thành UI Sorak
+
+- Đọc cả source prototype và ảnh của trạng thái đang làm. Đối chiếu thứ tự khối, tỷ lệ, khoảng cách, cỡ và độ đậm chữ, icon, badge, ảnh và thao tác. Giữ các chi tiết đã duyệt, gồm cả chi tiết nhỏ. Tách khung điện thoại và nút điều khiển bản demo khỏi nội dung app.
+- Tìm component và variant trong `components/ui/` trước khi viết UI mới. Badge dùng `Badge`, nút dùng `Button`, vùng nội dung dùng `Card`, thanh tiến trình dùng `Progress`, lỗi cần đọc lại dùng `Alert`. Ghép các primitive trong feature để ra bố cục của prototype.
+- Dùng variant chuẩn trước. Nếu Sorak đã chốt một kiểu có ý nghĩa dùng lại, đặt variant có tên và dùng token sáng/tối trong component RNR hiện có. Ví dụ `Badge variant="brand"` cho nhãn mã tài khoản, variant mặc định cho nhãn vai trò. Kích thước hoặc cách đặt riêng một màn có thể chỉnh tại nơi ghép. Không lặp màu, viền và màu chữ để tự dựng một Badge khác.
+- Phân biệt chữ giao diện đã duyệt với dữ liệu và trạng thái chạy thật. Nhãn cố định như “Mã học sinh” được khai báo trong UI. Vai trò, tài khoản, URL, tiến trình và trạng thái xác minh lấy từ đầu vào hoặc kết quả thật. Không chuyển dữ liệu mẫu, nút điền mẫu, đăng nhập giả hay thông báo thành công mô phỏng sang app.
+- Khi prototype và nghiệp vụ thật khác nhau, làm trước phần đã rõ rồi hỏi người dùng theo `grill-me` về điểm ảnh hưởng đến luồng hoặc giao diện. Nêu chi tiết gốc, giới hạn đã kiểm tra và lựa chọn đề xuất. Ví dụ shell WebView giữ bố cục đã duyệt, thanh địa chỉ hiện host thật, nút Tiếp tục chỉ xuất hiện sau khi nhận kết quả Turnstile.
+- Trước bàn giao, đối chiếu với prototype ở cùng kích thước màn và trạng thái khi có thiết bị. Kiểm tra màn hẹp, màu sáng/tối, bàn phím và trạng thái loading/error/success liên quan. Báo rõ các điểm khác mẫu do nghiệp vụ đã chốt và phần chưa nhìn được trên máy thật.
+
+### Kích thước tham chiếu và mật độ RNR toàn app
+
+- Dùng vùng nội dung **376 × 791 CSS px** làm mốc thiết kế và so ảnh cho toàn bộ Sorak Mobile. Mốc này lấy từ prototype HTML có khung ngoài **400 × 815**, đệm **11 px** và viền trong **1 px** mỗi cạnh. Nếu xem cả trang trình diễn có khung máy, mở ở zoom 100% với viewport desktop từ **1280 × 960 CSS px**. Thanh trạng thái, viền máy và thanh công cụ demo được tính riêng.
+- Đọc kích thước trực tiếp trong CSS. Lấy **1 CSS px ≈ 1 dp** cho bố cục và cỡ chữ tương ứng ở mức chữ hệ thống mặc định làm điểm bắt đầu. Khi so hai ảnh, quy chúng về cùng chiều rộng vùng nội dung trước. Không nhân cỡ chữ, icon hoặc khoảng đệm theo độ phân giải ảnh, mật độ điểm ảnh hay chiều rộng thiết bị. Màn rộng tăng vùng trống hoặc giới hạn chiều rộng nội dung, không phóng to toàn bộ giao diện.
+- Dùng các mốc sau cho màn, form, Card, danh sách, tab, sheet và hộp thoại mới. Các phần có cùng vai trò giữ cùng cỡ chữ, khoảng đệm và kiểu icon. Chọn kích thước lớn hơn khi thứ bậc nội dung, vùng bấm, chữ hệ thống hoặc prototype của màn đó cần.
+
+| Phần UI | Mốc mặc định của Sorak |
+| --- | --- |
+| Lề nội dung, đệm Card hoặc sheet | **16 dp** |
+| Khoảng giữa các nhóm, khoảng nhãn đến ô nhập | **14–16 dp**, **6 dp** |
+| Tiêu đề màn, tiêu đề nhóm hoặc Card | **18–20 sp**, **14 sp** |
+| Chữ nội dung, nhãn và mô tả phụ | Nội dung **12–14 sp**, nhãn và giá trị form **12 sp**, mô tả phụ **11–12 sp** |
+| Input và nút trong form | Input **34 dp**, nút **36 dp** với `Button size="sm"` |
+| Icon và nút icon | Icon inline **14–16 dp**, nút icon nhỏ **28–32 dp** phần hiển thị |
+
+- Giữ font đã duyệt, dùng bố cục hoặc `hitSlop` để vùng bấm đủ rộng, hỗ trợ cuộn và xuống dòng khi người dùng tăng cỡ chữ. Giữ tỷ lệ của ảnh và biểu đồ theo thiết kế, ví dụ ảnh giữa Welcome **288:405**. Khi bàn giao từng màn, so ở **376 dp** và kiểm tra thêm **360 dp** và **412 dp** nếu có thiết bị.
+
 ## Ranh giới code bắt buộc
 
 - `app/`: route mỏng export screen; layout/provider/guard/navigation. Không chứa request nghiệp vụ của feature.

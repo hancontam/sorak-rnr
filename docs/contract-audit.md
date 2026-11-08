@@ -2,13 +2,22 @@
 
 Khởi tạo 05/11/2026. Môi trường đích `https://test2mamnonhontre.sorak.io.vn/api`.
 
-Chưa có endpoint nghiệp vụ được gọi lại từ bản làm lại. Không đánh dấu kiểm chứng chỉ vì main cũ từng chạy. Không lưu credentials/token/OTP hoặc thông tin cá nhân đầy đủ.
+Chỉ ghi nhận các hành vi đã quan sát trong từng mục. Không đánh dấu kiểm chứng chỉ vì main cũ từng chạy. Không lưu credentials/token/OTP hoặc thông tin cá nhân đầy đủ.
 
 ## Kết nối HTTP nền — 05/11/2026
 
 | Endpoint/môi trường | Swagger | Quan sát thực tế | Giới hạn |
 | --- | --- | --- | --- |
 | `GET https://test2mamnonhontre.sorak.io.vn/api/health`, không token | Path `/health` mô tả 200, không khai báo security ở operation hoặc root trong JSON đã đọc | Axios client nhận HTTP 401, JSON `code: UNAUTHORIZED`, `message: Missing access token` | Xác nhận request tới server và lỗi HTTP được giữ nguyên; không coi health hoạt động công khai hoặc auth đã được kiểm chứng. Chưa thử có token vì bước auth chưa triển khai. |
+
+## Auth 2A trên test2 — 08/11/2026
+
+| Endpoint | Quan sát với header `X-Client-Platform: android` | Giới hạn |
+| --- | --- | --- |
+| `GET /auth/mobile-challenge` | 200 HTML, có script Cloudflare và sự kiện `TURNSTILE_TOKEN` / `TURNSTILE_ERROR` | Cần thử widget và token thật trên thiết bị |
+| `POST /auth/login` | Gửi sai kiểu trả 400, nêu `username`, `password`, `captchaToken` | Payload thành công tham chiếu guide và code main. Chưa xác nhận luồng native trên bản làm lại |
+| `POST /auth/verify-2fa` | Body rỗng trả 400, yêu cầu `tempToken` và `otp`. Swagger khai báo `totpCode` | Chưa gửi OTP thật trong lượt này |
+| `GET /auth/me`, `POST /auth/refresh` | Không có token trả 401 | Restore, refresh rotation và logout với token thật cần kiểm tra sau đăng nhập native |
 
 ## Nguồn và lịch sử
 

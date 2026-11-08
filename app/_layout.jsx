@@ -11,6 +11,8 @@ import { AppState, Platform } from 'react-native';
 
 import { SessionGate } from '@/features/auth/components/SessionGate';
 import { useSessionBootstrap } from '@/features/auth/hooks/useSessionBootstrap';
+import { useAuthStore } from '@/features/auth/store/auth.store';
+import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import { useRestoreThemePreference } from '@/features/settings/hooks/useThemePreference';
 import { NAV_THEME } from '@/lib/theme';
 import { createQueryClient } from '@/shared/api/query-client';
@@ -52,6 +54,7 @@ export default function RootLayout() {
 
 function AuthStack() {
   const { status, error, retry, signOut } = useSessionBootstrap();
+  const role = useAuthStore((state) => state.user?.role);
 
   return (
     <SessionGate status={status} error={error} onRetry={retry} onSignOut={signOut}>
@@ -60,8 +63,13 @@ function AuthStack() {
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="auth/login" options={{ title: 'Đăng nhập', headerShown: false }} />
         </Stack.Protected>
+        <Stack.Protected guard={status === 'signed-in' && role === AUTH_ROLES.teacher}>
+          <Stack.Screen name="(teacher)" options={{ headerShown: false }} />
+        </Stack.Protected>
+        <Stack.Protected guard={status === 'signed-in' && role === AUTH_ROLES.parent}>
+          <Stack.Screen name="(parent)" options={{ headerShown: false }} />
+        </Stack.Protected>
         <Stack.Protected guard={status === 'signed-in'}>
-          <Stack.Screen name="session" options={{ title: 'Tài khoản', headerShown: false }} />
           <Stack.Screen name="settings" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>

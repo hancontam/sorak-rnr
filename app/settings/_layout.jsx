@@ -3,11 +3,14 @@ import { ChevronLeft } from 'lucide-react-native';
 
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
+import { useAuthStore } from '@/features/auth/store/auth.store';
+import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 
 export const unstable_settings = { initialRouteName: 'index' };
 
 export default function SettingsLayout() {
   const router = useRouter();
+  const role = useAuthStore((state) => state.user?.role);
 
   return (
     <Stack screenOptions={{ headerTitleAlign: 'center' }}>
@@ -20,10 +23,15 @@ export default function SettingsLayout() {
             <Button
               size="icon"
               variant="ghost"
-              accessibilityLabel="Về tài khoản"
+              accessibilityLabel="Về trang chính"
               onPress={() => {
                 if (router.canGoBack()) router.back();
-                else router.replace('/session');
+                else
+                  router.replace(
+                    role === AUTH_ROLES.parent
+                      ? '/(parent)/(tabs)/child-profile'
+                      : '/(teacher)/(tabs)/overview'
+                  );
               }}>
               <Icon as={ChevronLeft} size={20} />
             </Button>

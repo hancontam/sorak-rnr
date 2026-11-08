@@ -21,10 +21,10 @@ app/
   _layout.jsx                 # provider, restore gate, guard
   (auth)/                     # Welcome, account/password, OTP
   (teacher)/
-    _layout.jsx               # Stack GV
+    _layout.jsx               # Stack GV, chi tiết học sinh ngoài tabs
     (tabs)/
       _layout.jsx             # Expo Router Tabs
-      reports.jsx
+      overview.jsx
       daily.jsx
       assessments.jsx
     ...                       # chi tiết ngoài tab bar
@@ -139,7 +139,7 @@ Nền dùng chung có API nhỏ để các feature sử dụng:
 2. `app/index.jsx` mở Welcome. `app/auth/login.jsx` mở form theo vai trò được chọn trong sheet. Shell WebView hiển thị host và tiến trình tải thật. Khi Turnstile trả token, nút **Cho phép & Tiếp tục vào Sorak** xuất hiện. Chỉ khi bấm nút, form nhận token để đăng nhập.
 3. `useLogin` gửi dữ liệu qua `auth.api.js` và Axios. Nếu server yêu cầu OTP, hook giữ `tempToken` và lựa chọn ghi nhớ của lần đăng nhập đó. Lỗi request được trả về form để hiện RNR Alert.
 4. Khi server trả user và token, `features/auth/session.js` kiểm tra vai trò rồi cập nhật Zustand. Cặp token giữ trong RAM. Khi chọn **Ghi nhớ phiên đăng nhập**, cặp token cũng được lưu vào SecureStore và cập nhật sau refresh. Phiên chỉ lưu trong RAM vẫn refresh được khi app còn chạy.
-5. Guard mở `app/session.jsx` khi đăng nhập thành công. Màn Tài khoản tạm hiện toast có thể vuốt lên để tắt hoặc tự ẩn, cho xem user thực và đăng xuất. Khi đăng xuất, session dọn cache, xóa token và đổi số phiên để bỏ phản hồi cũ.
+5. Từ bước 4, guard mở nhóm `(teacher)` hoặc `(parent)` theo vai trò backend. Header Home giữ toast đăng nhập có thể vuốt tắt và lối vào Settings. Khi đăng xuất, session dọn cache, xóa token và đổi số phiên để bỏ phản hồi cũ.
 
 `shared/api/session-interceptors.js` nhận callback từ session để gắn Bearer token. Các request nhận 401 dùng chung lần refresh nếu cùng token và chỉ gửi lại một lần. Lỗi mạng và 403 giữ phiên. Khi mở lại app, phiên đã lưu được kiểm tra qua `/auth/me`.
 
@@ -165,7 +165,7 @@ Không có xin nghỉ học, BGH mobile, chọn nhiều lớp/con hoặc tiếng
 
 ### Quản lý phiên trong Settings
 
-Màn Tài khoản mở `app/settings/_layout.jsx` trong nhánh đã đăng nhập. Settings và Hồ sơ đọc user của phiên hiện tại. Root khôi phục lựa chọn giao diện qua `useThemePreference` và `preferences.storage.js`; chế độ Tự động theo giao diện hệ thống.
+Header Home mở `app/settings/_layout.jsx` trong nhánh đã đăng nhập. Settings và Hồ sơ đọc user của phiên hiện tại. Root khôi phục lựa chọn giao diện qua `useThemePreference` và `preferences.storage.js`; chế độ Tự động theo giao diện hệ thống.
 
 Hiển thị phiên hiện tại và các phiên khác theo dữ liệu API. Có nút Làm mới và xác nhận trước khi Đăng xuất tất cả thiết bị. Khi server xác nhận thu hồi tất cả, mobile dọn phiên và cache của tài khoản hiện tại rồi trở về luồng đăng nhập. Cần xác minh trên test2 với cả GV và PH. Nhãn Thiết bị này cần được xác nhận bằng phiên thực tế, độc lập với thứ tự đăng nhập.
 
@@ -195,3 +195,22 @@ Trước bàn giao cần kiểm tra: GV/PH, GV không lớp, mở app có/không
 Commit body: Thay đổi; Lý do/luồng dữ liệu; Đã kiểm tra; Chưa kiểm chứng/phụ thuộc. Nhận xét merge trong merge commit, không tài liệu riêng.
 
 Base cũ chưa có cấu hình CI/dev-client mới. Trước tích hợp, review diff toàn bộ so với main tại thời điểm đó và quyết định rõ phần source thay thế/phần build giữ lại. Merge branch từ commit cũ không tự xóa code cũ trên main. Không reset/force-push main; không làm mất công việc agent khác. Build chỉ sau yêu cầu phát hành riêng.
+
+## Cách đọc Tổng quan lớp / Hồ sơ trẻ (bước 4)
+
+- GV: root guard → `(teacher)/(tabs)/overview` → `TeacherOverviewScreen` → `useClassStudents` → `report.api.js` → Axios. Chỉ một lớp được phân công; 0 lớp hiện trạng thái riêng, nhiều lớp báo bất thường. Danh sách thật có tìm theo tên/mã; chọn học sinh mở stack `student/[studentId]` ngoài tab bar.
+- PH: root guard → `(parent)/(tabs)/child-profile` → `ParentReportScreen` → `useParentReport` → `/parent/student-report`. Không truyền mã con qua route hay gọi endpoint cả lớp. API kiểm tra `student.id/publicId` khớp học sinh liên kết trong phiên.
+- `StudentReport` ghép summary, bộ chọn học kỳ và năm mục đọc: Hồ sơ, Sức khỏe, Điểm danh, Đánh giá hoạt động, Ủy quyền đưa đón. Hook giữ trạng thái request/cache; component chỉ nhận data/callback. Không lưu bản sao report vào Zustand.
+- Query key gồm tài khoản, lớp/con, học kỳ. Request nhận AbortSignal; logout hủy và xóa cache qua session chung. API từ chối response sai học sinh hoặc thiếu các danh sách, không biến lỗi thành dữ liệu rỗng. Kéo xuống tải lại giữ dữ liệu hiện có; đổi học kỳ tải đúng kỳ mới.
+- `features/home/layouts/HomeTabs.jsx` dùng Expo Router JavaScript Tabs. Chỉ thêm tab có chức năng thật trong từng bước; chưa dựng tab Nhật ký/Kết quả giả. Header có tài khoản/ảnh từ phiên và mở Settings. Không có bộ chọn nhiều lớp, thông báo mẫu hay yêu cầu duyệt mẫu của prototype.
+- Route `session.jsx` và `SessionScreen` tạm đã được thay bằng Home theo vai trò; Settings Back quay về Home. Giữ phần Auth session xử lý token/refresh, đó không phải screen tạm.
+
+### WHO
+
+`features/report/data/who-reference.js` chứa bảng tham chiếu, **không phải dữ liệu đo của học sinh**. Mỗi dòng là `[tháng, -3 SD, -2 SD, trung vị, +2 SD, +3 SD]`, tách chiều cao/cân nặng và nam/nữ. Trích đủ mỗi tháng 24–60 từ WHO Child Growth Standards 2006 (chiều cao đứng, không lấy chiều dài nằm); 61–72 từ WHO Growth Reference 2007. Đọc bảng PDF WHO ngày 09/11/2026, giữ độ chính xác công bố 0,1 cm/kg. Nối tuyến tính giữa các tháng để vẽ; không dùng đường tham chiếu tự đoán của web cũ.
+
+Nguồn: [chiều cao 2–5 tuổi](https://www.who.int/tools/child-growth-standards/standards/length-height-for-age), [cân nặng 0–5 tuổi](https://www.who.int/tools/child-growth-standards/standards/weight-for-age), [chiều cao sau 5 tuổi](https://www.who.int/tools/growth-reference-data-for-5to19-years/indicators/height-for-age), [cân nặng 5–10 tuổi](https://www.who.int/tools/growth-reference-data-for-5to19-years/indicators/weight-for-age-5to10-years).
+
+`growth-chart.js` tính tuổi tại ngày đo từ ngày sinh (ngày / 30,4375), kiểm tra ngày và số đo dương, giữ thứ tự thời gian. Không clamp tuổi, bịa số đo hoặc di chuyển điểm trùng. Ngoài 24–72 tháng/thiếu dữ liệu vẫn còn trong lịch sử và được ghi số lượng không vẽ. Thiếu giới tính thì không chọn bảng thay. Trục dọc mở rộng nếu cần để không giấu số đo ngoài dải; mobile không sửa số đo có vẻ bất thường.
+
+`WhoGrowthChart` vẽ SVG native từ bảng và `health.history`. Màu tham chiếu theo web; palette đặt tập trung trong utility, vùng biểu đồ nền trắng ở cả light/dark để màu khoa học nhất quán. Phần card/chữ xung quanh dùng token RNR. Chọn ngày đo để đọc điểm kể cả các điểm trùng vị trí. Dải màu ghi bằng SD; không dùng cân nặng theo tuổi để tự kết luận thừa cân, không thay đánh giá chuyên môn.

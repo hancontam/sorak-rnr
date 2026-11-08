@@ -30,6 +30,13 @@ Chỉ ghi nhận các hành vi đã quan sát trong từng mục. Không đánh 
 - Android, phiên phụ huynh thật qua Turnstile: app hiển thị hồ sơ chỉ đọc và form đổi mật khẩu, ẩn mục 2FA dành cho giáo viên. Danh sách phiên hiển thị đúng một phiên **Thiết bị này** và hai phiên khác. Sau **Làm mới**, app vẫn nhận diện phiên hiện tại. Kiểm tra xác nhận đăng xuất tất cả bằng nút **Hủy**. Sau khi tắt và mở lại Expo Go, app khôi phục phiên và giao diện Tối. Cuối lượt kiểm tra, chỉ đăng xuất phiên thử nghiệm vừa tạo.
 - Với phiên giáo viên thật, `POST /auth/change-password`, `POST /auth/2fa/confirm-enable` và `POST /auth/2fa/disable` trả 400 với body rỗng. Tên trường và đường dẫn theo Swagger, web và code backend tham chiếu. Chưa thử đổi mật khẩu thành công, gửi OTP, bật/tắt 2FA hoặc thu hồi tất cả phiên. Chưa kiểm chứng danh sách phiên trên iOS.
 
+## Tổng quan lớp trên test2 — 09/11/2026
+
+- Phiên GV native có đúng một lớp. `GET /classes/{id}/students` trả 200 với hai học sinh trong mẫu. `GET /classes/{id}/student-report?studentId=…&semester=SEMESTER_1` trả 200 cho cả hai. Swagger chỉ khai báo path `id`, thiếu hai query trên.
+- Mỗi báo cáo mẫu trả ba đợt sức khỏe (`health.history` có ngày, chiều cao, cân nặng và z-score), 23 bản ghi đánh giá hoạt động (`assessments.history` có ngày, tên hoạt động, mục tiêu, kết quả, ghi chú), 11 bản ghi điểm danh và danh sách ủy quyền rỗng. Đây là số liệu mẫu tại thời điểm kiểm tra, không phải quy tắc sản phẩm.
+- Endpoint riêng `GET /parent/student-report` có bằng chứng 200 trong audit cũ và chưa có trên Swagger đã đọc. Chưa gọi lại bằng phiên PH trong lượt này.
+- Trong bản Android kiểm tra riêng, báo cáo trả đúng học sinh đã chọn qua `id/publicId`; học kỳ 1 có dữ liệu, chuyển `SEMESTER_2` trả các mảng lịch sử rỗng và `selectedSemester` tương ứng. Chưa kiểm chứng đủ UI năm mục/biểu đồ trên cả hai vai trò hoặc iOS; không xem bundle thành công là nghiệm thu native.
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

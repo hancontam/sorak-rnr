@@ -68,7 +68,7 @@
 
 - Mobile chỉ GV/PH. BGH được hướng dẫn dùng web. Quyền lấy từ backend, không từ lựa chọn role trên UI login.
 - GV: 0 hoặc 1 lớp. Không lớp thì hiện chưa phân công, không gọi API cần classId. Nhiều lớp trái contract thì báo dữ liệu bất thường, không tự lấy phần tử đầu. PH: một tài khoản theo mã HS gắn đúng một HS; hai con là hai tài khoản. Không có bộ chọn lớp/con.
-- GV có Báo cáo (list -> detail), Nhật ký ngày, Đánh giá giai đoạn. PH có Hồ sơ trẻ (thẳng con mình), Nhật ký ngày chỉ xem, Kết quả đánh giá.
+- GV có Tổng quan lớp (tên mới của Báo cáo, list -> detail), Nhật ký ngày, Đánh giá giai đoạn. PH có Hồ sơ trẻ (thẳng con mình), Nhật ký ngày chỉ xem, Kết quả đánh giá.
 - Sổ bé ngoan và học kỳ của GV chỉ xem. PH chỉ phản hồi Sổ bé ngoan, học kỳ chỉ xem. Đánh giá HĐGD từ slot thực trong Nhật ký ngày là thao tác GV riêng, vẫn thuộc phạm vi.
 - Không có xin nghỉ học. Ủy quyền đón trẻ theo vai trò; không biến ghi chú đơn ủy quyền thành đơn xin nghỉ.
 - PH dùng endpoint riêng; không tải cả lớp rồi lọc client. UI guard không thay quyền backend.

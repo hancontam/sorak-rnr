@@ -1,5 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
-import { Baby, CalendarDays, LayoutGrid } from 'lucide-react-native';
+import { Baby, CalendarDays, GraduationCap, LayoutGrid } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthSuccessToast } from '@/features/auth/components/AuthSuccessToast';
 import { useAuthTypography } from '@/features/auth/hooks/useAuthTypography';
 import { useSession } from '@/features/auth/hooks/useSession';
+import { useNotificationInbox } from '@/features/notification/hooks/useNotifications';
 import { THEME } from '@/lib/theme';
 
 import { HomeHeader } from '../components/HomeHeader';
@@ -19,12 +20,22 @@ export function HomeTabs({ role }) {
   const theme = THEME[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
   const isParent = role === 'parent';
+  const inbox = useNotificationInbox();
   if (!user) return null;
   return (
     <View className="flex-1 bg-background">
       <Tabs
         screenOptions={{
-          header: () => <HomeHeader user={user} onSettings={() => router.push('/settings')} />,
+          header: () => (
+            <HomeHeader
+              user={user}
+              unreadCount={inbox.data?.unreadCount}
+              onNotifications={() =>
+                router.push(isParent ? '/(parent)/notifications' : '/(teacher)/notifications')
+              }
+              onSettings={() => router.push('/settings')}
+            />
+          ),
           tabBarActiveTintColor: theme.foreground,
           tabBarInactiveTintColor: theme.mutedForeground,
           tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
@@ -43,6 +54,13 @@ export function HomeTabs({ role }) {
           options={{
             title: 'Thời khóa biểu',
             tabBarIcon: ({ color }) => <CalendarDays size={18} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="learning-results"
+          options={{
+            title: 'Kết quả học tập',
+            tabBarIcon: ({ color }) => <GraduationCap size={18} color={color} />,
           }}
         />
       </Tabs>

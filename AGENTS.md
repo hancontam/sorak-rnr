@@ -68,13 +68,13 @@
 
 - Mobile chỉ GV/PH. BGH được hướng dẫn dùng web. Quyền lấy từ backend, không từ lựa chọn role trên UI login.
 - GV: 0 hoặc 1 lớp. Không lớp thì hiện chưa phân công, không gọi API cần classId. Nhiều lớp trái contract thì báo dữ liệu bất thường, không tự lấy phần tử đầu. PH: một tài khoản theo mã HS gắn đúng một HS; hai con là hai tài khoản. Không có bộ chọn lớp/con.
-- GV có Tổng quan lớp (tên mới của Báo cáo, list -> detail), Thời khóa biểu, Đánh giá giai đoạn. PH có Hồ sơ trẻ (thẳng con mình), Thời khóa biểu chỉ xem, Kết quả đánh giá.
-- Sổ bé ngoan và học kỳ của GV chỉ xem. PH chỉ phản hồi Sổ bé ngoan, học kỳ chỉ xem. Đánh giá HĐGD từ slot thực trong Thời khóa biểu là thao tác GV riêng, vẫn thuộc phạm vi.
+- GV có Tổng quan lớp, Thời khóa biểu, Kết quả học tập. PH có Hồ sơ trẻ, Thời khóa biểu chỉ xem, Kết quả học tập.
+- Sổ bé ngoan và học kỳ của GV chỉ xem. PH gửi/sửa một phản hồi theo phiếu tháng thật, chỉ xem kết quả học kỳ đã công bố. Đánh giá HĐGD từ slot thực trong Thời khóa biểu là thao tác GV riêng, vẫn thuộc phạm vi.
 - Không có xin nghỉ học. PH tạo ủy quyền PENDING, GV duyệt/từ chối; GV được tạo đơn APPROVED từ Đón trẻ rồi tải lại người được ủy quyền. Không làm Người đón khác ghi trực tiếp. Đơn APPROVED không đồng nghĩa đã đón trẻ.
 - PH dùng endpoint riêng; không tải cả lớp rồi lọc client. UI guard không thay quyền backend.
 - Thời khóa biểu giữ đủ khung sinh hoạt ngày thường, nhưng khung trống không phải hoạt động và không mở chi tiết. Có hoạt động cuối tuần thì GV/PH đều xem được; không tự khóa theo thứ hoặc tự kết luận ngày nghỉ từ lịch rỗng. PH xem nội dung slot, không ghi đánh giá. PH nối kết quả theo routineSlot + isoDate (BE xác nhận, một khung/ngày một HĐGD); không nối theo tên hoặc dùng ID đánh giá thay ID lịch. GV vẫn đánh giá HĐGD cho bé vắng.
 - Tiếng Việt trước, English sau toàn app. Không có lựa chọn English giả hoạt động. Theme sáng/tối/tự động và lưu lựa chọn thuộc phạm vi; dòng tóm tắt hiện Sáng/Tối thực tế, màn chọn vẫn đánh dấu Tự động nếu đã chọn.
-- Thông báo/push/email preference chờ xác nhận trong `docs/backend-requests.md`. Local setting không điều khiển email backend. Không hiển thị công tắc hoạt động giả.
+- Hộp thông báo và số chưa đọc theo API tài khoản. Push native làm riêng. Tùy chọn email chờ xác nhận trong `docs/backend-requests.md`. Local setting không điều khiển email backend.
 - Không bịa dữ liệu, ID mặc định, điểm, badge hoặc thông báo thành công. Phân biệt lỗi tải, rỗng hợp lệ và thiếu quyền; không nuốt lỗi thành mảng rỗng.
 
 ## API và phiên

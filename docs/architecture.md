@@ -159,7 +159,7 @@ Sau khi server xác nhận đổi mật khẩu, app trở lại form giáo viên
 | Đánh giá giai đoạn | Sổ bé ngoan/học kỳ chỉ xem | Xem; phản hồi Sổ bé ngoan | Không có tặng hoa/ghi học kỳ ở mobile; không phản hồi học kỳ |
 | Ủy quyền đón trẻ | Xem/xử lý theo nghiệp vụ | Tạo/xem/hủy theo điều kiện BE | Badge thật, chuyển trạng thái đúng, tránh gửi trùng |
 | Settings | Xem hồ sơ và ảnh đại diện; đổi mật khẩu, 2FA, quản lý phiên theo quyền; theme, giới thiệu, đăng xuất | Xem hồ sơ và ảnh đại diện; các thao tác tài khoản theo quyền PH | Hồ sơ chỉ đọc ở cả hai vai trò. Dùng ảnh từ API và chỉ hiển thị thao tác tài khoản đã xác minh |
-| Thông báo | Chờ xác nhận endpoint/quyền GV | Có đầu mối API PH cần kiểm chứng | Push/email preference đang chờ backend-requests |
+| Thông báo | Hộp theo tài khoản, badge, đánh dấu đọc | Hộp theo tài khoản, badge, đánh dấu đọc | Push native làm riêng; kiểm chứng ghi trên test2 |
 
 Không có xin nghỉ học, BGH mobile, chọn nhiều lớp/con hoặc tiếng Anh trong đợt này. Giao diện bước 3 dùng Tiếng Việt. Bộ chọn chỉ có Tiếng Việt và English khi bản dịch toàn app sẵn sàng. Hồ sơ GV/PH chỉ đọc, gồm cả ảnh đại diện. Dùng ảnh của tài khoản do API trả về; dùng chữ cái đầu khi ảnh thiếu hoặc tải lỗi. Nội dung chính sách/hướng dẫn tự soạn là bản dự thảo cần chủ sản phẩm duyệt, không tự nhận chính thức.
 
@@ -181,7 +181,8 @@ Hiển thị phiên hiện tại và các phiên khác theo dữ liệu API. Có
 | 3 Shell/Settings | Màn Tài khoản tạm mở Settings bằng stack toàn màn hình; theme lưu trên thiết bị; hồ sơ chỉ xem; quản lý tài khoản và phiên | Back về Tài khoản; GV 0 lớp vẫn vào Settings; theme giữ sau mở lại; dữ liệu và thao tác đúng contract. Tabs Home triển khai ở bước sau |
 | 4 Báo cáo | GV list/detail, PH own-report, WHO | Đúng HS; dữ liệu/nguồn chart/đơn vị/giới hạn tuổi rõ; native scroll/loading/error/empty |
 | 5 Thời khóa biểu/ủy quyền | Lịch ngày, HĐGD slot, tác vụ GV, PH xem, đơn đón trẻ | Đọc lại sau ghi; ngày/slot đúng; quyền PH; tác động test được duyệt |
-| 6 Kết quả/thông báo | Assessment chỉ xem, PH phản hồi tháng, notification theo BE xác nhận | Học kỳ thật sau BE sửa; phản hồi đúng tháng; badge/read đúng; push native nếu chốt vào phạm vi |
+| 6A Kết quả học tập/thông báo | GV chỉ xem, PH phản hồi tháng, hộp thông báo theo tài khoản | Học kỳ PH đã công bố; phản hồi đúng tháng; badge/đọc đúng |
+| 6B Push native | Đăng ký/gỡ Expo Push Token, xử lý khi bấm thông báo | Development build, credentials và thiết bị nhận push |
 | 7 Bàn giao | Rà GV/PH, build config/test2, review merge/phát hành | Nêu lỗi/dependency còn lại; duyệt merge; phát hành tester là yêu cầu riêng |
 
 Ước lượng có điều kiện: 05/11 nền và bắt đầu auth; 06/11 auth/shell/settings; 07/11 các flow dữ liệu; 08/11 kiểm tra xuyên suốt/build. Lịch rất chặt, không biến phần chưa xác minh thành Done để giữ hạn. Backend học kỳ/thông báo, dữ liệu test, thời gian duyệt và native test là dependency thực tế.
@@ -229,3 +230,10 @@ Nguồn: [chiều cao 2–5 tuổi](https://www.who.int/tools/child-growth-stand
 - 5C mở **Ủy quyền đón trẻ** từ lịch và Đón trẻ. PH gửi đơn cho con của phiên (PENDING), hủy đơn chờ duyệt. GV xem, duyệt/từ chối kèm lý do và tạo đơn cho học sinh trong lớp (APPROVED ngay). Tạo đơn không đánh dấu đã đón. Sau khi tạo, làm mới danh sách người đón. Ảnh đơn GV dùng Expo Image Picker → hook upload → API multipart; không đặt HTTP trong component. Nếu kết quả ghi chưa xác nhận, giữ form và chặn gửi trùng cho đến khi đối chiếu.
 
 `DailyRecordsScreen` dùng `PickupRecordCard` riêng cho đón trẻ để không trộn các điều kiện với điểm danh/sức khỏe. Tổng đã đón và badge từng bé lấy từ response, không từ draft. Form vẫn hiện khi chưa được phép ghi, kèm lý do và nút khóa. Chọn người theo ID của danh sách được phép; payload lưu studentId và snapshot người đón đúng contract web. Đơn được tạo không tự chọn người hoặc tự gửi ghi nhận đón trẻ.
+
+## Kết quả học tập và hộp thông báo (6A)
+
+- Tab thứ ba của GV/PH mở `LearningResultsHome`. Hai mục Sổ bé ngoan và Kết quả học kỳ dùng stack `learning-results/[kind]`. `useLearningResults` chọn API theo vai trò. GV đọc dữ liệu lớp đã phân công. PH dùng API riêng, đối chiếu học sinh từ phiên và chỉ giữ học kỳ đã công bố trong cache.
+- Sổ bé ngoan liệt kê chín tháng từ tháng 9 đến tháng 5 của năm học API trả. Mở các tháng đã kết thúc, phân biệt tháng đang/chưa diễn ra và tháng đã kết thúc nhưng chưa có phiếu. Kết quả học kỳ có đúng hai lựa chọn. Màn GV hiện khoảng ngày và mốc tính theo API.
+- Phản hồi PH thuộc phiếu tháng có thật. Hook đọc lại trước khi ghi để phát hiện phản hồi đã đổi, gửi theo tháng/năm server xác nhận, rồi đọc lại đúng kỳ. Form giữ nháp khi lỗi. GV không có thao tác ghi ở tab này.
+- Chuông trên header và màn `notifications` dùng chung query theo tài khoản. Sau đánh dấu đọc từng mục hoặc tất cả, app tải lại dữ liệu và dùng số chưa đọc từ server. Đây là hộp thông báo trong app. Push native được tích hợp ở lượt riêng.

@@ -76,6 +76,15 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 - Network web test2 do người dùng cung cấp ghi nhận HTTP 200 cho `DELETE /attendance/classes/{classId}/dismissal/{studentId}?date=YYYY-MM-DD`. Web gửi ID học sinh từ danh sách đón trẻ. Backend tham chiếu xóa các trường giờ đón, người đón, ảnh và dặn dò trong bản ghi của đúng học sinh/ngày, giữ điểm danh và đơn ủy quyền.
 - Mobile đọc lại danh sách sau DELETE, kiểm tra đã bỏ trạng thái và thông tin đón của đúng học sinh, rồi làm mới lịch và báo cáo. Trên Android test2 ngày 02/11, đã quan sát hộp xác nhận đúng học sinh/ngày và kết quả sau xác nhận trên thiết bị: bé về Chưa đón, người/giờ đón được xóa, tổng đã đón giảm từ 3/5 xuống 2/5. Bằng chứng HTTP 200 trong ảnh Network là từ web.
 
+## Kết quả học tập và thông báo 6A trên test2 — 11/11/2026
+
+- GET tháng và học kỳ của GV trả 200, khớp UUID lớp, có `students` và `stats`. Kỳ 2 trả `isStarted: false`. GET `/parent/good-behavior` khớp con của phiên và trả đúng `period.month/year` khi truyền query. Mẫu PH tháng 9–11 chưa có `record.id`; không thể thử lưu phản hồi thật trên mẫu này.
+- Mẫu PH trả học kỳ 1 có 5 lĩnh vực với `isPublished: false` và `isDraft: true`. Bản 6A lọc bản nháp trước khi đưa kết quả vào cache. Backend vẫn gửi bản nháp trong response; ẩn ở mobile không thay quyền đọc của API. Chưa có mẫu học kỳ đã công bố.
+- Cả GV lẫn PH gọi GET `/parent/notifications` trả 200, có `unreadCount` và `notifications`. Mẫu GV có 3 mục chưa đọc, PH rỗng. GET `/notifications` trả 404. PATCH `/parent/notifications/{id}/read` và ID `all` theo web/backend tham chiếu. Chưa gửi PATCH thay đổi dữ liệu staging trong lượt này. Context backend đếm trong 30 thông báo mới nhất; chưa có mẫu test2 đủ lớn để xác minh giới hạn thực tế.
+- Guide Expo push được dùng để xác định phạm vi 6B. Ba đường dẫn token/test-push trả 401 khi thiếu phiên. Chưa đăng ký thiết bị hay gửi push thử.
+- Bundle JavaScript Android qua. Emulator nối Metro của `wt-rebuild` hiển thị Sổ bé ngoan của PH, các tháng và tuần theo API, cùng trạng thái chưa có phiếu. Chưa kiểm tra ghi phản hồi hoặc đánh dấu đọc từ app.
+- Đối chiếu bộ chọn tháng của web test2 và trường năm học trong API: GV/PH đều trả năm học 2026–2027. Bộ chọn mobile liệt kê tháng 9–5 theo năm học và chỉ mở tháng đã kết thúc. API GV trả khoảng ngày HK1 05/09/2026–15/01/2027, tính đến 11/11/2026 (48 ngày), và HK2 16/01/2027–31/05/2027 chưa bắt đầu. App hiển thị các giá trị từ response.
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

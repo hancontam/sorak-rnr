@@ -25,7 +25,7 @@ app/
     (tabs)/
       _layout.jsx             # Expo Router Tabs
       overview.jsx
-      daily.jsx
+      timetable.jsx
       assessments.jsx
     ...                       # chi tiết ngoài tab bar
   (parent)/
@@ -33,7 +33,7 @@ app/
     (tabs)/
       _layout.jsx
       child-profile.jsx
-      daily.jsx
+      timetable.jsx
       results.jsx
     ...
   settings/                   # Stack chung sau đăng nhập
@@ -155,7 +155,7 @@ Sau khi server xác nhận đổi mật khẩu, app trở lại form giáo viên
 | --- | --- | --- | --- |
 | Auth | Login, Turnstile, OTP/2FA; quên MK theo mã cán bộ | Login; quên MK liên hệ GVCN | Restore/refresh/logout/đổi tài khoản không lẫn dữ liệu |
 | Báo cáo/Hồ sơ trẻ | List đúng lớp -> detail | Thẳng con mình | Hồ sơ, sức khỏe/WHO, điểm danh, HĐGD, ủy quyền đúng dữ liệu/quyền |
-| Nhật ký ngày | Lịch; điểm danh/đón trẻ/sức khỏe; đánh giá HĐGD từ slot | Chỉ xem con mình | Ngày/slot đúng; khung trống không giả hoạt động/ID |
+| Thời khóa biểu | Lịch; điểm danh/đón trẻ/sức khỏe; đánh giá HĐGD từ slot | Chỉ xem con mình | Ngày/slot đúng; khung trống không giả hoạt động/ID |
 | Đánh giá giai đoạn | Sổ bé ngoan/học kỳ chỉ xem | Xem; phản hồi Sổ bé ngoan | Không có tặng hoa/ghi học kỳ ở mobile; không phản hồi học kỳ |
 | Ủy quyền đón trẻ | Xem/xử lý theo nghiệp vụ | Tạo/xem/hủy theo điều kiện BE | Badge thật, chuyển trạng thái đúng, tránh gửi trùng |
 | Settings | Xem hồ sơ và ảnh đại diện; đổi mật khẩu, 2FA, quản lý phiên theo quyền; theme, giới thiệu, đăng xuất | Xem hồ sơ và ảnh đại diện; các thao tác tài khoản theo quyền PH | Hồ sơ chỉ đọc ở cả hai vai trò. Dùng ảnh từ API và chỉ hiển thị thao tác tài khoản đã xác minh |
@@ -180,7 +180,7 @@ Hiển thị phiên hiện tại và các phiên khác theo dữ liệu API. Có
 | 2 Auth | API/hook/store, WebView Turnstile, restore/refresh/logout, guard | Native GV/PH; OTP cùng người dùng; lỗi mạng/403/401; đổi tài khoản; không bypass |
 | 3 Shell/Settings | Màn Tài khoản tạm mở Settings bằng stack toàn màn hình; theme lưu trên thiết bị; hồ sơ chỉ xem; quản lý tài khoản và phiên | Back về Tài khoản; GV 0 lớp vẫn vào Settings; theme giữ sau mở lại; dữ liệu và thao tác đúng contract. Tabs Home triển khai ở bước sau |
 | 4 Báo cáo | GV list/detail, PH own-report, WHO | Đúng HS; dữ liệu/nguồn chart/đơn vị/giới hạn tuổi rõ; native scroll/loading/error/empty |
-| 5 Nhật ký/ủy quyền | Lịch ngày, HĐGD slot, tác vụ GV, PH xem, đơn đón trẻ | Đọc lại sau ghi; ngày/slot đúng; quyền PH; tác động test được duyệt |
+| 5 Thời khóa biểu/ủy quyền | Lịch ngày, HĐGD slot, tác vụ GV, PH xem, đơn đón trẻ | Đọc lại sau ghi; ngày/slot đúng; quyền PH; tác động test được duyệt |
 | 6 Kết quả/thông báo | Assessment chỉ xem, PH phản hồi tháng, notification theo BE xác nhận | Học kỳ thật sau BE sửa; phản hồi đúng tháng; badge/read đúng; push native nếu chốt vào phạm vi |
 | 7 Bàn giao | Rà GV/PH, build config/test2, review merge/phát hành | Nêu lỗi/dependency còn lại; duyệt merge; phát hành tester là yêu cầu riêng |
 
@@ -202,7 +202,7 @@ Base cũ chưa có cấu hình CI/dev-client mới. Trước tích hợp, review
 - PH: root guard → `(parent)/(tabs)/child-profile` → `ParentReportScreen` → `useParentReport` → `/parent/student-report`. Không truyền mã con qua route hay gọi endpoint cả lớp. API kiểm tra `student.id/publicId` khớp học sinh liên kết trong phiên.
 - `StudentReport` ghép summary, bộ chọn học kỳ và năm mục đọc: Hồ sơ, Sức khỏe, Điểm danh, Đánh giá hoạt động, Ủy quyền đưa đón. Hook giữ trạng thái request/cache; component chỉ nhận data/callback. Không lưu bản sao report vào Zustand.
 - Query key gồm tài khoản, lớp/con, học kỳ. Request nhận AbortSignal; logout hủy và xóa cache qua session chung. API từ chối response sai học sinh hoặc thiếu các danh sách, không biến lỗi thành dữ liệu rỗng. Kéo xuống tải lại giữ dữ liệu hiện có; đổi học kỳ tải đúng kỳ mới.
-- `features/home/layouts/HomeTabs.jsx` dùng Expo Router JavaScript Tabs. Chỉ thêm tab có chức năng thật trong từng bước; chưa dựng tab Nhật ký/Kết quả giả. Header có tài khoản/ảnh từ phiên và mở Settings. Không có bộ chọn nhiều lớp, thông báo mẫu hay yêu cầu duyệt mẫu của prototype.
+- `features/home/layouts/HomeTabs.jsx` dùng Expo Router JavaScript Tabs. Chỉ thêm tab có chức năng thật trong từng bước; chưa dựng tab Thời khóa biểu/Kết quả giả. Header có tài khoản/ảnh từ phiên và mở Settings. Không có bộ chọn nhiều lớp, thông báo mẫu hay yêu cầu duyệt mẫu của prototype.
 - Route `session.jsx` và `SessionScreen` tạm đã được thay bằng Home theo vai trò; Settings Back quay về Home. Giữ phần Auth session xử lý token/refresh, đó không phải screen tạm.
 
 ### WHO
@@ -214,3 +214,18 @@ Nguồn: [chiều cao 2–5 tuổi](https://www.who.int/tools/child-growth-stand
 `growth-chart.js` tính tuổi tại ngày đo từ ngày sinh (ngày / 30,4375), kiểm tra ngày và số đo dương, giữ thứ tự thời gian. Không clamp tuổi, bịa số đo hoặc di chuyển điểm trùng. Ngoài 24–72 tháng/thiếu dữ liệu vẫn còn trong lịch sử và được ghi số lượng không vẽ. Thiếu giới tính thì không chọn bảng thay. Trục dọc mở rộng nếu cần để không giấu số đo ngoài dải; mobile không sửa số đo có vẻ bất thường.
 
 `WhoGrowthChart` vẽ SVG native từ bảng và `health.history`. Màu tham chiếu theo web; palette đặt tập trung trong utility, vùng biểu đồ nền trắng ở cả light/dark để màu khoa học nhất quán. Phần card/chữ xung quanh dùng token RNR. Chọn ngày đo để đọc điểm kể cả các điểm trùng vị trí. Dải màu ghi bằng SD; không dùng cân nặng theo tuổi để tự kết luận thừa cân, không thay đánh giá chuyên môn.
+
+## Cách đọc Thời khóa biểu (bước 5A)
+
+- Hai route `(teacher)/(tabs)/timetable` và `(parent)/(tabs)/timetable` dùng `TimetableScreen`. Screen giữ ngày đang chọn; `useTimetable` đọc vai trò, lớp/con từ phiên, gọi API tương ứng và giữ query key theo tài khoản, vai trò, lớp/con, ngày. Request có AbortSignal.
+- GV gọi `/attendance/classes/{classId}/timetable`; PH gọi `/parent/schedule`, không tải lịch lớp qua endpoint giáo viên. Query gửi ngày và khoảng tuần thứ Hai–Chủ nhật. Lọc hoạt động bằng ngày ISO đầy đủ, giữ tất cả slot cùng ngày, không lấy phần tử đầu tiên theo khung sinh hoạt.
+- `schedule-date.js` xử lý ngày/giờ trường UTC+7, tuần qua tháng/năm và chọn tháng. `timetable-model.js` biến response thành dữ liệu hiển thị; component nhận props, không gọi HTTP. Mốc giờ cố định GV theo web nằm tập trung trong `routine-slots.js`; PH đọc routineSlots của API. Lịch và chi tiết dùng cùng giờ của khung, không hiển thị hai nguồn giờ khác nhau.
+- Ngày thường có đủ khung sinh hoạt. Khung chưa xếp hoạt động không mở chi tiết; cuối tuần không có hoạt động hiện trạng thái trống. Cuối tuần có hoạt động thật vẫn mở được ở cả hai vai trò. Không tự gọi ngày rỗng là ngày nghỉ chính thức.
+- Chọn hoạt động mở stack `schedule-activity` ngoài tab bar, chỉ truyền `date` và `slotId`; màn chi tiết tìm lại đúng ID/ngày trong query đã kiểm tra lớp/con. PH chỉ đọc mục tiêu, mục đích yêu cầu, chuẩn bị, tiến trình. Không điền nội dung mẫu khi API thiếu dữ liệu.
+- Kết quả PH ở chi tiết lấy từ `slotAssessments`, nối bằng `routineSlot` + ngày lịch `YYYY-MM-DD`. Nghiệp vụ đã xác nhận một khung/ngày một HĐGD. Không nối theo tên hoặc ID bản đánh giá. Học sinh vắng vẫn xem được kết quả HĐGD nếu GV đã đánh giá. Nhóm kết quả cả ngày chỉ nằm ở màn lịch, không thay kết quả của slot đang mở.
+- 5B mở Điểm danh, Sức khỏe và Đón trẻ từ ba thẻ của GV. Nút **Đánh giá học sinh** nằm trong chi tiết hoạt động GV. `daily-records` nhận loại tác vụ, ngày và mã slot nếu đánh giá. Hook lấy lớp từ phiên đăng nhập và kiểm tra lại hoạt động theo lớp/ngày trước khi tải đánh giá. Ngày tương lai chỉ xem. PH vẫn xem các thẻ tóm tắt.
+- Điểm danh và HĐGD giữ kết quả đã ghi; dòng chưa ghi có mặc định Có mặt/Đạt trong draft. Khi Lưu, validate và gửi đủ danh sách bằng studentId, kể cả khi UI đang tìm một học sinh. HĐGD không loại học sinh vắng. Query tải lại không ghi đè bản nháp; trước khi ghi đối chiếu roster và dữ liệu nền, sau ghi đọc lại từng ID. Đóng/back khi có thay đổi phải xác nhận.
+- Sức khỏe bắt buộc đủ cm/kg của mọi học sinh có mặt. Do test2 đang điền 85/12 cho dòng vắng thiếu số đo, mobile tạm không gửi dòng vắng; vẫn hiển thị bé vắng và giữ số đo server đã có để đối chiếu. Đây là workaround ghi tại BE-04, không phải thay đổi nghiệp vụ. Đón trẻ chỉ lưu từng bé Có mặt, chọn người thân/ủy quyền hợp lệ theo ngày từ API; không có Người đón khác.
+- 5C mở **Ủy quyền đón trẻ** từ lịch và Đón trẻ. PH gửi đơn cho con của phiên (PENDING), hủy đơn chờ duyệt. GV xem, duyệt/từ chối kèm lý do và tạo đơn cho học sinh trong lớp (APPROVED ngay). Tạo đơn không đánh dấu đã đón. Sau khi tạo, làm mới danh sách người đón. Ảnh đơn GV dùng Expo Image Picker → hook upload → API multipart; không đặt HTTP trong component. Nếu kết quả ghi chưa xác nhận, giữ form và chặn gửi trùng cho đến khi đối chiếu.
+
+`DailyRecordsScreen` dùng `PickupRecordCard` riêng cho đón trẻ để không trộn các điều kiện với điểm danh/sức khỏe. Tổng đã đón và badge từng bé lấy từ response, không từ draft. Form vẫn hiện khi chưa được phép ghi, kèm lý do và nút khóa. Chọn người theo ID của danh sách được phép; payload lưu studentId và snapshot người đón đúng contract web. Đơn được tạo không tự chọn người hoặc tự gửi ghi nhận đón trẻ.

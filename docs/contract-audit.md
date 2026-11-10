@@ -37,6 +37,45 @@ Chỉ ghi nhận các hành vi đã quan sát trong từng mục. Không đánh 
 - Endpoint riêng `GET /parent/student-report` có bằng chứng 200 trong audit cũ và chưa có trên Swagger đã đọc. Chưa gọi lại bằng phiên PH trong lượt này.
 - Trong bản Android kiểm tra riêng, báo cáo trả đúng học sinh đã chọn qua `id/publicId`; học kỳ 1 có dữ liệu, chuyển `SEMESTER_2` trả các mảng lịch sử rỗng và `selectedSemester` tương ứng. Chưa kiểm chứng đủ UI năm mục/biểu đồ trên cả hai vai trò hoặc iOS; không xem bundle thành công là nghiệm thu native.
 
+## Thời khóa biểu 5A — 09/11/2026
+
+- Swagger public đã có `GET /parent/schedule` và `GET /attendance/classes/{classId}/timetable`, nhưng response chỉ mô tả `success` và `data: object`; chưa mô tả trường chi tiết hoặc query ngày/tuần. Không dùng schema chung này để kết luận toàn bộ contract đã đúng.
+- Đọc bundle web test2 đang deploy `assets/index-BHkvSIxm.js`: PH gọi `/parent/schedule` với `weekId`, `startDate`, `endDate`, thêm `classId` khi có. Bản mobile chọn tuần theo ngày thực, gửi `date/startDate/endDate`; không truyền lớp tùy chọn cho PH. Context `parent.service.js` có nhận các query ngày này.
+- Web PH có mục đích, chuẩn bị, tổ chức hoạt động và đánh giá trẻ, nhưng chèn đoạn văn mẫu khi thiếu nội dung; web cũng chặn T7/CN ở PH trong khi GV xét có lịch cuối tuần. Người dùng duyệt mobile chỉ dùng nội dung trả về và cho cả hai vai trò xem hoạt động cuối tuần thật.
+- Emulator Android với phiên GV thật: màn lịch tải được dữ liệu ngày 02/11, có nhiều hoạt động cùng ngày; mở đúng hoạt động đã chọn lên stack, hiển thị mục tiêu, mục đích, chuẩn bị và tiến trình. Đây là kiểm chứng qua UI/request của app, chưa phải bản chụp đầy đủ response HTTP hoặc kiểm tra PH/iOS.
+- Sau khi người dùng đăng nhập PH trên cùng emulator: `/parent/schedule` qua hook/API của app trả dữ liệu qua kiểm tra đúng học sinh, lớp và các danh sách. UI hiện lớp Mầm 2, các ngày 26/10, 02/11, 03/11 và 09/11 chưa có hoạt động. Ngày 07/11 hiện trạng thái chưa có lịch, không tự gọi là ngày nghỉ. Chưa kiểm chứng mở detail PH có dữ liệu, kết quả có dữ liệu hoặc đầy đủ payload HTTP; không coi nhánh rỗng là đủ nghiệm thu tất cả.
+- Bổ sung cùng ngày với tài khoản PH khác do người dùng cấp, đăng nhập native Turnstile: lịch trả đúng lớp Nhà Trẻ 1. Ngày 02/11/2026 có hoạt động, mở stack **Hoạt động của con** hiển thị đúng tên/ngày, mục tiêu, mục đích, chuẩn bị và tiến trình. Cuộn đến kết quả trong ngày thấy mức **Đạt** cùng lời nhận xét. Back giữ ngày 02/11; đổi sang 03/11 và 04/11 không giữ lại slot của 02/11. Màn PH không có thao tác ghi. Đây là kiểm chứng UI native trên dữ liệu thật; chưa thu/đối chiếu toàn bộ payload HTTP và chưa xác nhận khóa nối kết quả với từng slot, nên vẫn giữ nhóm kết quả theo ngày.
+- Context API: `timetable.weeklyActivities[]` có `id`, `isoDate`, `routineSlot`, nội dung hoạt động; `slotAssessments[]` có ID của bản đánh giá, ngày, khung và tên hoạt động, nhưng chưa thấy ID liên kết tới lịch/hoạt động. Không coi hai trường `id` là cùng loại. Mobile tạm trình bày kết quả theo ngày, ghi rõ phạm vi, không nối bằng tên hay chỉ khung giờ. Cần xác minh payload PH mới nhất trước khi chốt cần sửa backend; xem BE-03.
+- Giờ khung GV là nhãn tham chiếu từ web, không phải hoạt động giả. Số đo/trạng thái/kết quả không được điền mặc định. 5A chưa gửi mutation điểm danh, sức khỏe, đón trẻ hoặc đánh giá HĐGD.
+
+## Ghi nhận trong ngày và ủy quyền (5B–5C)
+
+- Android test2, phiên GV, ngày 02/11/2026. Đã mở Điểm danh và Sức khỏe từ lịch, mở Đón trẻ từ `GET /attendance/classes/{classId}/dismissal?date=…`, mở Đánh giá hoạt động từ một slot thật qua `GET /assessment/classes/{classId}/records` với ngày, slotId và activityId. Đã thử đổi trạng thái trong bản nháp điểm danh và Back hiện xác nhận bỏ thay đổi.
+- Form sức khỏe đọc số đo đúng ngày từ `GET /attendance/classes/{classId}/timetable`. Code context của API tổng quan sức khỏe trả số đo gần nhất và có thể điền số mẫu nếu chưa đo, nên không dùng response đó để khởi tạo form theo ngày.
+- Android test2 đã tải màn danh sách đơn bằng `GET /attendance/classes/{classId}/authorizations` và `GET /parent/requests`. Hai mẫu kiểm tra đều rỗng. PH mở form tạo đơn cho đúng học sinh của phiên. Chưa xác minh dữ liệu có đơn chờ duyệt và số badge khác 0 trong lượt này.
+- Các payload ghi dựa trên audit main, Swagger và API context. Đón trẻ gửi `checkOutTime` theo timestamp có múi giờ, cùng người đón và ghi chú. PH gửi trường snake_case cho `POST /parent/requests/pickup`, hủy bằng `POST /parent/requests/pickup/{id}/cancel`. GV dùng PATCH approve/reject và `{ reason }` khi từ chối. App đọc lại bản ghi/trạng thái sau khi server nhận. Chưa gửi các thao tác ghi từ bản dựng lại trên staging trong lượt này.
+
+## Rà lại bước 5 theo nghiệp vụ chốt — 09/11/2026
+
+Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên trên khi có khác biệt. Không thêm test file hoặc mã đăng nhập thử vào app.
+
+- Gọi HTTP trực tiếp test2 bằng phiên GV/PH do người dùng cung cấp. Login thường trả 200 với `username/password/role` và header Android, không gửi bypass. Đây không phải bằng chứng kiểm chứng Turnstile native; luồng app vẫn dùng WebView.
+- GV: timetable phải truyền `date/startDate/endDate` để lấy phạm vi tuần. `/dismissal?date=…` trả lớp/ngày, student UUID, `isAttendanceRecorded`, `attendanceStatus`, `isPresent`, `isDismissed`, người thân và ủy quyền theo ngày. Mobile dùng cờ đã ghi này, không suy từ giờ vào lớp. Ngày 02/11 có cả PRESENT và EXCUSED_ABSENCE; ngày 09/11 mẫu có 4 học sinh chưa điểm danh. Số lượng là mẫu kiểm tra, không hardcode.
+- PH: `/parent/schedule` ngày 02/11 có đúng học sinh phiên, hoạt động và kết quả cùng `routineSlot: ARRIVAL_PLAY` và ngày. Khóa nối đã được BE/người dùng xác nhận là routineSlot + ngày, mỗi khung/ngày một HĐGD. Không còn dùng kết quả cả ngày ở detail. `/parent/requests` trả 200 với `student/requests/stats/siblings`; mobile hiện chỉ dùng học sinh của phiên.
+- Sức khỏe: đã gửi riêng dòng học sinh vắng bằng null rồi bằng body chỉ studentId. Cả hai trả 200/savedCount=1 và ghi 85 cm/12 kg. Sau mỗi lần thử đã khôi phục số đo trước thử và đọc lại khớp; metadata lần cập nhật có thể thay đổi. Xem BE-04. Mobile tạm gửi mọi bé có mặt đã điền đủ, không gửi dòng vắng và không bịa số đo.
+- GV tạo ủy quyền: `POST /attendance/classes/{id}/authorizations` nhận camelCase `studentId/pickupPersonName/pickupPersonPhone/pickupCitizenId/relationship/startDate/endDate/note/photoUrl/status`, với `status: APPROVED`. Đã tạo một đơn kiểm tra ngày 09/11, GET danh sách xác nhận APPROVED, GET dismissal cùng ngày có người được ủy quyền. Không gửi POST dismissal hoặc xác nhận bé đã đón. Đơn kiểm tra còn trên staging, không tự xóa.
+- Response tạo đơn GV có cả `id` nội bộ và `publicId`; GET danh sách dùng publicId làm `id`. Riêng `authorization.student.id` trong GET danh sách là ID nội bộ, khác UUID học sinh của dismissal. Mobile đối chiếu đơn bằng publicId, trạng thái và UUID hoặc mã học sinh từ roster thật; không so nhầm hai loại ID.
+- Ghi nhận đón và tạo ủy quyền là hai thao tác riêng: UI có trạng thái Chưa điểm danh/Vắng/Chưa đón/Đã đón; nút xác nhận từng bé chỉ được phép khi Có mặt, chọn người hợp lệ và giờ hợp lệ. Tạo đơn không tăng số đã đón. Không triển khai Người đón khác.
+- Đã quan sát native Android màn điểm danh ngày 09/11: roster 4 bé, Có mặt mặc định trong draft; chưa bấm Lưu. Chưa nghiệm thu trọn các mutation điểm danh/HĐGD/đón trẻ từ mobile, PH tạo/hủy, GV duyệt/từ chối và upload ảnh từ camera. Không coi việc endpoint đọc trả 200 là hoàn thành các ca này.
+- Android, màn Đón trẻ sau khi sửa: ngày 09/11 hiện 0/4 đã đón và 4 bé chưa điểm danh, khóa nút xác nhận. Mở tạo đơn từ một bé điền đúng học sinh và ngày. Nhập nháp rồi Back hiện xác nhận bỏ thay đổi. Ngày 02/11 hiện 4/5 đã đón, 1 vắng. Mở danh sách người đón và đối chiếu người/giờ đã ghi trên một bản ghi thật. Không bấm lưu đón trẻ trong lượt kiểm tra này.
+
+### Hủy ghi nhận đón trẻ
+
+- Swagger công khai khai báo DELETE với hai tham số path `classId` và `studentId` nhưng thiếu query `date`. Bundle web đang deploy trên test2 dùng cùng đường dẫn và truyền query qua `params`. Gọi DELETE test2 không có phiên với ID giả trả `401 UNAUTHORIZED`; phép thử này chỉ xác nhận nhánh thiếu phiên.
+
+- Network web test2 do người dùng cung cấp ghi nhận HTTP 200 cho `DELETE /attendance/classes/{classId}/dismissal/{studentId}?date=YYYY-MM-DD`. Web gửi ID học sinh từ danh sách đón trẻ. Backend tham chiếu xóa các trường giờ đón, người đón, ảnh và dặn dò trong bản ghi của đúng học sinh/ngày, giữ điểm danh và đơn ủy quyền.
+- Mobile đọc lại danh sách sau DELETE, kiểm tra đã bỏ trạng thái và thông tin đón của đúng học sinh, rồi làm mới lịch và báo cáo. Trên Android test2 ngày 02/11, đã quan sát hộp xác nhận đúng học sinh/ngày và kết quả sau xác nhận trên thiết bị: bé về Chưa đón, người/giờ đón được xóa, tổng đã đón giảm từ 3/5 xuống 2/5. Bằng chứng HTTP 200 trong ảnh Network là từ web.
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

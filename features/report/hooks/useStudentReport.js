@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
+import { assignedClass } from '@/features/auth/utils/class-assignment';
 
 import { getParentReport, getStudentReport } from '../api/report.api';
-import { assignedClass } from '../utils/report-format';
 
 export function useStudentReport(studentId, semester) {
   const user = useAuthStore((state) => state.user);

@@ -1,5 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
-import { Baby, LayoutGrid } from 'lucide-react-native';
+import { Baby, CalendarDays, LayoutGrid } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -36,6 +36,13 @@ export function HomeTabs({ role }) {
             title: isParent ? 'Hồ sơ trẻ' : 'Tổng quan lớp',
             tabBarIcon: ({ color }) =>
               isParent ? <Baby size={18} color={color} /> : <LayoutGrid size={18} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="timetable"
+          options={{
+            title: 'Thời khóa biểu',
+            tabBarIcon: ({ color }) => <CalendarDays size={18} color={color} />,
           }}
         />
       </Tabs>

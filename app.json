@@ -33,7 +33,15 @@
         }
       ],
       "expo-status-bar",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Sorak dùng ảnh bạn chọn để nhận diện người được ủy quyền đón trẻ.",
+          "cameraPermission": "Sorak dùng camera để chụp ảnh người được ủy quyền đón trẻ.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

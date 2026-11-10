@@ -37,6 +37,26 @@ Ngày 05/11/2026, môi trường test2. Tập trung yêu cầu/nghiệm thu, kh�
 
 **Ảnh hưởng:** không coi nhánh học kỳ có dữ liệu hoàn tất trước khi deploy bản sửa và kiểm tra native. Không đề nghị endpoint mới nếu endpoint hiện có đủ sau sửa.
 
+## BE-03 — Liên kết kết quả HĐGD với slot lịch của PH
+
+**Trạng thái:** đã rõ nghiệp vụ và khóa nối; không cần yêu cầu endpoint mới.
+
+Backend và người dùng xác nhận một `routineSlot` trong một ngày chỉ có một HĐGD. Nối `slotAssessments[]` với hoạt động bằng `routineSlot` + ngày lịch `YYYY-MM-DD`, không dùng tên hay coi ID bản đánh giá là ID lịch. Học sinh vắng vẫn được GV đánh giá HĐGD; PH vẫn xem kết quả nếu có.
+
+Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: response đúng con của phiên, có hoạt động và kết quả cùng ngày, cùng `ARRIVAL_PLAY`. Mobile đã áp dụng khóa nối ở chi tiết. Giả định cũ “hai hoạt động trong cùng khung/ngày” không thuộc nghiệp vụ Sorak, đã bỏ.
+
+## BE-04 — Không tạo số đo mặc định cho học sinh vắng
+
+**Trạng thái:** đã tái hiện trên test2 ngày 09/11; cần backend sửa để khớp nghiệp vụ đã chốt.
+
+**Endpoint:** `POST /student-health/classes/{classId}/records`, body `{date, records}`. Với học sinh có điểm danh `EXCUSED_ABSENCE`, cả dòng `{studentId, height: null, weight: null, note: ""}` và dòng `{studentId}` đều trả HTTP 200, `savedCount: 1`; đọc lại lịch thấy số đo **85 cm / 12 kg**, thay vì bỏ qua bé vắng. Hai ca đã khôi phục số đo trước thử và đọc lại xác nhận; không khẳng định metadata lần cập nhật không đổi.
+
+**Cần gì/vì sao:** backend kiểm tra điểm danh của đúng học sinh/ngày, bỏ qua học sinh vắng và không biến số đo thiếu thành dữ liệu mẫu. Mobile không thể gửi full danh sách kèm dòng vắng an toàn theo hành vi hiện tại.
+
+**Cách mobile xử lý tạm:** vẫn hiển thị đủ danh sách, bắt buộc đủ chiều cao/cân nặng hợp lệ cho tất cả bé có mặt, nhưng chỉ gửi các bé có mặt. Không gửi 0/null/giá trị mẫu cho bé vắng. Đọc lại từng studentId để xác nhận số đo đã lưu và số đo bé vắng không bị thay đổi. Không xóa số đo vắng đã tồn tại trên server.
+
+**Nghiệm thu BE:** xác nhận cách biểu diễn dòng vắng trong payload full danh sách; dòng vắng không tạo/cập nhật số đo, thiếu số đo ở bé có mặt trả lỗi rõ, `savedCount` phản ánh số bản ghi thực lưu. Cần kiểm tra bé vắng có và chưa có số đo cũ. Sau khi BE sửa, xác minh lại trước khi bỏ xử lý tạm trên mobile.
+
 ## Mẫu yêu cầu mới
 
 Vai trò/flow bị chặn; cần gì/vì sao; bằng chứng ngày/môi trường; endpoint hiện có và phần thiếu; request/response đề xuất; quyền/empty/error; dữ liệu test; nghiệm thu; ảnh hưởng thời hạn; phản hồi BE. Không ghi bug client, nghiệp vụ đã bỏ (xin nghỉ/ghi học kỳ GV) hoặc điều chưa điều tra thành lỗi BE chắc chắn.

@@ -1,0 +1,14 @@
+{
+  "build": {
+    "push-test": {
+      "distribution": "internal",
+      "environment": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://test2mamnonhontre.sorak.io.vn/api"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}

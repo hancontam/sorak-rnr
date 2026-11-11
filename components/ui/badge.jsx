@@ -25,6 +25,7 @@ const badgeVariants = cva(
             web: '[a&]:hover:bg-secondary/90',
           })
         ),
+        brand: 'border-brand/45 bg-brand/30',
         destructive: cn(
           'border-transparent bg-destructive',
           Platform.select({
@@ -46,6 +47,7 @@ const badgeTextVariants = cva('text-xs font-medium', {
     variant: {
       default: 'text-primary-foreground',
       secondary: 'text-secondary-foreground',
+      brand: 'text-foreground',
       destructive: 'text-white',
       outline: 'text-foreground',
     },

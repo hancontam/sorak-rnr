@@ -1,25 +1,44 @@
 import { useQuery } from '@tanstack/react-query';
-import { getStudentDetail, getStudentReport } from '@/features/report/api/report.api';
 
-export function useStudentReport(classId, studentId) {
-  const enabled = Boolean(classId && studentId);
-  const detail = useQuery({
-    queryKey: ['student-detail', studentId],
-    queryFn: () => getStudentDetail(studentId),
-    enabled,
-  });
-  const report = useQuery({
-    queryKey: ['student-report', classId, studentId],
-    queryFn: () => getStudentReport(classId, studentId),
-    enabled,
-  });
+import { useAuthStore } from '@/features/auth/store/auth.store';
+import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
+import { assignedClass } from '@/features/auth/utils/class-assignment';
 
+import { getParentReport, getStudentReport } from '../api/report.api';
+
+export function useStudentReport(studentId, semester) {
+  const user = useAuthStore((state) => state.user);
+  const assignment = assignedClass(user);
+  const query = useQuery({
+    queryKey: ['report', user?.id, 'student', assignment.classId, studentId, semester],
+    queryFn: ({ signal }) =>
+      getStudentReport({ classId: assignment.classId, studentId, semester, signal }),
+    enabled: user?.role === AUTH_ROLES.teacher && Boolean(assignment.classId && studentId),
+  });
   return {
-    student: detail.data || report.data?.student,
-    report: report.data,
-    isLoading: detail.isPending || report.isPending,
-    isRefreshing: detail.isRefetching || report.isRefetching,
-    error: detail.error || report.error,
-    refetch: () => Promise.all([detail.refetch(), report.refetch()]),
+    query,
+    error:
+      assignment.error ||
+      (!assignment.classId
+        ? 'Bạn chưa được phân công lớp.'
+        : !studentId
+          ? 'Thiếu mã học sinh.'
+          : ''),
+  };
+}
+
+export function useParentReport(semester) {
+  const user = useAuthStore((state) => state.user);
+  const studentId = user?.student?.id;
+  const query = useQuery({
+    queryKey: ['report', user?.id, 'own-child', studentId, semester],
+    queryFn: ({ signal }) => getParentReport({ studentId, semester, signal }),
+    enabled: user?.role === AUTH_ROLES.parent && Boolean(studentId),
+  });
+  return {
+    query,
+    error: studentId
+      ? ''
+      : 'Tài khoản chưa được liên kết với hồ sơ trẻ. Vui lòng liên hệ nhà trường.',
   };
 }

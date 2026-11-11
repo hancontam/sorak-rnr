@@ -1,129 +1,103 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { SettingsGroup, SettingsMenuRow, SettingsSheetLayout, Text } from '@/components/ui';
-import { signOut } from '@/features/auth/hooks/useSession';
-import { useAuthStore } from '@/features/auth/store/auth.store';
-import { usePreferencesStore } from '@/features/settings/store/preferences.store';
+import { useRouter } from 'expo-router';
 import {
-  Bell,
-  CircleHelp,
+  Info,
   Languages,
   LogOut,
   Moon,
+  ShieldCheck,
   Sun,
   UserRound,
   UsersRound,
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import { useColorScheme } from 'nativewind';
-import * as React from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Text } from '@/components/ui/text';
+import { useSession } from '@/features/auth/hooks/useSession';
+import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
+import { useLanguagePreference, useTranslation } from '@/shared/i18n/useLanguage';
+
+import { AccountHeader } from '../components/AccountHeader';
+import { SettingsContent } from '../components/SettingsContent';
+import { SettingsRow } from '../components/SettingsRow';
+import { useThemePreference } from '../hooks/useThemePreference';
 
 export default function SettingsScreen() {
+  const t = useTranslation();
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
-  const themeMode = usePreferencesStore((state) => state.themeMode);
-  const { colorScheme } = useColorScheme();
-  const [isSigningOut, setIsSigningOut] = React.useState(false);
-  const name = user?.fullName || user?.name || user?.username || 'Người dùng';
-  const isParent = user?.role === 'PARENT_PH';
-  const role = isParent ? 'Phụ huynh' : 'Giáo viên';
-  const accountType = isParent ? 'Phụ huynh' : 'Nhà trường';
-  const avatar = user?.avatar || user?.avatarUrl;
-  const effectiveTheme = themeMode === 'system' ? colorScheme : themeMode;
-  const isDark = effectiveTheme === 'dark';
+  const { user, signOut } = useSession();
+  const { colorScheme } = useThemePreference();
+  const { language } = useLanguagePreference();
+  if (!user) return null;
 
-  async function logout() {
-    if (isSigningOut) return;
-    setIsSigningOut(true);
-    try {
-      await signOut();
-    } catch {
-      // Phiên trên thiết bị đã được xóa kể cả khi request tới server thất bại.
-    }
-  }
-
-  function confirmLogout() {
-    Alert.alert('Đăng xuất', 'Bạn muốn đăng xuất khỏi thiết bị này?', [
-      { text: 'Hủy', style: 'cancel' },
-      { text: 'Đăng xuất', style: 'destructive', onPress: logout },
-    ]);
-  }
-
+  const isDark = colorScheme === 'dark';
   return (
-    <SettingsSheetLayout onBack={() => router.back()}>
-      <View className="mb-5 flex-row items-center gap-3">
-        <Avatar alt={name} className="size-14">
-          {avatar ? <AvatarImage source={{ uri: avatar }} /> : null}
-          <AvatarFallback>
-            <Text className="text-lg font-semibold">{name.slice(0, 1).toUpperCase()}</Text>
-          </AvatarFallback>
-        </Avatar>
-        <View className="flex-1 gap-1">
-          <View className="flex-row items-center gap-2">
-            <Text className="text-lg font-bold" numberOfLines={1}>
-              {name}
-            </Text>
-            <Text className="bg-brand text-brand-foreground rounded-md px-1.5 py-0.5 text-xs">
-              {role}
-            </Text>
-          </View>
-          <Text className="text-xs text-muted-foreground">
-            {user?.username || user?.employeeCode || ''} · {accountType}
-          </Text>
-          {user?.email ? <Text className="text-xs text-muted-foreground">{user.email}</Text> : null}
-        </View>
+    <SettingsContent>
+      <View className="border-b border-border pb-4">
+        <AccountHeader user={user} />
       </View>
-      <View className="gap-3">
-        <SettingsGroup title="CÁ NHÂN">
-          <SettingsMenuRow
-            label="Hồ sơ cá nhân"
+      <Card className="rounded-xl py-0 shadow-none">
+        <CardContent className="px-1 py-1">
+          <SettingsRow
             icon={UserRound}
+            label={t('Hồ sơ cá nhân')}
             onPress={() => router.push('/settings/profile')}
           />
-        </SettingsGroup>
-        <SettingsGroup title="GIAO DIỆN">
-          <SettingsMenuRow
-            label={`Giao diện - ${isDark ? 'Tối' : 'Sáng'}`}
-            icon={isDark ? Moon : Sun}
-            onPress={() => router.push('/settings/appearance')}
-          />
-        </SettingsGroup>
-        <SettingsGroup title="NGÔN NGỮ">
-          <SettingsMenuRow
-            label="Ngôn ngữ - Tiếng Việt"
-            icon={Languages}
-            onPress={() => router.push('/settings/language')}
-          />
-        </SettingsGroup>
-        <SettingsGroup title="THÔNG BÁO">
-          <SettingsMenuRow
-            label="Thông báo"
-            icon={Bell}
-            onPress={() => router.push('/settings/notifications')}
-          />
-        </SettingsGroup>
-        <SettingsGroup title="HỖ TRỢ">
-          <SettingsMenuRow
-            label="Giới thiệu"
-            icon={CircleHelp}
-            onPress={() => router.push('/settings/about')}
-          />
-        </SettingsGroup>
-        <SettingsGroup title="KHÁC">
-          <SettingsMenuRow
-            label="Quản lý tài khoản"
-            icon={UsersRound}
-            onPress={() => router.push('/settings/account')}
-          />
-          <SettingsMenuRow
-            label={isSigningOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
-            icon={LogOut}
-            destructive
-            showChevron={false}
-            onPress={confirmLogout}
-          />
-        </SettingsGroup>
+        </CardContent>
+      </Card>
+      <View className="gap-2">
+        <Text className="text-[11px] font-semibold uppercase text-muted-foreground">
+          {t('Tùy chọn')}
+        </Text>
+        <Card className="rounded-xl py-0 shadow-none">
+          <CardContent className="px-1 py-1">
+            <SettingsRow
+              icon={isDark ? Moon : Sun}
+              label={t('Giao diện')}
+              detail={isDark ? t('Tối') : t('Sáng')}
+              onPress={() => router.push('/settings/appearance')}
+            />
+            <SettingsRow
+              icon={Languages}
+              label={t('Ngôn ngữ')}
+              detail={language === 'en' ? 'English' : 'Tiếng Việt'}
+              onPress={() => router.push('/settings/language')}
+            />
+          </CardContent>
+        </Card>
       </View>
-    </SettingsSheetLayout>
+      <View className="gap-2">
+        <Text className="text-[11px] font-semibold uppercase text-muted-foreground">
+          {t('Tài khoản và hỗ trợ')}
+        </Text>
+        <Card className="rounded-xl py-0 shadow-none">
+          <CardContent className="px-1 py-1">
+            <SettingsRow
+              icon={ShieldCheck}
+              label={t('Quản lý tài khoản')}
+              onPress={() => router.push('/settings/account')}
+            />
+            {user.role === AUTH_ROLES.parent ? (
+              <SettingsRow
+                icon={UsersRound}
+                label={t('Chuyển tài khoản')}
+                onPress={() => router.push('/accounts')}
+              />
+            ) : null}
+            <SettingsRow
+              icon={Info}
+              label={t('Giới thiệu')}
+              onPress={() => router.push('/settings/about')}
+            />
+            <SettingsRow
+              icon={LogOut}
+              label={t(user.role === AUTH_ROLES.parent ? 'Đăng xuất tài khoản này' : 'Đăng xuất')}
+              destructive
+              onPress={signOut}
+            />
+          </CardContent>
+        </Card>
+      </View>
+    </SettingsContent>
   );
 }

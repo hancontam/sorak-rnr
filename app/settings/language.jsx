@@ -1,3 +1,1 @@
-import LanguageScreen from '@/features/settings/screens/LanguageScreen';
-
-export default LanguageScreen;
+export { default } from '@/features/settings/screens/LanguageScreen';

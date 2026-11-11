@@ -1,13 +1,11 @@
 import { Icon } from '@/components/ui/icon';
 import { NativeOnlyAnimatedView } from '@/components/ui/native-only-animated-view';
-import { useKeyboardOverlap } from '@/shared/hooks/useKeyboardOverlap';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@rn-primitives/dialog';
 import { X } from 'lucide-react-native';
 import * as React from 'react';
-import { Platform, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import { FadeIn, FadeOut, ReduceMotion } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
@@ -52,17 +50,10 @@ function DialogOverlay({ className, children, onPress, ...props }) {
     </FullWindowOverlay>
   );
 }
-function DialogContent({
-  className,
-  overlayClassName,
-  showCloseButton = true,
-  portalHost,
-  children,
-  ...props
-}) {
+function DialogContent({ className, portalHost, children, ...props }) {
   return (
     <DialogPortal hostName={portalHost}>
-      <DialogOverlay className={overlayClassName}>
+      <DialogOverlay>
         <DialogPrimitive.Content
           className={cn(
             'z-50 mx-auto flex w-full max-w-[calc(100%-2rem)] flex-col gap-4 rounded-lg border border-border bg-background p-6 shadow-lg shadow-black/5 sm:max-w-lg',
@@ -73,56 +64,23 @@ function DialogContent({
           )}
           {...props}>
           <>{children}</>
-          {showCloseButton && (
-            <DialogPrimitive.Close
-              className={cn(
-                'absolute right-4 top-4 rounded opacity-70 active:opacity-100',
-                Platform.select({
-                  web: 'ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-accent',
-                })
-              )}
-              hitSlop={12}>
-              <Icon
-                as={X}
-                className={cn('size-4 shrink-0 text-accent-foreground web:pointer-events-none')}
-              />
-              <Text className="sr-only">Close</Text>
-            </DialogPrimitive.Close>
-          )}
+          <DialogPrimitive.Close
+            className={cn(
+              'absolute right-4 top-4 rounded opacity-70 active:opacity-100',
+              Platform.select({
+                web: 'ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-accent',
+              })
+            )}
+            hitSlop={12}>
+            <Icon
+              as={X}
+              className={cn('size-4 shrink-0 text-accent-foreground web:pointer-events-none')}
+            />
+            <Text className="sr-only">Close</Text>
+          </DialogPrimitive.Close>
         </DialogPrimitive.Content>
       </DialogOverlay>
     </DialogPortal>
-  );
-}
-function BottomSheetContent({ open, title, children }) {
-  const { width, height } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  const keyboardOffset = useKeyboardOverlap(open);
-  const availableHeight = height - keyboardOffset;
-  const compact = availableHeight < 480;
-
-  return (
-    <DialogContent
-      showCloseButton={false}
-      overlayClassName="items-end justify-end bg-foreground/35 p-0"
-      className={cn(
-        'mx-0 w-full max-w-full gap-0 rounded-b-none rounded-t-[36px] border-border bg-card px-6 shadow-lg shadow-black/20',
-        compact ? 'pt-4' : 'pt-7'
-      )}
-      style={{
-        width,
-        maxHeight: Math.max(0, availableHeight - 8),
-        marginBottom: keyboardOffset,
-        paddingBottom: compact ? 12 : Math.max(insets.bottom, 24),
-      }}>
-      <DialogTitle className="text-xl font-medium">{title}</DialogTitle>
-      <ScrollView
-        style={{ flexShrink: 1 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-        {children}
-      </ScrollView>
-    </DialogContent>
   );
 }
 function DialogHeader({ className, ...props }) {
@@ -155,7 +113,6 @@ function DialogDescription({ className, ...props }) {
   );
 }
 export {
-  BottomSheetContent,
   Dialog,
   DialogClose,
   DialogContent,

@@ -1,3 +1,1 @@
-import AppearanceScreen from '@/features/settings/screens/AppearanceScreen';
-
-export default AppearanceScreen;
+export { default } from '@/features/settings/screens/AppearanceScreen';

@@ -1,30 +1,36 @@
-import { usePreferencesStore } from '@/features/settings/store/preferences.store';
-import { readThemeMode, saveThemeMode } from '@/shared/storage/preferences.storage';
-import { colorScheme } from 'nativewind';
-import * as React from 'react';
+import { colorScheme as nativeWindTheme, useColorScheme } from 'nativewind';
+import { useEffect } from 'react';
+import { create } from 'zustand';
+
+import { readThemeMode, writeThemeMode } from '@/shared/storage/preferences.storage';
+
+const useThemeStore = create(() => ({
+  mode: 'system',
+  ready: false,
+  saving: false,
+  error: '',
+}));
 
 export function useRestoreThemePreference() {
-  React.useEffect(() => {
+  useEffect(() => {
     let active = true;
 
     async function restore() {
-      let themeMode = 'system';
       try {
-        themeMode = await readThemeMode();
+        const mode = await readThemeMode();
+        if (!active) return;
+        nativeWindTheme.set(mode);
+        useThemeStore.setState({ mode, ready: true });
       } catch {
-        // Nếu storage không đọc được, tiếp tục theo giao diện của thiết bị.
+        if (active)
+          useThemeStore.setState({
+            ready: true,
+            error: 'Chưa đọc được giao diện đã lưu.',
+          });
       }
-      if (!active) return;
-      try {
-        colorScheme.set(themeMode);
-      } catch {
-        themeMode = 'system';
-      }
-      usePreferencesStore.getState().restoreThemeMode(themeMode);
-      usePreferencesStore.getState().initPreferences();
     }
 
-    restore();
+    void restore();
     return () => {
       active = false;
     };
@@ -32,31 +38,24 @@ export function useRestoreThemePreference() {
 }
 
 export function useThemePreference() {
-  const themeMode = usePreferencesStore((state) => state.themeMode);
-  const setThemeMode = usePreferencesStore((state) => state.setThemeMode);
-  const [isSaving, setIsSaving] = React.useState(false);
+  const state = useThemeStore();
+  const { colorScheme } = useColorScheme();
 
-  async function chooseThemeMode(nextMode) {
-    if (nextMode === themeMode || isSaving) return;
-
-    const previousMode = themeMode;
-    setIsSaving(true);
+  async function chooseMode(mode) {
+    const previous = useThemeStore.getState();
+    if (!previous.ready || previous.saving || (previous.mode === mode && !previous.error)) return;
+    useThemeStore.setState({ saving: true, error: '' });
     try {
-      colorScheme.set(nextMode);
-      setThemeMode(nextMode);
-      await saveThemeMode(nextMode);
-    } catch (error) {
-      try {
-        colorScheme.set(previousMode);
-      } catch {
-        // Giữ UI ở trạng thái cũ khi hệ điều hành từ chối đổi giao diện.
-      }
-      setThemeMode(previousMode);
-      throw error;
+      nativeWindTheme.set(mode);
+      await writeThemeMode(mode);
+      useThemeStore.setState({ mode });
+    } catch {
+      nativeWindTheme.set(previous.mode);
+      useThemeStore.setState({ error: 'Chưa lưu được giao diện. Hãy thử lại.' });
     } finally {
-      setIsSaving(false);
+      useThemeStore.setState({ saving: false });
     }
   }
 
-  return { themeMode, isSaving, chooseThemeMode };
+  return { ...state, colorScheme, chooseMode };
 }

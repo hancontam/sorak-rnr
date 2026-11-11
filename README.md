@@ -10,6 +10,22 @@ npx @react-native-reusables/cli@latest init
 
 ## Getting Started
 
+Bản làm lại dùng Expo SDK 57, React Native 0.86.3, NativeWind 4 và RNR.
+
+Trong worktree này, cài dependency theo lockfile và tạo cấu hình local trước lần chạy đầu:
+
+```powershell
+npm ci
+if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
+```
+
+`EXPO_PUBLIC_API_URL` dùng server test2 trong `.env.example`. `.env.local` không đưa vào Git;
+biến có tiền tố `EXPO_PUBLIC_` được đưa vào app, không đặt mật khẩu/token trong đó.
+Khởi động lại Expo sau khi thay đổi cấu hình môi trường.
+
+Quy ước và luồng dữ liệu: [AGENTS.md](./AGENTS.md), [docs/architecture.md](./docs/architecture.md).
+Các hàm storage mới là nền cho bước auth/Settings, chưa nối lưu phiên hoặc lưu theme vào màn starter.
+
 To run the development server:
 
 ```bash
@@ -28,7 +44,12 @@ This will start the Expo Dev Server. Open the app in:
 - **Android**: press `a` to launch in the Android emulator
 - **Web**: press `w` to run in a browser
 
-You can also scan the QR code using the [Expo Go](https://expo.dev/go) app on your device. This project fully supports running in Expo Go for quick testing on physical devices.
+Có thể thử starter bằng [Expo Go](https://expo.dev/go) hỗ trợ SDK 57. Nếu dùng dev client,
+cần binary được build với SDK 57; dev client SDK 56 không được cập nhật native module chỉ bằng reload Metro.
+
+Trên máy Windows hiện tại, React Native DevTools còn báo lỗi cài đặt/khởi chạy trong khi Metro
+vẫn khởi động và xuất bundle được. Đây là giới hạn của công cụ debug đang được ghi nhận;
+chưa xác định nguyên nhân gốc và chưa coi là đã sửa. Không cần sửa source ứng dụng để ẩn thông báo này.
 
 ## Adding components
 

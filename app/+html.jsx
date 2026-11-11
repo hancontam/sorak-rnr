@@ -5,7 +5,7 @@ import { ScrollViewStyleReset } from 'expo-router/html';
 // do not have access to the DOM or browser APIs.
 export default function Root({ children }) {
   return (
-    <html lang="en" className="bg-background">
+    <html lang="vi" className="bg-background">
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />

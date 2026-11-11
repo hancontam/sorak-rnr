@@ -1,92 +1,120 @@
 import { apiClient } from '@/shared/api/client';
 
-export function getMobileChallengeUrl() {
-  const baseURL = apiClient.defaults.baseURL?.replace(/\/+$/, '');
-  if (!baseURL?.startsWith('https://')) {
-    throw new Error('Trang xác minh bảo mật cần API HTTPS.');
+function readData({ data }) {
+  if (data?.success !== true || !data.data || typeof data.data !== 'object') {
+    throw new Error('Phản hồi xác thực không hợp lệ.');
   }
-  return `${baseURL}/auth/mobile-challenge`;
+  return data.data;
 }
 
-export async function loginWithPassword({ username, password, role, captchaToken }) {
-  if (!captchaToken) throw new Error('Vui lòng hoàn tất xác minh bảo mật.');
-  const response = await apiClient.post(
-    '/auth/login',
-    {
-      username,
-      password,
-      role,
-      captchaToken,
-    },
-    { skipAuth: true }
-  );
-
-  return response.data.data;
+function nonEmptyString(value) {
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
-export async function verifyLoginOtp({ tempToken, otp }) {
-  const response = await apiClient.post('/auth/verify-2fa', { tempToken, otp }, { skipAuth: true });
-  return response.data.data;
-}
-
-export async function requestPasswordReset(identifier) {
-  const response = await apiClient.post(
-    '/auth/forgot-password',
-    { identifier },
-    { skipAuth: true }
-  );
-  return response.data.data;
-}
-
-export async function verifyPasswordResetOtp({ email, otp }) {
-  const response = await apiClient.post('/auth/verify-otp', { email, otp }, { skipAuth: true });
-  return response.data.data;
-}
-
-export async function resetPassword({ email, resetToken, password }) {
-  const response = await apiClient.post(
-    '/auth/reset-password',
-    { email, resetToken, password },
-    { skipAuth: true }
-  );
-  return response.data.data;
-}
-
-export async function refreshSession(refreshToken) {
-  const response = await apiClient.post('/auth/refresh', { refreshToken }, { skipAuth: true });
-  return response.data.data;
-}
-
-export async function getCurrentUser() {
-  const response = await apiClient.get('/auth/me');
-  const user = response.data.data?.user;
-  if (!user) throw new Error('Phản hồi hồ sơ thiếu thông tin người dùng.');
+function readUser(user) {
+  if (!nonEmptyString(user?.id) || !nonEmptyString(user.role)) {
+    throw new Error('Máy chủ chưa trả đủ thông tin tài khoản.');
+  }
   return user;
 }
 
-export async function logoutSession(refreshToken, accessToken) {
+function readTokens(data) {
+  const { accessToken, refreshToken } = data;
+  if (!nonEmptyString(accessToken) || !nonEmptyString(refreshToken)) {
+    throw new Error('Máy chủ chưa trả đủ token cho ứng dụng.');
+  }
+  return { accessToken, refreshToken };
+}
+
+function readSession(data) {
+  return { user: readUser(data.user), tokens: readTokens(data) };
+}
+
+export function getChallengeUrl() {
+  return `${apiClient.defaults.baseURL}/auth/mobile-challenge`;
+}
+
+export async function login({ username, password, role, captchaToken }, signal) {
+  const response = await apiClient.post(
+    '/auth/login',
+    { username, password, role, captchaToken },
+    { skipSession: true, signal }
+  );
+  const data = readData(response);
+  if (data.requires2FA === true) {
+    if (!nonEmptyString(data.tempToken)) throw new Error('Thiếu mã phiên xác thực.');
+    return { tempToken: data.tempToken, emailMasked: data.emailMasked };
+  }
+  return readSession(data);
+}
+
+export async function verifyLoginOtp({ tempToken, otp }, signal) {
+  const response = await apiClient.post(
+    '/auth/verify-2fa',
+    { tempToken, otp },
+    { skipSession: true, signal }
+  );
+  return readSession(readData(response));
+}
+
+export async function requestPasswordReset(identifier, signal) {
+  const data = readData(
+    await apiClient.post('/auth/forgot-password', { identifier }, { skipSession: true, signal })
+  );
+  if (data.contactAdmin) return { support: 'admin' };
+  if (data.role && data.role !== 'TEACHER_GV') return { support: 'role' };
+  if (data.contactTeacher || data.hasEmail === false) return { support: 'admin' };
+  if (data.hasEmail !== true) throw new Error('Phản hồi gửi mã xác thực không hợp lệ.');
+  const emailMasked = /^[^@\s]*\*[^@\s]*@[^@\s]+$/.test(data.emailMasked ?? '')
+    ? data.emailMasked
+    : '';
+  return { emailMasked };
+}
+
+export async function verifyPasswordResetOtp({ identifier, otp }, signal) {
+  // Backend gọi trường này là email nhưng chấp nhận mã cán bộ.
+  const data = readData(
+    await apiClient.post(
+      '/auth/verify-otp',
+      { email: identifier, otp },
+      { skipSession: true, signal }
+    )
+  );
+  if (!nonEmptyString(data.resetToken)) throw new Error('Phản hồi thiếu mã đặt lại mật khẩu.');
+  return data.resetToken;
+}
+
+export async function resetPassword({ identifier, resetToken, password }, signal) {
+  readData(
+    await apiClient.post(
+      '/auth/reset-password',
+      { email: identifier, resetToken, password },
+      { skipSession: true, signal }
+    )
+  );
+}
+
+export async function getCurrentUser(accessToken) {
+  const config = accessToken
+    ? { skipSession: true, headers: { Authorization: `Bearer ${accessToken}` } }
+    : undefined;
+  return readUser(readData(await apiClient.get('/auth/me', config)).user);
+}
+
+export async function refreshTokens(refreshToken) {
+  const response = await apiClient.post('/auth/refresh', { refreshToken }, { skipSession: true });
+  return readTokens(readData(response));
+}
+
+export async function revokeSession({ accessToken, refreshToken }) {
   const response = await apiClient.post(
     '/auth/logout',
     { refreshToken },
-    {
-      skipAuth: true,
-      headers: { Authorization: `Bearer ${accessToken}` },
-    }
+    { skipSession: true, headers: { Authorization: `Bearer ${accessToken}` } }
   );
-  return response.data.data;
+  readData(response);
 }
 
-export async function requestEnableTwoFactor() {
-  const response = await apiClient.post('/auth/2fa/request-enable');
-  return response.data.data;
-}
-
-export async function confirmEnableTwoFactor(otp) {
-  const response = await apiClient.post('/auth/2fa/confirm-enable', { otp });
-  return response.data.data;
-}
-
-export async function disableTwoFactor(password) {
-  const response = await apiClient.post('/auth/2fa/disable', { password });
-  return response.data.data;
+export async function revokeAllSessions() {
+  readData(await apiClient.delete('/auth/sessions'));
 }

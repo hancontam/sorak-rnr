@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 const SLIDES = [
   {
@@ -46,6 +47,7 @@ function wrap(index) {
 }
 
 export function WelcomeCarousel({ paused, branding, typography }) {
+  const t = useTranslation();
   const [index, setIndex] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(true);
   const { width } = useWindowDimensions();
@@ -96,7 +98,7 @@ export function WelcomeCarousel({ paused, branding, typography }) {
           role="heading"
           className="px-4 text-center text-xl leading-[27px] tracking-tight"
           style={typography.monoMedium}>
-          {slide.headline}
+          {t(slide.headline)}
         </Text>
       </View>
       <View className="grow justify-center py-2">
@@ -134,7 +136,7 @@ export function WelcomeCarousel({ paused, branding, typography }) {
                     <Text
                       className="shrink text-[10px] uppercase leading-[13px] tracking-wider text-white"
                       style={typography.monoSemiBold}>
-                      {String(index + 1).padStart(2, '0')} / 0{count} • {slide.label}
+                      {String(index + 1).padStart(2, '0')} / 0{count} • {t(slide.label)}
                     </Text>
                   </Badge>
                   <Button
@@ -142,7 +144,7 @@ export function WelcomeCarousel({ paused, branding, typography }) {
                     size="icon"
                     className="h-7 w-7 rounded-full border border-white/15 bg-black/40 active:bg-black/60"
                     accessibilityRole="button"
-                    accessibilityLabel="Ảnh tiếp theo"
+                    accessibilityLabel={t('Ảnh tiếp theo')}
                     hitSlop={8}
                     onPress={() => setIndex(wrap(index + 1))}>
                     <Icon as={ChevronRight} size={14} className="text-white" />
@@ -150,7 +152,7 @@ export function WelcomeCarousel({ paused, branding, typography }) {
                 </View>
                 <View className="gap-2">
                   <Text className="text-xs leading-4 text-white" style={typography.medium}>
-                    {slide.caption}
+                    {t(slide.caption)}
                   </Text>
                   <View className="flex-row items-center gap-1.5 pt-1">
                     {SLIDES.map(({ label }, position) => (
@@ -165,7 +167,10 @@ export function WelcomeCarousel({ paused, branding, typography }) {
                         }
                         hitSlop={{ top: 10, bottom: 10, left: 3, right: 3 }}
                         accessibilityRole="button"
-                        accessibilityLabel={`Ảnh ${position + 1}: ${label}`}
+                        accessibilityLabel={t('Ảnh {number}: {label}', {
+                          number: position + 1,
+                          label: t(label),
+                        })}
                         accessibilityState={{ selected: index === position }}
                         onPress={() => setIndex(position)}
                       />
@@ -188,6 +193,7 @@ export function WelcomeCarousel({ paused, branding, typography }) {
 }
 
 function PeekPhoto({ side, photo, height, onPress }) {
+  const t = useTranslation();
   const left = side === 'left';
   return (
     <Button
@@ -195,7 +201,7 @@ function PeekPhoto({ side, photo, height, onPress }) {
       className={`w-6 overflow-hidden border-y border-border bg-muted p-0 opacity-75 ${left ? 'rounded-l-none rounded-r-2xl border-r' : 'rounded-l-2xl rounded-r-none border-l'}`}
       style={{ height }}
       accessibilityRole="button"
-      accessibilityLabel={left ? 'Ảnh trước' : 'Ảnh tiếp theo'}
+      accessibilityLabel={left ? t('Ảnh trước') : t('Ảnh tiếp theo')}
       onPress={onPress}>
       <Image source={photo} className="absolute inset-0 h-full w-full" resizeMode="cover" />
       <View className="absolute inset-0 bg-black/15" />

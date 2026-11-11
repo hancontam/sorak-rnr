@@ -1,7 +1,5 @@
 export function displayValue(value) {
-  return value === null || value === undefined || value === ''
-    ? 'Chưa có thông tin'
-    : String(value);
+  return value === null || value === undefined || value === '' ? null : String(value);
 }
 
 export function parseDate(value) {
@@ -15,10 +13,32 @@ export function parseDate(value) {
     : null;
 }
 
-export function formatDate(value) {
+export function formatDate(value, locale = 'vi-VN') {
   const date = parseDate(value);
   if (!date) return 'Chưa có ngày hợp lệ';
+  if (locale !== 'vi-VN') {
+    return date.toLocaleDateString(locale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+  }
   return `${String(date.getUTCDate()).padStart(2, '0')}/${String(date.getUTCMonth() + 1).padStart(2, '0')}/${date.getUTCFullYear()}`;
+}
+
+export function schoolYearValue(value) {
+  return typeof value === 'string'
+    ? value.replace(/^Năm học\s+(?=\d{4}\s*[–-]\s*\d{4}$)/i, '')
+    : value;
+}
+
+export function semesterDateRange(value, locale) {
+  if (locale === 'vi-VN' || typeof value !== 'string') return value;
+  return value.replace(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g, (original, day, month, year) => {
+    const isoDate = `${year}-${month}-${day}`;
+    return parseDate(isoDate) ? formatDate(isoDate, locale) : original;
+  });
 }
 
 export function genderKey(value) {
@@ -38,10 +58,10 @@ export function numberValue(value) {
   return Number.isFinite(number) ? number : null;
 }
 
-export function measurement(value, unit) {
+export function measurement(value, unit, locale = 'vi-VN') {
   const number = numberValue(value);
   return number !== null && number > 0
-    ? `${number.toLocaleString('vi-VN')} ${unit}`
+    ? `${number.toLocaleString(locale)} ${unit}`
     : 'Chưa có số đo hợp lệ';
 }
 

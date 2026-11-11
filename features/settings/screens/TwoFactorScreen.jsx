@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { PasswordField } from '../components/PasswordField';
 import { SettingsContent } from '../components/SettingsContent';
@@ -16,6 +17,7 @@ import { useTwoFactorSettings } from '../hooks/useAccountSettings';
 import { settingsError } from '../utils/settings-errors';
 
 export default function TwoFactorScreen() {
+  const t = useTranslation();
   const router = useRouter();
   const navigation = useNavigation();
   const user = useAuthStore((state) => state.user);
@@ -36,7 +38,7 @@ export default function TwoFactorScreen() {
   if (user?.role !== AUTH_ROLES.teacher || !user.email) {
     return (
       <SettingsContent>
-        <Text className="text-xs">Tài khoản chưa hỗ trợ xác thực hai bước qua email.</Text>
+        <Text className="text-xs">{t('Tài khoản chưa hỗ trợ xác thực hai bước qua email.')}</Text>
       </SettingsContent>
     );
   }
@@ -50,7 +52,7 @@ export default function TwoFactorScreen() {
       setSent(true);
       setSeconds(60);
     } catch (err) {
-      setError(settingsError(err, 'Chưa gửi được mã. Nếu vừa yêu cầu mã, hãy chờ rồi thử lại.'));
+      setError(settingsError(err, t('Chưa gửi được mã. Nếu vừa yêu cầu mã, hãy chờ rồi thử lại.')));
     }
   }
 
@@ -66,10 +68,10 @@ export default function TwoFactorScreen() {
       setError(
         settingsError(
           err,
-          'Chưa cập nhật được xác thực hai bước.',
+          t('Chưa cập nhật được xác thực hai bước.'),
           enabled
-            ? 'Kiểm tra mật khẩu hiện tại rồi thử lại.'
-            : 'Kiểm tra mã xác thực hoặc yêu cầu mã mới.'
+            ? t('Kiểm tra mật khẩu hiện tại rồi thử lại.')
+            : t('Kiểm tra mã xác thực hoặc yêu cầu mã mới.')
         )
       );
     } finally {
@@ -81,12 +83,12 @@ export default function TwoFactorScreen() {
     <SettingsContent>
       <Text className="text-xs leading-5 text-muted-foreground">
         {enabled
-          ? 'Nhập mật khẩu hiện tại để tắt xác thực hai bước.'
-          : 'Sorak gửi mã gồm 6 chữ số tới email liên kết với tài khoản.'}
+          ? t('Nhập mật khẩu hiện tại để tắt xác thực hai bước.')
+          : t('Sorak gửi mã gồm 6 chữ số tới email liên kết với tài khoản.')}
       </Text>
       {enabled ? (
         <PasswordField
-          label="Mật khẩu hiện tại"
+          label={t('Mật khẩu hiện tại')}
           value={value}
           onChangeText={setValue}
           editable={!pending}
@@ -103,14 +105,18 @@ export default function TwoFactorScreen() {
               <ActivityIndicator size="small" />
             ) : (
               <Text className="text-xs">
-                {seconds ? `Gửi lại sau ${seconds}s` : sent ? 'Gửi lại mã' : 'Gửi mã xác thực'}
+                {seconds
+                  ? t('Gửi lại sau {seconds}s', { seconds })
+                  : sent
+                    ? t('Gửi lại mã')
+                    : t('Gửi mã xác thực')}
               </Text>
             )}
           </Button>
           {sent ? (
             <Input
-              accessibilityLabel="Mã xác thực"
-              placeholder="Mã xác thực"
+              accessibilityLabel={t('Mã xác thực')}
+              placeholder={t('Mã xác thực')}
               keyboardType="number-pad"
               autoComplete="one-time-code"
               value={value}
@@ -124,7 +130,7 @@ export default function TwoFactorScreen() {
       )}
       {error ? (
         <Alert icon={CircleAlert}>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{t(error)}</AlertDescription>
         </Alert>
       ) : null}
       {enabled || sent ? (
@@ -136,7 +142,7 @@ export default function TwoFactorScreen() {
             <ActivityIndicator size="small" />
           ) : (
             <Text className="text-xs">
-              {enabled ? 'Tắt xác thực hai bước' : 'Bật xác thực hai bước'}
+              {enabled ? t('Tắt xác thực hai bước') : t('Bật xác thực hai bước')}
             </Text>
           )}
         </Button>

@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 const DOMAINS = [
   ['physical', 'Thể chất'],
@@ -13,10 +14,11 @@ const DOMAINS = [
 ];
 
 function Metric({ label, value }) {
+  const t = useTranslation();
   return (
     <View className="flex-row justify-between gap-3 border-b border-border/60 pb-2">
-      <Text className="min-w-0 flex-1 text-xs text-muted-foreground">{label}</Text>
-      <Text className="shrink text-right text-xs font-medium">{value || 'Chưa có dữ liệu'}</Text>
+      <Text className="min-w-0 flex-1 text-xs text-muted-foreground">{t(label)}</Text>
+      <Text className="shrink text-right text-xs font-medium">{value || t('Chưa có dữ liệu')}</Text>
     </View>
   );
 }
@@ -27,15 +29,17 @@ function percent(rate, count, total) {
 }
 
 function Notes({ label, value, fallback }) {
+  const t = useTranslation();
   return (
     <View className="gap-1">
-      <Text className="text-xs font-medium">{label}</Text>
-      <Text className="text-xs leading-5 text-muted-foreground">{value || fallback}</Text>
+      <Text className="text-xs font-medium">{t(label)}</Text>
+      <Text className="text-xs leading-5 text-muted-foreground">{value || t(fallback)}</Text>
     </View>
   );
 }
 
 export function MonthlyResultCard({ title, code, record, week, maxRoses, parent }) {
+  const t = useTranslation();
   const stats = week && record?.weeklyStats?.[`week${week}`];
   const rose = week
     ? parent
@@ -54,7 +58,7 @@ export function MonthlyResultCard({ title, code, record, week, maxRoses, parent 
         </View>
         {(week ? roseLabel : record?.isLotus === true) ? (
           <Badge variant="secondary">
-            <Text className="text-[11px]">{week ? roseLabel : 'Hoa sen'}</Text>
+            <Text className="text-[11px]">{t(week ? roseLabel : 'Hoa sen')}</Text>
           </Badge>
         ) : null}
       </View>
@@ -68,7 +72,7 @@ export function MonthlyResultCard({ title, code, record, week, maxRoses, parent 
             label="Mục tiêu"
             value={percent(stats?.goalsRate, stats?.goalsAchieved, stats?.goalsTotal)}
           />
-          <Metric label="Sức khỏe" value={stats?.healthStatus} />
+          <Metric label="Sức khỏe" value={stats?.healthStatus ? t(stats.healthStatus) : ''} />
         </>
       ) : (
         <>
@@ -99,11 +103,14 @@ export function MonthlyResultCard({ title, code, record, week, maxRoses, parent 
 }
 
 export function SemesterResultCard({ title, code, record, parent }) {
+  const t = useTranslation();
   const domains = parent
     ? Array.isArray(record.domains)
       ? record.domains.map(({ name, rating, score }) => [
           name,
-          [rating, Number.isFinite(score) ? `${score}%` : null].filter(Boolean).join(' · '),
+          [rating ? t(rating) : null, Number.isFinite(score) ? `${score}%` : null]
+            .filter(Boolean)
+            .join(' · '),
         ])
       : []
     : DOMAINS.map(([key, label]) => {

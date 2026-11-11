@@ -8,26 +8,28 @@ import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { useNotificationInbox, useNotificationReadActions } from '../hooks/useNotifications';
 
 export default function NotificationInboxScreen() {
+  const t = useTranslation();
   const [tab, setTab] = useState('unread');
   const query = useNotificationInbox();
   const actions = useNotificationReadActions(query);
   const rows = (query.data?.notifications || []).filter((item) => item.isRead === (tab === 'read'));
   const error =
-    actions.error || (query.isError ? 'Chưa tải được thông báo. Vui lòng thử lại.' : '');
+    actions.error || (query.isError ? t('Chưa tải được thông báo. Vui lòng thử lại.') : '');
 
   function confirmReadAll() {
-    const title = 'Đánh dấu tất cả thông báo là đã đọc?';
+    const title = t('Đánh dấu tất cả thông báo là đã đọc?');
     if (Platform.OS === 'web') {
       if (globalThis.confirm(title)) actions.markRead('all');
       return;
     }
     Alert.alert(title, undefined, [
-      { text: 'Quay lại', style: 'cancel' },
-      { text: 'Đánh dấu đã đọc', onPress: () => actions.markRead('all') },
+      { text: t('Quay lại'), style: 'cancel' },
+      { text: t('Đánh dấu đã đọc'), onPress: () => actions.markRead('all') },
     ]);
   }
 
@@ -46,17 +48,17 @@ export default function NotificationInboxScreen() {
               <Tabs value={tab} onValueChange={setTab}>
                 <TabsList>
                   <TabsTrigger value="unread">
-                    <Text className="text-xs">Chưa đọc</Text>
+                    <Text className="text-xs">{t('Chưa đọc')}</Text>
                   </TabsTrigger>
                   <TabsTrigger value="read">
-                    <Text className="text-xs">Đã đọc</Text>
+                    <Text className="text-xs">{t('Đã đọc')}</Text>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
               <Button
                 size="sm"
                 variant="outline"
-                accessibilityLabel="Làm mới thông báo"
+                accessibilityLabel={t('Làm mới thông báo')}
                 disabled={actions.busy || query.isFetching}
                 onPress={actions.reload}>
                 <Icon as={RefreshCw} size={15} />
@@ -69,18 +71,20 @@ export default function NotificationInboxScreen() {
                 className="self-end"
                 disabled={actions.busy}
                 onPress={confirmReadAll}>
-                <Text className="text-xs">Đánh dấu tất cả đã đọc</Text>
+                <Text className="text-xs">{t('Đánh dấu tất cả đã đọc')}</Text>
               </Button>
             ) : null}
-            <ActionNotice message={error ? { error: true, text: error } : null} />
+            <ActionNotice message={error ? { error: true, text: t(error) } : null} />
           </View>
         }
         ListEmptyComponent={
           query.isPending ? (
-            <ActivityIndicator accessibilityLabel="Đang tải thông báo" />
+            <ActivityIndicator accessibilityLabel={t('Đang tải thông báo')} />
           ) : !error ? (
             <Text className="py-6 text-center text-sm text-muted-foreground">
-              {tab === 'unread' ? 'Không có thông báo chưa đọc.' : 'Chưa có thông báo đã đọc.'}
+              {tab === 'unread'
+                ? t('Không có thông báo chưa đọc.')
+                : t('Chưa có thông báo đã đọc.')}
             </Text>
           ) : null
         }
@@ -92,7 +96,7 @@ export default function NotificationInboxScreen() {
                 <Icon as={Bell} size={16} />
               </View>
               <View className="min-w-0 flex-1 gap-1.5">
-                <Text className="text-sm font-semibold">{item.title || 'Thông báo'}</Text>
+                <Text className="text-sm font-semibold">{item.title || t('Thông báo')}</Text>
                 {item.body ? (
                   <Text className="text-xs leading-5 text-muted-foreground">{item.body}</Text>
                 ) : null}
@@ -107,7 +111,7 @@ export default function NotificationInboxScreen() {
           ) : (
             <Pressable
               accessibilityRole="button"
-              accessibilityHint="Đánh dấu thông báo này đã đọc"
+              accessibilityHint={t('Đánh dấu thông báo này đã đọc')}
               disabled={actions.busy || !query.isSuccess}
               onPress={() => actions.markRead(item.id)}
               className="active:opacity-75">

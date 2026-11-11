@@ -95,7 +95,7 @@ export function decimal(value) {
   return /^\d+(\.\d+)?$/.test(normalized) ? Number(normalized) : NaN;
 }
 
-export function toDailyRecord(kind, student, draft, date) {
+export function toDailyRecord(kind, student, draft, date, t) {
   const studentId = String(student.id);
   const note = draft.note.trim();
   if (kind === 'health') {
@@ -103,12 +103,14 @@ export function toDailyRecord(kind, student, draft, date) {
       throw new Error('Không gửi số đo cho học sinh vắng.');
     }
     if (student.isAttendanceRecorded !== true || student.rawStatus !== 'PRESENT') {
-      throw new Error(`${student.name}: cần hoàn tất điểm danh trước khi ghi sức khỏe.`);
+      throw new Error(
+        t('{name}: cần hoàn tất điểm danh trước khi ghi sức khỏe.', { name: student.name })
+      );
     }
     const height = decimal(draft.height);
     const weight = decimal(draft.weight);
     if (!Number.isFinite(height) || !Number.isFinite(weight) || height <= 0 || weight <= 0) {
-      throw new Error(`${student.name}: nhập chiều cao và cân nặng lớn hơn 0.`);
+      throw new Error(t('{name}: nhập chiều cao và cân nặng lớn hơn 0.', { name: student.name }));
     }
     return { studentId, height, weight, note };
   }
@@ -129,7 +131,9 @@ export function toDailyRecord(kind, student, draft, date) {
     };
   }
   const options = kind === 'attendance' ? ATTENDANCE_OPTIONS : ASSESSMENT_OPTIONS;
-  if (!statusIn(options, draft.status)) throw new Error(`${student.name}: cần chọn trạng thái.`);
+  if (!statusIn(options, draft.status)) {
+    throw new Error(t('{name}: cần chọn trạng thái.', { name: student.name }));
+  }
   return kind === 'attendance'
     ? { studentId, status: draft.status, notes: note }
     : {

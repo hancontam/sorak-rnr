@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Progress } from '@/components/ui/progress';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { roleLabel } from '../utils/auth-roles';
 
@@ -52,6 +53,7 @@ export function TurnstileChallenge({ url, role, account, typography, onVerified,
 }
 
 function ChallengeAttempt({ url, role, account, typography, onVerified, onClose, onRetry }) {
+  const t = useTranslation();
   const [error, setError] = useState('');
   const [verified, setVerified] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -71,7 +73,7 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fail('Chưa nhận được kết quả xác minh. Kiểm tra kết nối rồi thử lại.');
+      fail(t('Chưa nhận được kết quả xác minh. Kiểm tra kết nối rồi thử lại.'));
     }, 30000);
     return () => clearTimeout(timer);
   }, []);
@@ -115,7 +117,7 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
       return;
     }
     if (message?.type === 'TURNSTILE_ERROR') {
-      fail('Xác minh bảo mật chưa thành công. Vui lòng thử lại.');
+      fail(t('Xác minh bảo mật chưa thành công. Vui lòng thử lại.'));
     } else if (
       message?.type === 'TURNSTILE_TOKEN' &&
       typeof message.token === 'string' &&
@@ -135,7 +137,7 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
       <Progress
         className="h-0.5 rounded-none"
         value={verified ? 100 : progress}
-        accessibilityLabel="Tiến trình tải trang xác minh"
+        accessibilityLabel={t('Tiến trình tải trang xác minh')}
       />
       <ScrollView className="flex-1" contentContainerClassName="gap-4 py-4" nestedScrollEnabled>
         <View className="gap-4 px-4">
@@ -143,11 +145,11 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
           <Card className="gap-3 rounded-2xl bg-muted/30 py-4 shadow-none">
             <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 px-4">
               <CardTitle className="text-xs" style={typography.semiBold}>
-                Xác nhận quyền truy cập
+                {t('Xác nhận quyền truy cập')}
               </CardTitle>
               <Badge>
                 <Text className="text-[10px]" style={typography.monoSemiBold}>
-                  {roleLabel(role)}
+                  {t(roleLabel(role))}
                 </Text>
               </Badge>
             </CardHeader>
@@ -155,7 +157,7 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
               <View className="gap-1.5 rounded-xl border border-border bg-background p-3">
                 <View className="flex-row justify-between gap-3">
                   <Text className="text-xs text-muted-foreground" style={typography.mono}>
-                    Tài khoản
+                    {t('Tài khoản')}
                   </Text>
                   <Text
                     className="min-w-0 flex-1 text-right text-xs"
@@ -166,17 +168,17 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
                 </View>
                 <View className="flex-row justify-between gap-3">
                   <Text className="text-xs text-muted-foreground" style={typography.mono}>
-                    Trường
+                    {t('Trường')}
                   </Text>
                   <Text className="text-right text-xs" style={typography.mono}>
-                    MN Hòn Tre
+                    {t('MN Hòn Tre')}
                   </Text>
                 </View>
               </View>
               {verified && !error ? (
                 <Button size="sm" className="h-auto min-h-9 rounded-xl py-2" onPress={confirm}>
                   <Text className="text-xs" style={typography.semiBold}>
-                    Cho phép & Tiếp tục vào Sorak
+                    {t('Cho phép & Tiếp tục vào Sorak')}
                   </Text>
                   <Icon as={ArrowUpRight} size={14} />
                 </Button>
@@ -185,15 +187,15 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
                 <>
                   <Alert icon={CircleAlert} variant="destructive">
                     <AlertTitle className="text-sm leading-5" style={typography.semiBold}>
-                      Chưa xác minh được
+                      {t('Chưa xác minh được')}
                     </AlertTitle>
                     <AlertDescription className="text-xs leading-4" style={typography.regular}>
-                      {error}
+                      {t(error)}
                     </AlertDescription>
                   </Alert>
                   <Button variant="outline" size="sm" onPress={restart}>
                     <Text className="text-xs" style={typography.medium}>
-                      Thử lại
+                      {t('Thử lại')}
                     </Text>
                   </Button>
                 </>
@@ -217,9 +219,9 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
                     nextUrl === 'about:srcdoc' ||
                     nextUrl.startsWith(`${CLOUDFLARE_ORIGIN}/`)))
               }
-              onError={() => fail('Không tải được trang xác minh. Vui lòng thử lại.')}
+              onError={() => fail(t('Không tải được trang xác minh. Vui lòng thử lại.'))}
               onHttpError={({ nativeEvent }) => {
-                if (nativeEvent.url === url) fail('Máy chủ xác minh chưa phản hồi thành công.');
+                if (nativeEvent.url === url) fail(t('Máy chủ xác minh chưa phản hồi thành công.'));
               }}
               javaScriptEnabled
               domStorageEnabled
@@ -242,6 +244,7 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
 }
 
 function BrowserBar({ host, typography, onClose, onReload }) {
+  const t = useTranslation();
   return (
     <View className="flex-row items-center gap-2 border-b border-border bg-muted/60 px-2 py-1.5">
       <Button
@@ -250,9 +253,9 @@ function BrowserBar({ host, typography, onClose, onReload }) {
         className="h-8 px-2"
         hitSlop={6}
         onPress={onClose}
-        accessibilityLabel="Đóng xác minh">
+        accessibilityLabel={t('Đóng xác minh')}>
         <Text className="text-xs" style={typography.semiBold}>
-          Đóng
+          {t('Đóng')}
         </Text>
       </Button>
       <View className="min-w-0 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-2 py-1.5">
@@ -261,7 +264,7 @@ function BrowserBar({ host, typography, onClose, onReload }) {
           className="shrink text-[10px]"
           style={typography.mono}
           numberOfLines={1}
-          accessibilityLabel={`Địa chỉ xác minh ${host}`}>
+          accessibilityLabel={t('Địa chỉ xác minh {host}', { host })}>
           {host}
         </Text>
       </View>
@@ -271,7 +274,7 @@ function BrowserBar({ host, typography, onClose, onReload }) {
         className="size-8"
         hitSlop={6}
         onPress={onReload}
-        accessibilityLabel="Tải lại trang xác minh">
+        accessibilityLabel={t('Tải lại trang xác minh')}>
         <Icon as={RotateCw} size={16} className="text-muted-foreground" />
       </Button>
     </View>
@@ -279,6 +282,7 @@ function BrowserBar({ host, typography, onClose, onReload }) {
 }
 
 function SchoolBanner({ typography }) {
+  const t = useTranslation();
   return (
     <View className="h-32 overflow-hidden rounded-2xl border border-border bg-muted">
       <Image source={SCHOOL_PHOTO} className="absolute inset-0 h-full w-full" resizeMode="cover" />
@@ -295,11 +299,11 @@ function SchoolBanner({ typography }) {
       <View className="flex-1 items-start justify-end gap-1 p-3">
         <Badge variant="secondary">
           <Text className="text-[10px]" style={typography.monoSemiBold}>
-            Xác minh bảo mật
+            {t('Xác minh bảo mật')}
           </Text>
         </Badge>
         <Text className="text-xs text-white" style={typography.semiBold}>
-          Cổng xác thực Trường Mầm Non Hòn Tre
+          {t('Cổng xác thực Trường Mầm Non Hòn Tre')}
         </Text>
       </View>
     </View>

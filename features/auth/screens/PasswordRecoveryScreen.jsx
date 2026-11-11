@@ -16,6 +16,7 @@ import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { AuthSubmitButton } from '../components/AuthSubmitButton';
 import { LoginError } from '../components/LoginError';
@@ -26,6 +27,7 @@ import { usePasswordRecovery } from '../hooks/usePasswordRecovery';
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\;/])/;
 
 export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, onComplete }) {
+  const t = useTranslation();
   const [identifier, setIdentifier] = useState(initialIdentifier);
   const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
@@ -54,7 +56,7 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
   async function submit() {
     if (isPending || otpNeedsResend || (!otpVerified && otp.length !== 6)) return;
     if (password.length < 8 || !PASSWORD_RULE.test(password)) {
-      setPasswordError('Dùng ít nhất 8 ký tự, gồm chữ hoa, chữ số và ký tự đặc biệt.');
+      setPasswordError(t('Dùng ít nhất 8 ký tự, gồm chữ hoa, chữ số và ký tự đặc biệt.'));
       return;
     }
     Keyboard.dismiss();
@@ -64,7 +66,8 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
 
   const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
   const seconds = String(secondsLeft % 60).padStart(2, '0');
-  const resendLabel = secondsLeft > 0 ? `Gửi lại sau ${minutes}:${seconds}` : 'Gửi lại mã';
+  const resendLabel =
+    secondsLeft > 0 ? t('Gửi lại sau {minutes}:{seconds}', { minutes, seconds }) : t('Gửi lại mã');
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -79,14 +82,14 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
             size="icon"
             className="size-8 rounded-lg"
             hitSlop={6}
-            accessibilityLabel="Quay lại đăng nhập"
+            accessibilityLabel={t('Quay lại đăng nhập')}
             disabled={isPending}
             onPress={onBack}>
             <Icon as={ArrowLeft} size={16} />
           </Button>
           <Badge variant="secondary">
             <Text className="text-[11px]" style={typography.mono}>
-              Bước {challenge ? '02' : '01'} / 02
+              {t('Bước {step} / 02', { step: challenge ? '02' : '01' })}
             </Text>
           </Badge>
         </View>
@@ -95,17 +98,19 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
             {!challenge ? (
               <Badge className="self-start" variant="brand">
                 <Text className="text-[11px]" style={typography.semiBold}>
-                  Giáo viên
+                  {t('Giáo viên')}
                 </Text>
               </Badge>
             ) : null}
             <CardTitle className="text-sm leading-5" style={typography.semiBold}>
-              {challenge ? 'Nhập mã xác thực OTP' : 'Tìm lại mật khẩu'}
+              {challenge ? t('Nhập mã xác thực OTP') : t('Tìm lại mật khẩu')}
             </CardTitle>
             <CardDescription className="text-xs leading-[19px]" style={typography.regular}>
               {challenge
-                ? `Mã 6 số đã được gửi đến ${challenge.emailMasked || 'email liên kết với tài khoản'}.`
-                : 'Nhập mã cán bộ để nhận OTP qua email đã liên kết với tài khoản.'}
+                ? t('Mã 6 số đã được gửi đến {email}.', {
+                    email: challenge.emailMasked || t('email liên kết với tài khoản'),
+                  })
+                : t('Nhập mã cán bộ để nhận OTP qua email đã liên kết với tài khoản.')}
             </CardDescription>
           </CardHeader>
           <CardContent className="gap-3.5 px-4">
@@ -116,7 +121,7 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
                     accessibilityLiveRegion="polite"
                     className="text-xs"
                     style={typography.medium}>
-                    Đã xác minh mã OTP.
+                    {t('Đã xác minh mã OTP.')}
                   </Text>
                 ) : (
                   <>
@@ -146,15 +151,15 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
                     nativeID="recovery-password-label"
                     className="text-xs leading-4"
                     style={typography.medium}>
-                    Mật khẩu mới
+                    {t('Mật khẩu mới')}
                   </Label>
                   <View className="min-h-[34px] flex-row items-center rounded-lg border border-input bg-background dark:bg-input/30">
                     <Input
                       className="h-auto min-h-8 w-auto flex-1 rounded-none border-0 bg-transparent py-1.5 pr-1 text-xs leading-4 shadow-none dark:bg-transparent sm:h-auto"
                       style={typography.regular}
                       aria-labelledby="recovery-password-label"
-                      accessibilityLabel="Mật khẩu mới"
-                      placeholder="Nhập mật khẩu mới"
+                      accessibilityLabel={t('Mật khẩu mới')}
+                      placeholder={t('Nhập mật khẩu mới')}
                       value={password}
                       onChangeText={(value) => {
                         setPassword(value);
@@ -176,7 +181,7 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
                       className="mr-0.5 size-8 shrink-0"
                       hitSlop={5}
                       disabled={isPending}
-                      accessibilityLabel={visible ? 'Ẩn mật khẩu mới' : 'Hiện mật khẩu mới'}
+                      accessibilityLabel={visible ? t('Ẩn mật khẩu mới') : t('Hiện mật khẩu mới')}
                       onPress={() => setVisible((value) => !value)}>
                       <Icon
                         as={visible ? EyeOff : Eye}
@@ -188,12 +193,12 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
                   <Text
                     className="text-[11px] leading-4 text-muted-foreground"
                     style={typography.regular}>
-                    Ít nhất 8 ký tự, có chữ hoa, chữ số và ký tự đặc biệt.
+                    {t('Ít nhất 8 ký tự, có chữ hoa, chữ số và ký tự đặc biệt.')}
                   </Text>
                 </View>
                 <LoginError message={passwordError || error} typography={typography} />
                 <AuthSubmitButton
-                  label="Đặt lại mật khẩu"
+                  label={t('Đặt lại mật khẩu')}
                   labelStyle={typography.semiBold}
                   pending={isPending}
                   disabled={!password || otpNeedsResend || (!otpVerified && otp.length !== 6)}
@@ -207,14 +212,14 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
                     nativeID="recovery-account-label"
                     className="text-xs leading-4"
                     style={typography.medium}>
-                    Mã cán bộ
+                    {t('Mã cán bộ')}
                   </Label>
                   <Input
                     className="h-auto min-h-[34px] rounded-lg py-1.5 text-xs leading-4 sm:h-auto"
                     style={typography.regular}
                     aria-labelledby="recovery-account-label"
-                    accessibilityLabel="Mã cán bộ"
-                    placeholder="Nhập mã cán bộ"
+                    accessibilityLabel={t('Mã cán bộ')}
+                    placeholder={t('Nhập mã cán bộ')}
                     value={identifier}
                     onChangeText={(value) => {
                       setIdentifier(value);
@@ -230,7 +235,7 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
                 </View>
                 <LoginError message={error} typography={typography} />
                 <AuthSubmitButton
-                  label={secondsLeft > 0 ? resendLabel : 'Gửi mã xác thực OTP'}
+                  label={secondsLeft > 0 ? resendLabel : t('Gửi mã xác thực OTP')}
                   labelStyle={typography.semiBold}
                   icon={ArrowRight}
                   pending={isPending}
@@ -250,15 +255,16 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
             <AccordionItem value="help" className="border-b-0">
               <AccordionTrigger className="py-3">
                 <Text className="text-xs" style={typography.semiBold}>
-                  Không nhận được mã OTP?
+                  {t('Không nhận được mã OTP?')}
                 </Text>
               </AccordionTrigger>
               <AccordionContent className="pb-3">
                 <Text
                   className="text-xs leading-[19px] text-muted-foreground"
                   style={typography.regular}>
-                  Kiểm tra hộp thư đến và thư rác. Nếu chưa liên kết email, hãy liên hệ Ban giám
-                  hiệu.
+                  {t(
+                    'Kiểm tra hộp thư đến và thư rác. Nếu chưa liên kết email, hãy liên hệ Ban giám hiệu.'
+                  )}
                 </Text>
               </AccordionContent>
             </AccordionItem>

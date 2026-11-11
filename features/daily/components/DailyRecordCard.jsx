@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { ASSESSMENT_OPTIONS, ATTENDANCE_OPTIONS, decimal, isAbsent } from '../utils/daily-records';
 
 export function DailyRecordCard({ kind, row, editable, onChange }) {
+  const t = useTranslation();
   const { student, value } = row;
   const options = kind === 'attendance' ? ATTENDANCE_OPTIONS : ASSESSMENT_OPTIONS;
   const skipHealth = kind === 'health' && isAbsent(student);
@@ -25,11 +27,15 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
       {kind === 'health' ? (
         skipHealth ? (
           <View className="gap-1">
-            <Text className="text-xs text-muted-foreground">Vắng — không ghi số đo mới.</Text>
+            <Text className="text-xs text-muted-foreground">
+              {t('Vắng — không ghi số đo mới.')}
+            </Text>
             {student.height > 0 || student.weight > 0 ? (
               <Text className="text-xs text-muted-foreground">
-                Máy chủ đang có số đo cho ngày này: {student.height || '—'} cm ·{' '}
-                {student.weight || '—'} kg. Cần đối chiếu với nhà trường.
+                {t(
+                  'Máy chủ đang có số đo cho ngày này: {height} cm · {weight} kg. Cần đối chiếu với nhà trường.',
+                  { height: student.height || '—', weight: student.weight || '—' }
+                )}
               </Text>
             ) : null}
           </View>
@@ -38,7 +44,7 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
             <View className="flex-row gap-2">
               <View className="min-w-0 flex-1">
                 <Field
-                  label="Chiều cao (cm)"
+                  label={t('Chiều cao (cm)')}
                   value={value.height}
                   onChangeText={(height) => onChange({ height })}
                   editable={canWrite}
@@ -47,7 +53,7 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
               </View>
               <View className="min-w-0 flex-1">
                 <Field
-                  label="Cân nặng (kg)"
+                  label={t('Cân nặng (kg)')}
                   value={value.weight}
                   onChangeText={(weight) => onChange({ weight })}
                   editable={canWrite}
@@ -71,7 +77,7 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
                   disabled={!canWrite}
                   accessibilityState={{ selected, disabled: !canWrite }}
                   onPress={() => onChange({ status: key })}>
-                  <Text className="text-xs">{label}</Text>
+                  <Text className="text-xs">{t(label)}</Text>
                 </Button>
               );
             })}
@@ -80,7 +86,7 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
       )}
       {!skipHealth ? (
         <Field
-          label="Ghi chú"
+          label={t('Ghi chú')}
           value={value.note}
           onChangeText={(note) => onChange({ note })}
           editable={canWrite}
@@ -90,7 +96,9 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
       value.status &&
       !options.some(([key]) => key === value.status) ? (
         <Text className="text-xs text-destructive">
-          Trạng thái máy chủ chưa hỗ trợ: {value.status}. Cần kiểm tra lại trước khi lưu.
+          {t('Trạng thái máy chủ chưa hỗ trợ: {status}. Cần kiểm tra lại trước khi lưu.', {
+            status: value.status,
+          })}
         </Text>
       ) : null}
     </Card>

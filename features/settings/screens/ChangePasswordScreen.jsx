@@ -5,6 +5,7 @@ import { ActivityIndicator } from 'react-native';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { PasswordField } from '../components/PasswordField';
 import { SettingsContent } from '../components/SettingsContent';
@@ -14,6 +15,7 @@ import { settingsError } from '../utils/settings-errors';
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\;/])/;
 
 export default function ChangePasswordScreen() {
+  const t = useTranslation();
   const changePassword = useChangePassword();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -26,15 +28,15 @@ export default function ChangePasswordScreen() {
     if (pending || !currentPassword || !newPassword || !confirmation) return;
     setSuccess(false);
     if (newPassword.length < 8 || !PASSWORD_RULE.test(newPassword)) {
-      setError('Mật khẩu mới cần ít nhất 8 ký tự, có chữ hoa, chữ số và ký tự đặc biệt.');
+      setError(t('Mật khẩu mới cần ít nhất 8 ký tự, có chữ hoa, chữ số và ký tự đặc biệt.'));
       return;
     }
     if (currentPassword === newPassword) {
-      setError('Mật khẩu mới phải khác mật khẩu hiện tại.');
+      setError(t('Mật khẩu mới phải khác mật khẩu hiện tại.'));
       return;
     }
     if (confirmation !== newPassword) {
-      setError('Xác nhận mật khẩu chưa khớp.');
+      setError(t('Xác nhận mật khẩu chưa khớp.'));
       return;
     }
 
@@ -47,7 +49,11 @@ export default function ChangePasswordScreen() {
       setSuccess(true);
     } catch (err) {
       setError(
-        settingsError(err, 'Chưa đổi được mật khẩu.', 'Kiểm tra mật khẩu hiện tại và thử lại.')
+        settingsError(
+          err,
+          t('Chưa đổi được mật khẩu.'),
+          t('Kiểm tra mật khẩu hiện tại và thử lại.')
+        )
       );
     } finally {
       changePassword.reset();
@@ -57,14 +63,14 @@ export default function ChangePasswordScreen() {
   return (
     <SettingsContent>
       <PasswordField
-        label="Mật khẩu hiện tại"
+        label={t('Mật khẩu hiện tại')}
         value={currentPassword}
         onChangeText={setCurrentPassword}
         editable={!pending}
         autoComplete="current-password"
       />
       <PasswordField
-        label="Mật khẩu mới"
+        label={t('Mật khẩu mới')}
         value={newPassword}
         onChangeText={setNewPassword}
         editable={!pending}
@@ -72,7 +78,7 @@ export default function ChangePasswordScreen() {
         maxLength={100}
       />
       <PasswordField
-        label="Xác nhận mật khẩu mới"
+        label={t('Xác nhận mật khẩu mới')}
         value={confirmation}
         onChangeText={setConfirmation}
         editable={!pending}
@@ -81,16 +87,16 @@ export default function ChangePasswordScreen() {
         onSubmitEditing={submit}
       />
       <Text className="text-[11px] text-muted-foreground">
-        Tối thiểu 8 ký tự, gồm chữ hoa, chữ số và ký tự đặc biệt.
+        {t('Tối thiểu 8 ký tự, gồm chữ hoa, chữ số và ký tự đặc biệt.')}
       </Text>
       {error ? (
         <Alert icon={CircleAlert}>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{t(error)}</AlertDescription>
         </Alert>
       ) : null}
       {success ? (
         <Alert icon={CheckCircle2}>
-          <AlertDescription>Đã đổi mật khẩu.</AlertDescription>
+          <AlertDescription>{t('Đã đổi mật khẩu.')}</AlertDescription>
         </Alert>
       ) : null}
       <Button
@@ -100,7 +106,7 @@ export default function ChangePasswordScreen() {
         {pending ? (
           <ActivityIndicator size="small" />
         ) : (
-          <Text className="text-xs">Cập nhật mật khẩu</Text>
+          <Text className="text-xs">{t('Cập nhật mật khẩu')}</Text>
         )}
       </Button>
     </SettingsContent>

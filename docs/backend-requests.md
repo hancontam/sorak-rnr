@@ -4,13 +4,13 @@ Ngày 05/11/2026, môi trường test2. Tập trung yêu cầu/nghiệm thu, kh�
 
 ## BE-01 — Thông báo theo tài khoản và thiết bị
 
-**Trạng thái 11/11:** GET hộp thông báo dùng được cho cả GV/PH trên test2. 6A dùng số chưa đọc server trả và contract đánh dấu đọc của web. Push native tách khỏi 6A.
+**Trạng thái 11/11:** GET hộp thông báo dùng được cho cả GV/PH trên test2. 6A dùng số chưa đọc server trả và contract đánh dấu đọc của web. Push đã nối client theo guide và còn chờ cấu hình thiết bị để nghiệm thu có phiên.
 
 **Cần gì:**
 
 1. Xác nhận phân trang, thứ tự, thời gian có timezone và loại thông báo của hộp hiện có.
 2. Tổng unreadCount tài khoản độc lập trang hiện tại. Trả cùng danh sách hoặc API thống kê đều được, không bắt tạo endpoint mới nếu hiện tại đủ.
-3. Guide đã mô tả Expo Push Token, API đăng ký/gỡ và test push. Trước 6B cần nghiệm thu các API này có phiên và xác nhận payload mở đúng màn.
+3. Guide đã mô tả Expo Push Token, API đăng ký/gỡ và test push. Cần nghiệm thu các API này có phiên, gồm việc ngừng nhận push sau đăng xuất và hành vi khi phiên hết hạn.
 4. API tùy chọn nhận thông báo/email nếu có. Mobile không dùng switch local để giả ngừng email server.
 
 **Vì sao:** cần dữ liệu thật, badge đúng, mở nội dung đúng quyền. Backend gửi push đến thiết bị đã đăng ký; mobile xin quyền và xử lý khi bấm. Logout/đổi tài khoản phải xử lý liên kết thiết bị để không gửi nhầm dữ liệu.

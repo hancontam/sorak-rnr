@@ -2,8 +2,10 @@ import { SvgUri } from 'react-native-svg';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 export function AccountAvatar({ user, className }) {
+  const t = useTranslation();
   const uri = [user.avatarUrl, user.avatar]
     .find((value) => typeof value === 'string' && value.trim())
     ?.trim();
@@ -12,7 +14,7 @@ export function AccountAvatar({ user, className }) {
   const isSvg = uri && (/\.svg(?:[?#]|$)/i.test(uri) || /\/svg(?:[/?#]|$)/i.test(uri));
 
   return (
-    <Avatar alt={`Ảnh đại diện của ${name}`} className={className} key={uri}>
+    <Avatar alt={t('Ảnh đại diện của {name}', { name })} className={className} key={uri}>
       <AvatarFallback>
         <Text className="text-sm font-semibold text-muted-foreground">{initial}</Text>
       </AvatarFallback>

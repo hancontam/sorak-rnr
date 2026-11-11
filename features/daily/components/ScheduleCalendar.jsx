@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Text } from '@/components/ui/text';
+import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import {
+  calendarDate,
   dayTitle,
   selectMonth,
   shiftDays,
@@ -16,7 +18,17 @@ import {
   weekLabel,
 } from '../utils/schedule-date';
 
+const monthYearFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' });
+const weekdayFormatter = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'UTC' });
+
 export function ScheduleCalendar({ date, today, onChange }) {
+  const t = useTranslation();
+  const locale = useLocale();
   const [monthOpen, setMonthOpen] = useState(false);
   const [year, setYear] = useState(Number(date.slice(0, 4)));
   const days = weekDates(date);
@@ -34,9 +46,11 @@ export function ScheduleCalendar({ date, today, onChange }) {
               variant="outline"
               size="sm"
               className="h-9 gap-1 rounded-xl px-2"
-              accessibilityLabel="Chọn tháng và năm">
+              accessibilityLabel={t('Chọn tháng và năm')}>
               <Text className="text-xs font-semibold">
-                Tháng {Number(date.slice(5, 7))}/{date.slice(0, 4)}
+                {locale === 'en-US'
+                  ? monthYearFormatter.format(calendarDate(date))
+                  : 'Tháng ' + Number(date.slice(5, 7)) + '/' + date.slice(0, 4)}
               </Text>
               <Icon as={ChevronDown} size={14} className="text-muted-foreground" />
             </Button>
@@ -44,14 +58,14 @@ export function ScheduleCalendar({ date, today, onChange }) {
           <PopoverContent align="start" className="w-64 gap-3 rounded-xl p-3">
             <View className="flex-row items-center justify-between">
               <CalendarArrow
-                label="Năm trước"
+                label={t('Năm trước')}
                 icon={ChevronLeft}
                 onPress={() => setYear(year - 1)}
                 disabled={year <= 1900}
               />
               <Text className="text-sm font-semibold">{year}</Text>
               <CalendarArrow
-                label="Năm sau"
+                label={t('Năm sau')}
                 icon={ChevronRight}
                 onPress={() => setYear(year + 1)}
                 disabled={year >= 9998}
@@ -71,7 +85,11 @@ export function ScheduleCalendar({ date, today, onChange }) {
                         onChange(selectMonth(date, year, month));
                         setMonthOpen(false);
                       }}>
-                      <Text className="text-xs">Tháng {month}</Text>
+                      <Text className="text-xs">
+                        {locale === 'en-US'
+                          ? monthFormatter.format(new Date(Date.UTC(year, month - 1)))
+                          : 'Tháng ' + month}
+                      </Text>
                     </Button>
                   </View>
                 );
@@ -81,13 +99,13 @@ export function ScheduleCalendar({ date, today, onChange }) {
         </Popover>
         <View className="flex-row items-center">
           <CalendarArrow
-            label="Tuần trước"
+            label={t('Tuần trước')}
             icon={ChevronLeft}
             onPress={() => onChange(shiftDays(date, -7))}
           />
-          <Text className="text-[11px] font-medium">{weekLabel(days)}</Text>
+          <Text className="text-[11px] font-medium">{weekLabel(days, locale, t)}</Text>
           <CalendarArrow
-            label="Tuần sau"
+            label={t('Tuần sau')}
             icon={ChevronRight}
             onPress={() => onChange(shiftDays(date, 7))}
           />
@@ -96,7 +114,7 @@ export function ScheduleCalendar({ date, today, onChange }) {
           variant="outline"
           size="sm"
           className="h-9 min-w-9 rounded-xl px-2"
-          accessibilityLabel={`Về hôm nay, ${dayTitle(today)}`}
+          accessibilityLabel={t('Về hôm nay, {date}', { date: dayTitle(today, locale) })}
           onPress={() => onChange(today)}>
           <Text className="text-xs font-semibold">{Number(today.slice(8))}</Text>
         </Button>
@@ -105,12 +123,14 @@ export function ScheduleCalendar({ date, today, onChange }) {
         {days.map((day, index) => (
           <View key={day} className="min-w-0 flex-1 gap-1.5">
             <Text className="text-center text-[11px] text-muted-foreground">
-              {WEEKDAY_LABELS[index]}
+              {locale === 'en-US'
+                ? weekdayFormatter.format(calendarDate(day))
+                : WEEKDAY_LABELS[index]}
             </Text>
             <Button
               variant={day === date ? 'default' : 'outline'}
               size="sm"
-              accessibilityLabel={dayTitle(day)}
+              accessibilityLabel={dayTitle(day, locale)}
               accessibilityState={{ selected: day === date }}
               className="h-10 rounded-xl px-0"
               onPress={() => onChange(day)}>

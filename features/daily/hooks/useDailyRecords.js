@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import { assignedClass } from '@/features/auth/utils/class-assignment';
 
@@ -29,6 +30,7 @@ const DISMISSAL_FIELDS = [
 ];
 
 export function useDailyRecords({ kind, date, slotId }) {
+  const t = useTranslation();
   const user = useAuthStore((state) => state.user);
   const client = useQueryClient();
   const assignment = assignedClass(user);
@@ -159,7 +161,7 @@ export function useDailyRecords({ kind, date, slotId }) {
     }
     let records;
     try {
-      records = selected.map(({ student, value }) => toDailyRecord(kind, student, value, date));
+      records = selected.map(({ student, value }) => toDailyRecord(kind, student, value, date, t));
     } catch (error) {
       setMessage({ error: true, text: error.message });
       return;
@@ -199,7 +201,7 @@ export function useDailyRecords({ kind, date, slotId }) {
       // Revalidate the currently authorized pickup choices after refetch.
       if (kind === 'pickup')
         records = selected.map(({ id, value }) =>
-          toDailyRecord(kind, freshById.get(id), value, date)
+          toDailyRecord(kind, freshById.get(id), value, date, t)
         );
       await mutation.mutateAsync(records);
       if (!isCurrent()) return;
@@ -231,7 +233,7 @@ export function useDailyRecords({ kind, date, slotId }) {
       if (confirmed) acceptSavedRows(result.data, new Set(selected.map(({ id }) => id)));
       setMessage(
         confirmed
-          ? { text: `Đã lưu và kiểm tra lại ${records.length} bản ghi.` }
+          ? { text: 'Đã lưu và kiểm tra lại {count} bản ghi.', values: { count: records.length } }
           : {
               error: true,
               text: 'Máy chủ đã nhận yêu cầu nhưng dữ liệu đọc lại chưa khớp. Hãy tải lại để kiểm tra.',
@@ -300,7 +302,10 @@ export function useDailyRecords({ kind, date, slotId }) {
       }
 
       acceptSavedRows([after], new Set([studentId]));
-      setMessage({ text: `Đã hủy ghi nhận đón trẻ của ${before.name || before.code}.` });
+      setMessage({
+        text: 'Đã hủy ghi nhận đón trẻ của {name}.',
+        values: { name: before.name || before.code },
+      });
     } catch (error) {
       if (!isCurrent()) return;
       setNeedsReload(true);

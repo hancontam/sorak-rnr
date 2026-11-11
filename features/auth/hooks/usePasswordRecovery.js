@@ -96,7 +96,10 @@ export function usePasswordRecovery() {
         if (cooldown) {
           const seconds = Number(cooldown[1]);
           setCooldown(seconds);
-          setError(`Vui lòng chờ ${seconds} giây trước khi yêu cầu mã mới.`);
+          setError({
+            text: 'Vui lòng chờ {seconds} giây trước khi yêu cầu mã mới.',
+            values: { seconds },
+          });
         } else setError(recoveryError(failure, 'send'));
       }
     );

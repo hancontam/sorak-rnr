@@ -6,10 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { AUTH_ROLES, roleLabel, WEB_ACCOUNT_NOTICE } from '../utils/auth-roles';
 
 export function RoleSheet({ visible, selectedRole, typography, onClose, onSelect }) {
+  const t = useTranslation();
   return (
     <Modal
       transparent
@@ -33,12 +35,12 @@ export function RoleSheet({ visible, selectedRole, typography, onClose, onSelect
             <View className="flex-row items-center justify-between gap-2">
               <View className="flex-1 gap-0.5">
                 <Text className="text-sm leading-5" style={typography.semiBold}>
-                  Chọn vai trò đăng nhập
+                  {t('Chọn vai trò đăng nhập')}
                 </Text>
                 <Text
                   className="text-xs leading-4 text-muted-foreground"
                   style={typography.regular}>
-                  Chọn loại tài khoản để tiếp tục.
+                  {t('Chọn loại tài khoản để tiếp tục.')}
                 </Text>
               </View>
               <Button
@@ -47,7 +49,7 @@ export function RoleSheet({ visible, selectedRole, typography, onClose, onSelect
                 className="size-7 rounded-full"
                 hitSlop={8}
                 onPress={onClose}
-                accessibilityLabel="Đóng chọn vai trò">
+                accessibilityLabel={t('Đóng chọn vai trò')}>
                 <Icon as={X} size={16} className="text-muted-foreground" />
               </Button>
             </View>
@@ -56,8 +58,8 @@ export function RoleSheet({ visible, selectedRole, typography, onClose, onSelect
               selected={selectedRole === AUTH_ROLES.teacher}
               icon={GraduationCap}
               typography={typography}
-              tag="Mã cán bộ"
-              description="Điểm danh lớp học và cập nhật nhật ký ngày cho phụ huynh."
+              tag={t('Mã cán bộ')}
+              description={t('Điểm danh lớp học và cập nhật nhật ký ngày cho phụ huynh.')}
               onSelect={onSelect}
             />
             <RoleOption
@@ -65,14 +67,14 @@ export function RoleSheet({ visible, selectedRole, typography, onClose, onSelect
               selected={selectedRole === AUTH_ROLES.parent}
               icon={UsersRound}
               typography={typography}
-              tag="Mã học sinh"
-              description="Xem hoạt động, hồ sơ và kết quả đánh giá của con."
+              tag={t('Mã học sinh')}
+              description={t('Xem hoạt động, hồ sơ và kết quả đánh giá của con.')}
               onSelect={onSelect}
             />
             <Text
               className="text-[10px] leading-[14px] text-muted-foreground"
               style={typography.regular}>
-              {WEB_ACCOUNT_NOTICE}
+              {t(WEB_ACCOUNT_NOTICE)}
             </Text>
           </ScrollView>
         </SafeAreaView>
@@ -82,6 +84,8 @@ export function RoleSheet({ visible, selectedRole, typography, onClose, onSelect
 }
 
 function RoleOption({ role, selected, icon, tag, description, typography, onSelect }) {
+  const t = useTranslation();
+  const label = t(roleLabel(role));
   return (
     <Button
       variant="outline"
@@ -89,7 +93,7 @@ function RoleOption({ role, selected, icon, tag, description, typography, onSele
       onPress={() => onSelect(role)}
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      accessibilityLabel={`${roleLabel(role)}. ${tag}. ${description}`}>
+      accessibilityLabel={`${label}. ${tag}. ${description}`}>
       <View
         className={`mt-0.5 size-9 items-center justify-center rounded-xl ${selected ? 'bg-primary' : 'bg-muted'}`}>
         <Icon
@@ -101,7 +105,7 @@ function RoleOption({ role, selected, icon, tag, description, typography, onSele
       <View className="min-w-0 flex-1 gap-0.5">
         <View className="flex-row flex-wrap items-center gap-2">
           <Text className="text-xs leading-4" style={typography.semiBold}>
-            {roleLabel(role)}
+            {label}
           </Text>
           <Badge variant="brand">
             <Text className="text-[11px] leading-[14px]" style={typography.semiBold}>

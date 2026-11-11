@@ -1,4 +1,4 @@
-import { Bell, ChevronRight } from 'lucide-react-native';
+import { Bell, Clock } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,29 +8,51 @@ import { Badge } from '@/components/ui/badge';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { roleLabel } from '@/features/auth/utils/auth-roles';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
-export function HomeHeader({ user, onSettings, onNotifications, unreadCount }) {
+export function HomeHeader({
+  user,
+  onSettings,
+  accountMenu,
+  avatarUser = user,
+  onNotifications,
+  onActivityJournal,
+  unreadCount,
+}) {
+  const t = useTranslation();
   const hasUnread = Number.isInteger(unreadCount) && unreadCount > 0;
   return (
     <SafeAreaView edges={['top']} className="border-b border-border bg-background">
-      <View className="mx-auto w-full max-w-xl flex-row items-center justify-between gap-3 px-4 py-2.5">
+      <View className="mx-auto w-full max-w-xl flex-row items-center justify-between gap-2 px-4 py-2.5">
         <View className="min-w-0 flex-1 flex-row items-center gap-2">
           <SorakLogo size={28} />
           <View className="min-w-0 flex-1 gap-1">
-            <View className="flex-row items-center gap-1.5">
+            <View className="flex-row flex-wrap items-center gap-1.5">
               <Text className="text-sm font-semibold">Sorak</Text>
               <Badge variant="brand">
-                <Text className="text-[10px]">{roleLabel(user.role)}</Text>
+                <Text className="text-[10px]">{t(roleLabel(user.role))}</Text>
               </Badge>
             </View>
             <Text numberOfLines={1} className="text-[10px] text-muted-foreground">
-              Trường Mầm Non Hòn Tre
+              {t('Trường Mầm Non Hòn Tre')}
             </Text>
           </View>
         </View>
+        {onActivityJournal ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('Nhật ký hoạt động ở trường')}
+            hitSlop={4}
+            onPress={onActivityJournal}
+            className="size-9 items-center justify-center rounded-xl border border-border bg-background active:opacity-75">
+            <Icon as={Clock} size={17} />
+          </Pressable>
+        ) : null}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={hasUnread ? `Thông báo, ${unreadCount} chưa đọc` : 'Thông báo'}
+          accessibilityLabel={
+            hasUnread ? t('Thông báo, {count} chưa đọc', { count: unreadCount }) : t('Thông báo')
+          }
           hitSlop={6}
           onPress={onNotifications}
           className="size-9 items-center justify-center rounded-xl border border-border bg-background active:opacity-75">
@@ -41,18 +63,21 @@ export function HomeHeader({ user, onSettings, onNotifications, unreadCount }) {
             </Badge>
           ) : null}
         </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Mở cài đặt tài khoản"
-          hitSlop={6}
-          onPress={onSettings}
-          className="max-w-[40%] flex-row items-center gap-1.5 rounded-full border border-border bg-muted/30 p-1 pr-2">
-          <AccountAvatar user={user} className="size-7" />
-          <Text numberOfLines={1} className="shrink text-[11px] font-medium">
-            {user.username || user.employeeCode || user.student?.studentCode || user.fullName}
-          </Text>
-          <Icon as={ChevronRight} size={12} className="text-muted-foreground" />
-        </Pressable>
+        <View className="max-w-[45%] shrink flex-row items-center gap-2">
+          {accountMenu || (
+            <Text numberOfLines={1} className="shrink text-[11px] font-medium">
+              {user.username || user.employeeCode || user.fullName}
+            </Text>
+          )}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('Mở cài đặt tài khoản')}
+            hitSlop={4}
+            onPress={onSettings}
+            className="size-9 shrink-0 items-center justify-center rounded-full active:opacity-75">
+            <AccountAvatar user={avatarUser} className="size-9" />
+          </Pressable>
+        </View>
       </View>
     </SafeAreaView>
   );

@@ -2,10 +2,12 @@ import Constants from 'expo-constants';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { SettingsContent } from '../components/SettingsContent';
 
 export default function AboutScreen() {
+  const t = useTranslation();
   const version = Constants.expoConfig?.version;
   return (
     <SettingsContent>
@@ -15,10 +17,12 @@ export default function AboutScreen() {
         </CardHeader>
         <CardContent className="gap-1 px-4">
           <Text className="text-xs">
-            Ứng dụng dành cho giáo viên và phụ huynh Trường Mầm Non Hòn Tre.
+            {t('Ứng dụng dành cho giáo viên và phụ huynh Trường Mầm Non Hòn Tre.')}
           </Text>
           {version ? (
-            <Text className="text-xs text-muted-foreground">Phiên bản {version}</Text>
+            <Text className="text-xs text-muted-foreground">
+              {t('Phiên bản {version}', { version })}
+            </Text>
           ) : null}
         </CardContent>
       </Card>

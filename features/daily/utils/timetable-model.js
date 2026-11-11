@@ -23,7 +23,7 @@ export function dayActivities(data, date, isParent) {
       id: String(slot.id),
       activityId: slot.activityId,
       routineKey: slot.routineSlot,
-      title: plainText(slot.title) || 'Hoạt động chưa có tên',
+      title: plainText(slot.title),
       objective: plainText(slot.objective),
       preparation: plainText(slot.preparation),
       procedure: plainText(slot.procedure),
@@ -70,44 +70,51 @@ export function dayFrames(data, date, isParent) {
   return frames;
 }
 
-function countLabel(count, suffix) {
-  return Number.isInteger(count) && count >= 0 ? `${count} ${suffix}` : 'Chưa có thông tin';
+export function routineTitle(frame, isParent, t) {
+  return isParent && !frame.key.startsWith('extra:') ? frame.title : t(frame.title);
 }
 
-export function daySummary(data, date, isParent) {
+function countLabel(count, message, t) {
+  return Number.isInteger(count) && count >= 0 ? t(message, { count }) : t('Chưa có thông tin');
+}
+
+export function daySummary(data, date, isParent, t) {
   if (!isParent) {
     const stats = data.stats;
     return {
       attendance:
         stats?.isRecorded === false
-          ? 'Chưa ghi nhận'
+          ? t('Chưa ghi nhận')
           : stats?.isRecorded === true
-            ? countLabel(stats.presentCount, 'có mặt')
-            : 'Chưa có thông tin',
+            ? countLabel(stats.presentCount, '{count} có mặt', t)
+            : t('Chưa có thông tin'),
       health:
         stats?.isHealthRecorded === false
-          ? 'Chưa ghi nhận'
+          ? t('Chưa ghi nhận')
           : stats?.isHealthRecorded === true
-            ? countLabel(stats.healthCount, 'đã đo')
-            : 'Chưa có thông tin',
-      pickup: countLabel(stats?.dismissedCount, 'đã đón'),
+            ? countLabel(stats.healthCount, '{count} đã đo', t)
+            : t('Chưa có thông tin'),
+      pickup: countLabel(stats?.dismissedCount, '{count} đã đón', t),
     };
   }
   const attendance = data.attendance.records.find((record) => record.isoDate === date);
   const health = data.health.history.filter((record) => record.rawDate?.slice(0, 10) === date);
+  const attendanceLabel = {
+    PRESENT: 'Có mặt',
+    EXCUSED_ABSENCE: 'Vắng có phép',
+    UNEXCUSED_ABSENCE: 'Vắng không phép',
+    ABSENT: 'Vắng',
+  }[attendance?.rawStatus];
   return {
     attendance: attendance
-      ? {
-          PRESENT: 'Có mặt',
-          EXCUSED_ABSENCE: 'Vắng có phép',
-          UNEXCUSED_ABSENCE: 'Vắng không phép',
-          ABSENT: 'Vắng',
-        }[attendance.rawStatus] ||
-        attendance.statusLabel ||
-        'Đã ghi nhận'
-      : 'Chưa ghi nhận',
-    health: health.length ? 'Đã có số đo' : 'Chưa ghi nhận',
-    pickup: attendance?.checkOutTime ? `Đã đón ${attendance.checkOutTime}` : 'Chưa ghi nhận',
+      ? attendanceLabel
+        ? t(attendanceLabel)
+        : attendance.statusLabel || t('Đã ghi nhận')
+      : t('Chưa ghi nhận'),
+    health: t(health.length ? 'Đã có số đo' : 'Chưa ghi nhận'),
+    pickup: attendance?.checkOutTime
+      ? t('Đã đón {time}', { time: attendance.checkOutTime })
+      : t('Chưa ghi nhận'),
   };
 }
 

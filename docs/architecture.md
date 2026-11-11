@@ -120,7 +120,7 @@ Nền dùng chung có API nhỏ để các feature sử dụng:
 
 - `shared/api/client.js`: Axios instance đọc `EXPO_PUBLIC_API_URL`, timeout 15 giây. `.env.example` chứa URL test2; `.env.local` của máy không đưa vào Git. Header phiên/refresh được nối ở bước auth, không suy diễn contract ở bước nền.
 - `shared/api/query-client.js`: tạo QueryClient; root giữ một instance bằng `useState`. Query được coi còn mới trong 30 giây; query/mutation không tự retry mặc định. Root chuyển AppState native cho focusManager; đây chưa phải listener mạng hoặc listener đổi màn.
-- `shared/storage/token.storage.js`: `readTokens`, `writeTokens`, `clearTokens`; cặp token ghi chung một giá trị SecureStore. Đọc không có phiên trả null, dữ liệu hỏng/I/O lỗi thì báo lỗi để bước auth xử lý. Không lưu token vào AsyncStorage hoặc fallback web localStorage.
+- `shared/storage/accounts.storage.js` lưu cặp token SecureStore riêng từng account và index metadata trong AsyncStorage. `token.storage.js` chỉ còn phục vụ chuyển phiên đơn cũ sang danh sách mới. Đọc không có phiên trả null, dữ liệu hỏng/I/O lỗi thì báo lỗi để auth xử lý. Không lưu token vào AsyncStorage hoặc fallback web localStorage.
 - `shared/storage/preferences.storage.js`: `readThemeMode`, `writeThemeMode`, chỉ nhận light/dark/system. Chưa có lựa chọn hoặc giá trị cũ không hợp lệ thì dùng system; lỗi I/O vẫn được đưa lên caller. Việc áp dụng/khôi phục theme qua hook/store sẽ nối ở bước Settings, không tự sinh feature trong bước nền.
 - Token màu brand light/dark nằm trong `global.css`, ánh xạ class tại `tailwind.config.js`; `lib/theme.js` giữ giá trị tương ứng cho API native cần màu JS. Khi đổi màu phải giữ hai biểu diễn CSS/JS khớp nhau.
 
@@ -161,13 +161,13 @@ Sau khi server xác nhận đổi mật khẩu, app trở lại form giáo viên
 | Settings | Xem hồ sơ và ảnh đại diện; đổi mật khẩu, 2FA, quản lý phiên theo quyền; theme, giới thiệu, đăng xuất | Xem hồ sơ và ảnh đại diện; các thao tác tài khoản theo quyền PH | Hồ sơ chỉ đọc ở cả hai vai trò. Dùng ảnh từ API và chỉ hiển thị thao tác tài khoản đã xác minh |
 | Thông báo | Hộp theo tài khoản, badge, đánh dấu đọc | Hộp theo tài khoản, badge, đánh dấu đọc | Push native làm riêng; kiểm chứng ghi trên test2 |
 
-Không có xin nghỉ học, BGH mobile, chọn nhiều lớp/con hoặc tiếng Anh trong đợt này. Giao diện bước 3 dùng Tiếng Việt. Bộ chọn chỉ có Tiếng Việt và English khi bản dịch toàn app sẵn sàng. Hồ sơ GV/PH chỉ đọc, gồm cả ảnh đại diện. Dùng ảnh của tài khoản do API trả về; dùng chữ cái đầu khi ảnh thiếu hoặc tải lỗi. Nội dung chính sách/hướng dẫn tự soạn là bản dự thảo cần chủ sản phẩm duyệt, không tự nhận chính thức.
+Không có xin nghỉ học, BGH mobile hoặc chọn nhiều lớp/con. Giao diện mặc định dùng Tiếng Việt. Bộ chọn Việt/Anh áp dụng cho các khu vực đã dịch ở mục bên dưới. Hồ sơ GV/PH chỉ đọc, gồm cả ảnh đại diện. Dùng ảnh của tài khoản do API trả về; dùng chữ cái đầu khi ảnh thiếu hoặc tải lỗi. Nội dung chính sách/hướng dẫn tự soạn là bản dự thảo cần chủ sản phẩm duyệt, không tự nhận chính thức.
 
 ### Quản lý phiên trong Settings
 
 Header Home mở `app/settings/_layout.jsx` trong nhánh đã đăng nhập. Settings và Hồ sơ đọc user của phiên hiện tại. Root khôi phục lựa chọn giao diện qua `useThemePreference` và `preferences.storage.js`; chế độ Tự động theo giao diện hệ thống.
 
-Hiển thị phiên hiện tại và các phiên khác theo dữ liệu API. Có nút Làm mới và xác nhận trước khi Đăng xuất tất cả thiết bị. Khi server xác nhận thu hồi tất cả, mobile dọn phiên và cache của tài khoản hiện tại rồi trở về luồng đăng nhập. Cần xác minh trên test2 với cả GV và PH. Nhãn Thiết bị này cần được xác nhận bằng phiên thực tế, độc lập với thứ tự đăng nhập.
+Hiển thị phiên hiện tại và các phiên khác theo dữ liệu API. Có nút Làm mới và xác nhận trước khi Đăng xuất tất cả thiết bị của tài khoản đang chọn. Khi server xác nhận thu hồi tất cả, mobile dọn phiên và cache của tài khoản đó; các tài khoản của bé khác vẫn giữ. Nhãn Thiết bị này cần được xác nhận bằng phiên thực tế, độc lập với thứ tự đăng nhập.
 
 ## Bước triển khai và điểm duyệt
 
@@ -237,3 +237,18 @@ Nguồn: [chiều cao 2–5 tuổi](https://www.who.int/tools/child-growth-stand
 - Sổ bé ngoan liệt kê chín tháng từ tháng 9 đến tháng 5 của năm học API trả. Mở các tháng đã kết thúc, phân biệt tháng đang/chưa diễn ra và tháng đã kết thúc nhưng chưa có phiếu. Kết quả học kỳ có đúng hai lựa chọn. Màn GV hiện khoảng ngày và mốc tính theo API.
 - Phản hồi PH thuộc phiếu tháng có thật. Hook đọc lại trước khi ghi để phát hiện phản hồi đã đổi, gửi theo tháng/năm server xác nhận, rồi đọc lại đúng kỳ. Form giữ nháp khi lỗi. GV không có thao tác ghi ở tab này.
 - Chuông trên header và màn `notifications` dùng chung query theo tài khoản. Sau đánh dấu đọc từng mục hoặc tất cả, app tải lại dữ liệu và dùng số chưa đọc từ server. Đây là hộp thông báo trong app. Push native được tích hợp ở lượt riêng.
+
+## Ngôn ngữ, Nhật ký hoạt động và Expo Push
+
+- `app/_layout.jsx` đọc ngôn ngữ đã lưu. Màn Settings → Ngôn ngữ ghi lựa chọn qua `shared/i18n/useLanguage.js` và AsyncStorage. Bản dịch gồm shell, Auth, Settings, hộp thông báo, Nhật ký và các màn nghiệp vụ GV/PH. Tên người, tên lớp, nội dung bài học, nhận xét và HTML Turnstile do server phục vụ giữ nguyên.
+- Icon đồng hồ cạnh chuông chỉ xuất hiện ở header PH. Route `activity-journal` mở stack, hook gọi `GET /parent/home` và đối chiếu ID bé với phiên trước khi cache `data.timeline`. Badge và nội dung ghi nhận đến từ API. Hết khung giờ theo lịch không khẳng định bé đã hoàn thành.
+- `PushNotifications` ghép hook đăng ký và hook xử lý chạm push. `usePushRegistration` xin quyền trên bản native hỗ trợ push, lấy Expo Push Token và đăng ký qua `POST /notifications/device-token` cho từng tài khoản PH còn phiên trên máy, dùng bearer riêng của từng bé. Khi nhận push của phiên đang xem thì làm mới hộp thư. Khi bấm push, `usePushResponse` đợi khôi phục phiên, tìm account theo studentId/studentCode rồi chuyển phiên và mở hộp thư. Không điều hướng theo URL tùy ý trong payload. Đăng xuất chỉ gỡ thiết bị khỏi account được chọn trước khi thu hồi phiên đó.
+- Profile EAS `push-test` tạo APK nội bộ trỏ test2. Android dùng Firebase `sorak-mobile-test2` và `google-services.json` cho package `com.sorak.rnr`. Có thể ghi đè đường dẫn client config qua `GOOGLE_SERVICES_JSON`. Khóa service account FCM v1 nằm trong credentials của Expo, tách khỏi file cấu hình client. iOS cần APNs riêng.
+
+## Chuyển tài khoản PH trên thiết bị
+
+- Header PH tách hai vùng bấm: tên bé + mũi tên mở RNR DropdownMenu danh sách account và Thêm tài khoản → `add-account`; avatar bên cạnh mở thẳng Settings của account đang dùng. Chọn bé đổi cả tên/avatar và phiên dữ liệu. Route `accounts` vẫn dùng quản lý danh sách/đăng xuất riêng từ Settings hoặc Welcome khi cần. Màn thêm dùng lại LoginScreen và useLogin với vai trò PH cố định, cùng WebView Turnstile và OTP thật. Đăng nhập lại một mục hết hạn phải khớp accountId đã chọn. Hủy hoặc đăng nhập lỗi vẫn giữ phiên trước đó.
+- `session.js` điều phối phiên, refresh single-flight theo account, đổi tài khoản và đăng xuất. Token chỉ nằm trong bộ nhớ riêng của module và SecureStore. `auth.store.js` cho UI đọc user hiện tại, activeAccountId và linkedAccounts dạng metadata; không công khai token qua Zustand. Một QueryClient ở root giữ nguyên; đổi account hủy request, xóa cache và remount stack để không mang màn/bản nháp của bé trước sang bé sau.
+- `shared/storage/accounts.storage.js`: mỗi account một khóa SecureStore cho cặp access/refresh; AsyncStorage lưu danh sách thông tin hiển thị nhỏ và ID account đang chọn. Khởi động khôi phục đúng account lần trước. Phiên đơn cũ được chuyển từ token.storage sau khi xác minh `/auth/me`, không bỏ phiên đang dùng. Thêm account bật ghi nhớ cho các phiên được liên kết trên thiết bị; đăng nhập đơn không chọn ghi nhớ vẫn chỉ giữ phiên trong RAM.
+- Logout xóa riêng account đã chọn. Nếu còn bé khác có phiên, app mở bé đó; phiên còn lại hết hạn hoặc lỗi mạng vẫn ở danh sách để chọn/đăng nhập lại. Đăng xuất tất cả thiết bị trong Settings vẫn là thao tác backend của account đang chọn, không thu hồi các account anh/chị/em.
+- Push của bé đã thêm chuyển đúng account trước khi mở hộp thư. Phiên hết hạn dẫn đến đăng nhập lại account đó rồi tiếp tục mở hộp thư. Không đoán theo tên; không có ID/mã bé trong payload khi máy có nhiều account thì không chọn đại một bé. Chưa lưu account của bé trong máy thì không mở hộp thư account hiện tại thay thế. Các phiên độc lập không chứng minh quan hệ gia đình trên backend.

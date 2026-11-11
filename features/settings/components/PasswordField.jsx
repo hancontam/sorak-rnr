@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 export function PasswordField({ label, ...props }) {
+  const t = useTranslation();
   const [visible, setVisible] = useState(false);
   return (
     <View className="gap-1.5">
@@ -24,7 +26,7 @@ export function PasswordField({ label, ...props }) {
         <Button
           variant="ghost"
           size="icon"
-          accessibilityLabel={visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+          accessibilityLabel={visible ? t('Ẩn mật khẩu') : t('Hiện mật khẩu')}
           onPress={() => setVisible(!visible)}
           className="absolute right-0.5 size-10">
           <Icon as={visible ? EyeOff : Eye} size={15} className="text-muted-foreground" />

@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/text';
 import { ScheduleState } from '@/features/daily/components/ScheduleState';
 import { timetableError } from '@/features/daily/utils/timetable-model';
 import { schoolToday } from '@/features/daily/utils/schedule-date';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { PickupRequestCard } from '../components/PickupRequestCard';
 import { PickupRequestForm } from '../components/PickupRequestForm';
@@ -19,11 +20,12 @@ const FILTERS = [
   ['all', 'Tất cả'],
   ['PENDING', 'Chờ duyệt'],
   ['APPROVED', 'Đã duyệt'],
-  ['REJECTED', 'Từ chối'],
+  ['REJECTED', 'Đã từ chối'],
   ['CANCELLED', 'Đã hủy'],
 ];
 
 export default function PickupRequestsScreen() {
+  const t = useTranslation();
   const params = useLocalSearchParams();
   const date = typeof params.date === 'string' ? params.date : schoolToday();
   const [creating, setCreating] = useState(params.create === '1');
@@ -35,6 +37,11 @@ export default function PickupRequestsScreen() {
   const confirmDiscard = useUnsavedChanges(dirty, requests.saving || photo.busy);
 
   const { query, allowed, isParent, message, saving, needsReload } = requests;
+  const actionNotice = message
+    ? { ...message, text: t(message.text) }
+    : query.isError
+      ? { error: true, text: t(timetableError(query.error)) }
+      : null;
   const disabled = !query.isSuccess || saving || needsReload || photo.busy;
   const rows = (query.data?.requests || []).filter(
     (item) => filter === 'all' || item.status === filter
@@ -60,17 +67,17 @@ export default function PickupRequestsScreen() {
 
   function confirm(action, id, body) {
     const labels = {
-      create: isParent ? 'Gửi đơn ủy quyền chờ duyệt?' : 'Tạo đơn ủy quyền đã duyệt?',
-      cancel: 'Hủy đơn đang chờ duyệt?',
-      approve: 'Duyệt đơn ủy quyền?',
-      reject: 'Từ chối đơn ủy quyền?',
+      create: t(isParent ? 'Gửi đơn ủy quyền chờ duyệt?' : 'Tạo đơn ủy quyền đã duyệt?'),
+      cancel: t('Hủy đơn đang chờ duyệt?'),
+      approve: t('Duyệt đơn ủy quyền?'),
+      reject: t('Từ chối đơn ủy quyền?'),
     };
     const selected = isParent
       ? query.data?.student
       : requests.studentsQuery.data?.find((s) => String(s.id) === body?.studentId);
     const detail =
       action === 'create'
-        ? `${selected?.fullName || selected?.name || ''}\nNgười đón: ${body.pickup_person_name}\n${body.start_date} – ${body.end_date}`
+        ? `${selected?.fullName || selected?.name || ''}\n${t('Người đón')}: ${body.pickup_person_name}\n${body.start_date} – ${body.end_date}`
         : undefined;
     if (Platform.OS === 'web') {
       if (globalThis.confirm([labels[action], detail].filter(Boolean).join('\n')))
@@ -78,8 +85,8 @@ export default function PickupRequestsScreen() {
       return;
     }
     Alert.alert(labels[action], detail, [
-      { text: 'Quay lại', style: 'cancel' },
-      { text: 'Xác nhận', onPress: () => act(action, id, body) },
+      { text: t('Quay lại'), style: 'cancel' },
+      { text: t('Xác nhận'), onPress: () => act(action, id, body) },
     ]);
   }
 
@@ -90,14 +97,10 @@ export default function PickupRequestsScreen() {
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8">
-        <ActionNotice
-          message={
-            message || (query.isError ? { error: true, text: timetableError(query.error) } : null)
-          }
-        />
+        <ActionNotice message={actionNotice} />
         {needsReload ? (
           <Button size="sm" variant="outline" disabled={saving} onPress={reload}>
-            <Text>Kiểm tra lại đơn vừa gửi</Text>
+            <Text>{t('Kiểm tra lại đơn vừa gửi')}</Text>
           </Button>
         ) : null}
         {!isParent && !requests.studentsQuery.isSuccess ? (
@@ -142,25 +145,20 @@ export default function PickupRequestsScreen() {
         automaticallyAdjustKeyboardInsets
         ListHeaderComponent={
           <View className="gap-3">
-            <ActionNotice
-              message={
-                message ||
-                (query.isError ? { error: true, text: timetableError(query.error) } : null)
-              }
-            />
+            <ActionNotice message={actionNotice} />
             {saving ? (
               <Text className="text-xs text-muted-foreground">
-                Đang cập nhật và kiểm tra trạng thái…
+                {t('Đang cập nhật và kiểm tra trạng thái…')}
               </Text>
             ) : null}
             {needsReload ? (
               <Button size="sm" variant="outline" onPress={reload}>
-                <Text>Tải lại danh sách</Text>
+                <Text>{t('Tải lại danh sách')}</Text>
               </Button>
             ) : null}
             {allowed && query.data && !rejectingId ? (
               <Button size="sm" disabled={disabled} onPress={() => setCreating(true)}>
-                <Text>Tạo đơn ủy quyền</Text>
+                <Text>{t('Tạo đơn ủy quyền')}</Text>
               </Button>
             ) : null}
             {query.data ? (
@@ -173,7 +171,7 @@ export default function PickupRequestsScreen() {
                     disabled={saving || Boolean(rejectingId)}
                     onPress={() => setFilter(value)}
                     accessibilityState={{ selected: value === filter }}>
-                    <Text>{label}</Text>
+                    <Text>{t(label)}</Text>
                   </Button>
                 ))}
               </View>

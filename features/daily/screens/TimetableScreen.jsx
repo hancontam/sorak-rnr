@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { usePickupRequests } from '@/features/pickup/hooks/usePickupRequests';
+import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { ChildDayResults } from '../components/ChildDayResults';
 import { ScheduleCalendar } from '../components/ScheduleCalendar';
@@ -17,7 +18,9 @@ import { dayTitle, schoolToday } from '../utils/schedule-date';
 import { childDayResults, dayFrames, daySummary, timetableError } from '../utils/timetable-model';
 
 export default function TimetableScreen() {
+  const t = useTranslation();
   const router = useRouter();
+  const locale = useLocale();
   const today = schoolToday();
   const [date, setDate] = useState(schoolToday);
   const { query, error, isParent, noClass } = useTimetable(date);
@@ -54,7 +57,7 @@ export default function TimetableScreen() {
             <ScheduleCalendar date={date} today={today} onChange={setDate} />
             {ready ? (
               <ScheduleSummary
-                summary={daySummary(data, date, isParent)}
+                summary={daySummary(data, date, isParent, t)}
                 className={data.classInfo.name}
                 isParent={isParent}
                 onOpenRecords={
@@ -78,19 +81,19 @@ export default function TimetableScreen() {
                     params: { date },
                   })
                 }>
-                <Text>Ủy quyền đón trẻ</Text>
+                <Text>{t('Ủy quyền đón trẻ')}</Text>
                 {Number.isInteger(pendingCount) && pendingCount > 0 ? (
                   <Badge variant="secondary">
-                    <Text>{pendingCount} chờ duyệt</Text>
+                    <Text>{t('{count} chờ duyệt', { count: pendingCount })}</Text>
                   </Badge>
                 ) : null}
               </Button>
             ) : null}
             <View className="flex-row flex-wrap items-center justify-between gap-2">
-              <Text className="text-sm font-semibold">{dayTitle(date)}</Text>
+              <Text className="text-sm font-semibold">{dayTitle(date, locale)}</Text>
               {date > today ? (
                 <Badge variant="secondary">
-                  <Text className="text-[10px]">Lịch sắp tới</Text>
+                  <Text className="text-[10px]">{t('Lịch sắp tới')}</Text>
                 </Badge>
               ) : null}
             </View>
@@ -108,6 +111,7 @@ export default function TimetableScreen() {
         renderItem={({ item }) => (
           <ScheduleFrame
             frame={item}
+            isParent={isParent}
             onOpenActivity={(slotId) =>
               router.push({
                 pathname: isParent ? '/(parent)/schedule-activity' : '/(teacher)/schedule-activity',

@@ -7,20 +7,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { monthKey, monthLabel } from '../utils/school-periods';
 
 export function SchoolMonthPicker({ months, selected, disabled, onSelect }) {
+  const locale = useLocale();
+  const t = useTranslation();
   return (
     <Select
       disabled={disabled}
-      value={selected ? { value: monthKey(selected), label: monthLabel(selected) } : undefined}
+      value={
+        selected ? { value: monthKey(selected), label: monthLabel(selected, locale) } : undefined
+      }
       onValueChange={(option) => {
         const month = months.find((item) => item.key === option?.value);
         if (month?.ended && (!selected || month.key !== monthKey(selected))) onSelect(month);
       }}>
-      <SelectTrigger size="sm" accessibilityLabel="Chọn tháng Sổ bé ngoan" className="w-full">
-        <SelectValue placeholder="Chọn tháng Sổ bé ngoan" />
+      <SelectTrigger size="sm" accessibilityLabel={t('Chọn tháng Sổ bé ngoan')} className="w-full">
+        <SelectValue placeholder={t('Chọn tháng Sổ bé ngoan')} />
       </SelectTrigger>
       <SelectContent className="min-w-[245px]">
         <ScrollView style={{ maxHeight: 340 }} keyboardShouldPersistTaps="handled">
@@ -28,7 +33,7 @@ export function SchoolMonthPicker({ months, selected, disabled, onSelect }) {
             <SelectItem
               key={month.key}
               value={month.key}
-              label={`${monthLabel(month)} · ${month.status}`}
+              label={`${monthLabel(month, locale)} · ${t(month.status)}`}
               disabled={!month.ended}
             />
           ))}

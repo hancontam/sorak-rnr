@@ -4,8 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
+import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
-import { reportError } from '../utils/report-format';
+import { reportError, schoolYearValue, semesterDateRange } from '../utils/report-format';
 import { ReportRecord } from './ReportRecord';
 import { ReportState } from './ReportState';
 import { StudentProfile } from './StudentProfile';
@@ -26,6 +27,8 @@ const semesters = [
 ];
 
 export function StudentReport({ query, error, semester, onSemesterChange }) {
+  const t = useTranslation();
+  const locale = useLocale();
   const [section, setSection] = useState('profile');
   const list = useRef(null);
   const report = query.data;
@@ -63,14 +66,18 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
           onChange={onSemesterChange}
         />
         <Text className="text-[10px] text-muted-foreground">
-          {report.semesterInfo.activeDateRangeLabel || report.classInfo.schoolYear}
+          {report.semesterInfo.activeDateRangeLabel
+            ? semesterDateRange(report.semesterInfo.activeDateRangeLabel, locale)
+            : report.classInfo.schoolYear
+              ? t('Năm học {year}', { year: schoolYearValue(report.classInfo.schoolYear) })
+              : null}
         </Text>
         <Tabs value={section} onValueChange={switchSection}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <TabsList className="h-8 bg-transparent p-0">
               {sections.map(([value, label]) => (
                 <TabsTrigger key={value} value={value} hitSlop={5} className="h-8 px-3">
-                  <Text className="text-xs">{label}</Text>
+                  <Text className="text-xs">{t(label)}</Text>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -95,26 +102,31 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
                 <WhoGrowthChart student={report.student} history={records} metric="height" />
                 <WhoGrowthChart student={report.student} history={records} metric="weight" />
                 <Text className="text-sm font-semibold">
-                  Lịch sử đo sức khỏe · {records.length} đợt
+                  {t('Lịch sử đo sức khỏe · {count} đợt', { count: records.length })}
                 </Text>
               </>
             ) : null}
             {section === 'attendance' ? (
               <Text className="text-xs leading-5 text-muted-foreground">
-                {records.length} ngày có bản ghi
+                {t('{count} ngày có bản ghi', { count: records.length })}
                 {records.length && typeof report.attendance.attendanceRate === 'number'
-                  ? ` · Chuyên cần ${report.attendance.attendanceRate}%`
+                  ? ` · ${t('Chuyên cần {rate}', {
+                      rate: (report.attendance.attendanceRate / 100).toLocaleString(locale, {
+                        style: 'percent',
+                        maximumFractionDigits: 2,
+                      }),
+                    })}`
                   : ''}
               </Text>
             ) : null}
             {section === 'assessments' ? (
               <Text className="text-xs text-muted-foreground">
-                {records.length} bản ghi đánh giá hoạt động trong kỳ
+                {t('{count} bản ghi đánh giá hoạt động trong kỳ', { count: records.length })}
               </Text>
             ) : null}
             {section === 'authorizations' ? (
               <Text className="text-xs text-muted-foreground">
-                {records.length} đơn trong kỳ · Chỉ xem lịch sử
+                {t('{count} đơn trong kỳ · Chỉ xem lịch sử', { count: records.length })}
               </Text>
             ) : null}
           </View>
@@ -138,12 +150,13 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
 }
 
 function SemesterPicker({ value, onChange }) {
+  const t = useTranslation();
   return (
     <Tabs value={value || ''} onValueChange={onChange}>
       <TabsList className="h-8 w-full">
         {semesters.map(([key, label]) => (
           <TabsTrigger key={key} value={key} hitSlop={5} className="h-7 flex-1">
-            <Text className="text-[11px]">{label}</Text>
+            <Text className="text-[11px]">{t(label)}</Text>
           </TabsTrigger>
         ))}
       </TabsList>

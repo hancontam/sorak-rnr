@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { ChildDayResults } from '../components/ChildDayResults';
 import { ScheduleState } from '../components/ScheduleState';
@@ -14,11 +15,14 @@ import {
   childDayResults,
   dayActivities,
   dayFrames,
+  routineTitle,
   timetableError,
 } from '../utils/timetable-model';
 
 export default function ScheduleActivityScreen() {
+  const t = useTranslation();
   const router = useRouter();
+  const locale = useLocale();
   const params = useLocalSearchParams();
   const date = typeof params.date === 'string' ? params.date : '';
   const slotId = typeof params.slotId === 'string' ? params.slotId : '';
@@ -48,30 +52,32 @@ export default function ScheduleActivityScreen() {
       ) : (
         <>
           <View className="gap-2">
-            <Text className="text-xs text-muted-foreground">{dayTitle(date)}</Text>
+            <Text className="text-xs text-muted-foreground">{dayTitle(date, locale)}</Text>
             <Text className="text-xs text-muted-foreground">
-              {frame?.title}
+              {frame && routineTitle(frame, isParent, t)}
               {frame?.start ? ` · ${frame.start}` : ''}
               {frame?.end ? `–${frame.end}` : ''}
             </Text>
-            <Text className="text-lg font-semibold leading-6">{activity.title}</Text>
+            <Text className="text-lg font-semibold leading-6">
+              {activity.title || t('Hoạt động chưa có tên')}
+            </Text>
             {activity.status ? (
               <Badge variant="secondary" className="self-start">
-                <Text className="text-[11px]">{activity.status}</Text>
+                <Text className="text-[11px]">{t(activity.status)}</Text>
               </Badge>
             ) : null}
           </View>
           {[
-            ['Mục tiêu giáo dục', activity.goal],
-            ['Mục đích, yêu cầu', activity.objective],
-            ['Chuẩn bị', activity.preparation],
-            ['Tiến trình hoạt động', activity.procedure],
-            ...(!isParent ? [['Tiêu chí đánh giá', activity.criteria]] : []),
+            [t('Mục tiêu giáo dục'), activity.goal],
+            [t('Mục đích, yêu cầu'), activity.objective],
+            [t('Chuẩn bị'), activity.preparation],
+            [t('Tiến trình hoạt động'), activity.procedure],
+            ...(!isParent ? [[t('Tiêu chí đánh giá'), activity.criteria]] : []),
           ].map(([label, value]) => (
-            <Card key={label} className="gap-2 p-4 shadow-none">
-              <Text className="text-sm font-semibold">{label}</Text>
+            <Card key={t(label)} className="gap-2 p-4 shadow-none">
+              <Text className="text-sm font-semibold">{t(label)}</Text>
               <Text className="text-xs leading-5 text-muted-foreground">
-                {value || 'Chưa có nội dung được cung cấp.'}
+                {value || t('Chưa có nội dung được cung cấp.')}
               </Text>
             </Card>
           ))}
@@ -90,7 +96,9 @@ export default function ScheduleActivityScreen() {
                   params: { kind: 'assessment', date, slotId },
                 })
               }>
-              <Text>{date > schoolToday() ? 'Xem đánh giá học sinh' : 'Đánh giá học sinh'}</Text>
+              <Text>
+                {date > schoolToday() ? t('Xem đánh giá học sinh') : t('Đánh giá học sinh')}
+              </Text>
             </Button>
           ) : null}
         </>

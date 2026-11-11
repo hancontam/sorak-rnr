@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 const LABELS = {
   PENDING: 'Chờ duyệt',
@@ -23,6 +24,7 @@ export function PickupRequestCard({
   onRejecting,
   onDirtyChange,
 }) {
+  const t = useTranslation();
   const [reason, setReason] = useState('');
   useEffect(() => {
     if (rejecting) onDirtyChange(Boolean(reason.trim()));
@@ -32,13 +34,15 @@ export function PickupRequestCard({
   return (
     <Card className="gap-2 p-4 shadow-none">
       <View className="flex-row flex-wrap items-center justify-between gap-2">
-        <Text className="text-sm font-semibold">{request.pickupPersonName || 'Người đón trẻ'}</Text>
+        <Text className="text-sm font-semibold">
+          {request.pickupPersonName || t('Người đón trẻ')}
+        </Text>
         <Badge variant="secondary">
-          <Text>{LABELS[request.status] || 'Chưa rõ trạng thái'}</Text>
+          <Text>{t(LABELS[request.status] || 'Chưa rõ trạng thái')}</Text>
         </Badge>
       </View>
       {request.student?.name ? (
-        <Text className="text-sm">Học sinh {request.student.name}</Text>
+        <Text className="text-sm">{t('Học sinh {name}', { name: request.student.name })}</Text>
       ) : null}
       <Text className="text-xs text-muted-foreground">
         {[request.relationship, request.pickupPersonPhone].filter(Boolean).join(' · ')}
@@ -52,7 +56,7 @@ export function PickupRequestCard({
       ) : null}
       {pending && isParent ? (
         <Button size="sm" variant="outline" disabled={disabled} onPress={() => onAction('cancel')}>
-          <Text>Hủy đơn</Text>
+          <Text>{t('Hủy đơn')}</Text>
         </Button>
       ) : null}
       {pending && !isParent ? (
@@ -62,8 +66,8 @@ export function PickupRequestCard({
               value={reason}
               onChangeText={setReason}
               editable={!disabled}
-              placeholder="Nhập lý do từ chối"
-              accessibilityLabel="Lý do từ chối"
+              placeholder={t('Nhập lý do từ chối')}
+              accessibilityLabel={t('Lý do từ chối')}
               maxLength={500}
               className="text-sm"
             />
@@ -72,27 +76,27 @@ export function PickupRequestCard({
               variant="destructive"
               disabled={disabled || !reason.trim()}
               onPress={() => onAction('reject', { reason: reason.trim() })}>
-              <Text>Xác nhận từ chối</Text>
+              <Text>{t('Xác nhận từ chối')}</Text>
             </Button>
             <Button
               size="sm"
               variant="outline"
               disabled={disabled}
               onPress={() => onRejecting(false)}>
-              <Text>Quay lại</Text>
+              <Text>{t('Quay lại')}</Text>
             </Button>
           </View>
         ) : (
           <View className="flex-row flex-wrap gap-2">
             <Button size="sm" disabled={disabled} onPress={() => onAction('approve')}>
-              <Text>Duyệt</Text>
+              <Text>{t('Duyệt')}</Text>
             </Button>
             <Button
               size="sm"
               variant="outline"
               disabled={disabled}
               onPress={() => onRejecting(true)}>
-              <Text>Từ chối</Text>
+              <Text>{t('Từ chối')}</Text>
             </Button>
           </View>
         )

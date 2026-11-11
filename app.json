@@ -2,38 +2,44 @@
   "expo": {
     "name": "sorak-rnr",
     "slug": "sorak-rnr",
+    "owner": "hancontam",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/sorak-app-icon.png",
     "scheme": "sorak-rnr",
     "userInterfaceStyle": "automatic",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sorak.rnr"
     },
     "android": {
+      "package": "com.sorak.rnr",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/sorak-adaptive-icon.png",
         "backgroundColor": "#ffffff"
       }
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/sorak-favicon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash.png",
+          "image": "./assets/images/sorak-splash.png",
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
       ],
       "expo-status-bar",
       "expo-secure-store",
+      "expo-notifications",
       [
         "expo-image-picker",
         {
@@ -42,6 +48,12 @@
           "microphonePermission": false
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "35b5c14a-dcd4-400f-8662-e3c5d55b112f"
+      }
+    }
   }
 }

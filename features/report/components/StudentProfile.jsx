@@ -5,12 +5,15 @@ import { Phone } from 'lucide-react-native';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
-import { formatDate, formatGender } from '../utils/report-format';
+import { formatDate, formatGender, schoolYearValue } from '../utils/report-format';
 import { ReportFields } from './ReportFields';
 import { ReportState } from './ReportState';
 
 export function StudentProfile({ report }) {
+  const t = useTranslation();
+  const locale = useLocale();
   const { student, classInfo } = report;
   const [callError, setCallError] = useState('');
   const parents = student.parents;
@@ -30,16 +33,16 @@ export function StudentProfile({ report }) {
   return (
     <View className="gap-4">
       <ReportFields
-        title="Thông tin cá nhân"
+        title={t('Thông tin cá nhân')}
         fields={[
           ['Mã học sinh', student.studentCode],
           ['Họ và tên', student.fullName],
-          ['Giới tính', formatGender(student.gender)],
-          ['Ngày sinh', formatDate(student.dateOfBirth)],
+          ['Giới tính', t(formatGender(student.gender))],
+          ['Ngày sinh', t(formatDate(student.dateOfBirth, locale))],
           ...(student.address ? [['Địa chỉ', student.address]] : []),
         ]}
       />
-      <Text className="text-sm font-semibold">Phụ huynh & người giám hộ</Text>
+      <Text className="text-sm font-semibold">{t('Phụ huynh & người giám hộ')}</Text>
       {!Array.isArray(parents) || !parents.length ? (
         <ReportState title="Chưa có thông tin người giám hộ" />
       ) : (
@@ -57,9 +60,9 @@ export function StudentProfile({ report }) {
                 size="sm"
                 className="self-start"
                 onPress={() => call(parent.phone)}
-                accessibilityLabel={`Gọi ${parent.fullName}`}>
+                accessibilityLabel={t('Gọi {name}', { name: parent.fullName })}>
                 <Icon as={Phone} size={14} />
-                <Text className="text-xs">Liên hệ</Text>
+                <Text className="text-xs">{t('Liên hệ')}</Text>
               </Button>
             ) : null}
           </ReportFields>
@@ -67,14 +70,14 @@ export function StudentProfile({ report }) {
       )}
       {callError ? (
         <Text accessibilityRole="alert" className="text-xs text-destructive">
-          {callError}
+          {t(callError)}
         </Text>
       ) : null}
       <ReportFields
-        title="Lớp học"
+        title={t('Lớp học')}
         fields={[
           ['Lớp', classInfo.name],
-          ['Năm học', classInfo.schoolYear],
+          ['Năm học', schoolYearValue(classInfo.schoolYear)],
         ]}
       />
     </View>

@@ -5,8 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 export function SessionGate({ status, error, onRetry, onSignOut, children }) {
+  const t = useTranslation();
   if (status === 'signed-in' || status === 'signed-out') return children;
 
   return (
@@ -15,21 +17,25 @@ export function SessionGate({ status, error, onRetry, onSignOut, children }) {
         {status === 'restore-error' ? (
           <>
             <Alert icon={CircleAlert} variant="destructive">
-              <AlertTitle className="text-sm leading-5">Chưa thể mở phiên</AlertTitle>
-              <AlertDescription className="text-xs leading-4">{error}</AlertDescription>
+              <AlertTitle className="text-sm leading-5">{t('Chưa thể mở phiên')}</AlertTitle>
+              <AlertDescription className="text-xs leading-4">{t(error)}</AlertDescription>
             </Alert>
             <Button size="sm" onPress={onRetry}>
-              <Text className="text-xs">Thử lại</Text>
+              <Text className="text-xs">{t('Thử lại')}</Text>
             </Button>
             <Button variant="outline" size="sm" onPress={onSignOut}>
-              <Text className="text-xs">Thoát phiên trên thiết bị</Text>
+              <Text className="text-xs">{t('Thoát phiên trên thiết bị')}</Text>
             </Button>
           </>
         ) : (
           <>
             <ActivityIndicator size="small" />
             <Text className="text-center text-xs text-muted-foreground">
-              {status === 'restoring' ? 'Đang khôi phục phiên' : 'Đang đăng xuất'}
+              {status === 'restoring'
+                ? t('Đang khôi phục phiên')
+                : status === 'switching'
+                  ? t('Đang chuyển tài khoản')
+                  : t('Đang đăng xuất')}
             </Text>
           </>
         )}

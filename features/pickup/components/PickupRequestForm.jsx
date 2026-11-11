@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Text } from '@/components/ui/text';
 import { calendarDate, schoolToday } from '@/features/daily/utils/schedule-date';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 const FIELDS = [
   { name: 'pickup_person_name', label: 'Họ tên người đón', maxLength: 120 },
@@ -44,6 +45,7 @@ export function PickupRequestForm({
   onClose,
   onDirtyChange,
 }) {
+  const t = useTranslation();
   const initialDate = calendarDate(date) ? date : schoolToday();
   const [studentId, setStudentId] = useState(selectedStudentId);
   const [values, setValues] = useState(() => ({
@@ -101,11 +103,13 @@ export function PickupRequestForm({
 
   return (
     <Card className="gap-3 p-4 shadow-none">
-      <Text className="text-sm font-semibold">Tạo đơn ủy quyền đón trẻ</Text>
-      {student?.fullName ? <Text className="text-xs">Học sinh {student.fullName}</Text> : null}
+      <Text className="text-sm font-semibold">{t('Tạo đơn ủy quyền đón trẻ')}</Text>
+      {student?.fullName ? (
+        <Text className="text-xs">{t('Học sinh {name}', { name: student.fullName })}</Text>
+      ) : null}
       {!isParent ? (
         <View className="gap-1.5">
-          <Text className="text-xs">Học sinh được ủy quyền</Text>
+          <Text className="text-xs">{t('Học sinh được ủy quyền')}</Text>
           <Select
             disabled={disabled}
             value={
@@ -117,8 +121,8 @@ export function PickupRequestForm({
               setStudentId(option?.value || '');
               setError('');
             }}>
-            <SelectTrigger size="sm" accessibilityLabel="Chọn học sinh">
-              <SelectValue placeholder="Chọn học sinh" />
+            <SelectTrigger size="sm" accessibilityLabel={t('Chọn học sinh')}>
+              <SelectValue placeholder={t('Chọn học sinh')} />
             </SelectTrigger>
             <SelectContent>
               <ScrollView style={{ maxHeight: 260 }} keyboardShouldPersistTaps="handled">
@@ -133,18 +137,18 @@ export function PickupRequestForm({
             </SelectContent>
           </Select>
           <Text className="text-xs text-muted-foreground">
-            Đơn do giáo viên tạo được duyệt ngay. Người đón xuất hiện theo thời hạn hiệu lực.
+            {t('Đơn do giáo viên tạo được duyệt ngay. Người đón xuất hiện theo thời hạn hiệu lực.')}
           </Text>
         </View>
       ) : null}
       {FIELDS.map(({ name, label, ...props }) => (
         <View key={name} className="gap-1">
-          <Text className="text-xs">{label}</Text>
+          <Text className="text-xs">{t(label)}</Text>
           <Input
             {...props}
             value={values[name] || ''}
             editable={!disabled}
-            accessibilityLabel={label}
+            accessibilityLabel={t(label)}
             className="text-sm"
             onChangeText={(value) => setValues((current) => ({ ...current, [name]: value }))}
           />
@@ -152,11 +156,11 @@ export function PickupRequestForm({
       ))}
       {photo ? (
         <View className="gap-2">
-          <Text className="text-xs">Ảnh người được ủy quyền (không bắt buộc)</Text>
+          <Text className="text-xs">{t('Ảnh người được ủy quyền (không bắt buộc)')}</Text>
           {photo.asset ? (
             <Image
               source={{ uri: photo.asset.uri }}
-              accessibilityLabel="Ảnh người được ủy quyền"
+              accessibilityLabel={t('Ảnh người được ủy quyền')}
               style={{ width: 80, height: 80, borderRadius: 8 }}
             />
           ) : null}
@@ -167,7 +171,7 @@ export function PickupRequestForm({
               disabled={disabled}
               onPress={() => photo.choose(true)}>
               <Icon as={Camera} size={14} />
-              <Text>Chụp ảnh</Text>
+              <Text>{t('Chụp ảnh')}</Text>
             </Button>
             <Button
               size="sm"
@@ -175,35 +179,35 @@ export function PickupRequestForm({
               disabled={disabled}
               onPress={() => photo.choose(false)}>
               <Icon as={ImagePlus} size={14} />
-              <Text>Chọn ảnh</Text>
+              <Text>{t('Chọn ảnh')}</Text>
             </Button>
             {photo.asset ? (
               <Button size="sm" variant="ghost" disabled={disabled} onPress={photo.remove}>
-                <Text>Bỏ ảnh</Text>
+                <Text>{t('Bỏ ảnh')}</Text>
               </Button>
             ) : null}
           </View>
           {photo.busy ? (
-            <Text className="text-xs text-muted-foreground">Đang chuẩn bị ảnh…</Text>
+            <Text className="text-xs text-muted-foreground">{t('Đang chuẩn bị ảnh…')}</Text>
           ) : null}
           {photo.error ? (
             <>
-              <Text className="text-xs text-destructive">{photo.error}</Text>
+              <Text className="text-xs text-destructive">{t(photo.error)}</Text>
               {photo.asset && !photo.url ? (
                 <Button size="sm" variant="outline" disabled={disabled} onPress={photo.retry}>
-                  <Text>Tải ảnh lại</Text>
+                  <Text>{t('Tải ảnh lại')}</Text>
                 </Button>
               ) : null}
             </>
           ) : null}
         </View>
       ) : null}
-      {error ? <Text className="text-xs text-destructive">{error}</Text> : null}
+      {error ? <Text className="text-xs text-destructive">{t(error)}</Text> : null}
       <Button size="sm" disabled={disabled || (photo && !photo.ready)} onPress={send}>
-        <Text>{isParent ? 'Gửi đơn chờ duyệt' : 'Tạo ủy quyền đã duyệt'}</Text>
+        <Text>{isParent ? t('Gửi đơn chờ duyệt') : t('Tạo ủy quyền đã duyệt')}</Text>
       </Button>
       <Button size="sm" disabled={closingDisabled} variant="outline" onPress={onClose}>
-        <Text>Đóng form</Text>
+        <Text>{t('Đóng form')}</Text>
       </Button>
     </Card>
   );

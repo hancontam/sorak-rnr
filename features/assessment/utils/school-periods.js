@@ -1,5 +1,24 @@
 export const monthKey = ({ month, year }) => `${year}-${String(month).padStart(2, '0')}`;
-export const monthLabel = ({ month, year }) => `Tháng ${month}/${year}`;
+
+export function monthLabel({ month, year }, locale) {
+  if (locale !== 'en-US') return `Tháng ${month}/${year}`;
+  return new Intl.DateTimeFormat(locale, {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, month - 1)));
+}
+
+export function resultDateLabel(date, fallback, locale) {
+  if (locale !== 'en-US' || typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return fallback;
+  }
+  const parsed = new Date(`${date}T00:00:00Z`);
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) {
+    return fallback;
+  }
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(parsed);
+}
 
 export function schoolMonths(schoolYear, period, today) {
   const match =

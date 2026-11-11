@@ -85,6 +85,19 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 - Bundle JavaScript Android qua. Emulator nối Metro của `wt-rebuild` hiển thị Sổ bé ngoan của PH, các tháng và tuần theo API, cùng trạng thái chưa có phiếu. Chưa kiểm tra ghi phản hồi hoặc đánh dấu đọc từ app.
 - Đối chiếu bộ chọn tháng của web test2 và trường năm học trong API: GV/PH đều trả năm học 2026–2027. Bộ chọn mobile liệt kê tháng 9–5 theo năm học và chỉ mở tháng đã kết thúc. API GV trả khoảng ngày HK1 05/09/2026–15/01/2027, tính đến 11/11/2026 (48 ngày), và HK2 16/01/2027–31/05/2027 chưa bắt đầu. App hiển thị các giá trị từ response.
 
+## Nhật ký hoạt động và Expo Push trên test2 — 11/11/2026
+
+- `GET /parent/home` trả 200 với tài khoản PH. `data.student.id` khớp bé của phiên. Mảng `data.timeline` có 7 khung với `id/slot/time/title/description/status/objective/badge/isDone/notes`. Không thấy trường `data.routineSlots`. Context backend dùng tên biến `routineSlots` và trả ra dưới khóa `timeline`.
+- Mẫu test2 lúc kiểm tra đều `upcoming`, chưa có mục tiêu hoặc kết quả đã ghi. Chưa kiểm chứng ca có nhận xét thật. Context web có timeline mẫu dự phòng. Mobile dùng timeline từ API và hiển thị rỗng khi API trả mảng rỗng.
+- Guide push nêu `POST /notifications/device-token` nhận `deviceToken/platform/deviceName`, `DELETE` cùng đường dẫn nhận body `{deviceToken}`. Cả hai trả 401 khi thiếu phiên. Chưa nghiệm thu request có Expo Push Token thật, thao tác gỡ hoặc gửi/nhận trên thiết bị.
+- Expo `@hancontam/sorak-rnr` đã liên kết với project ID `35b5c14a-dcd4-400f-8662-e3c5d55b112f`. Firebase `sorak-mobile-test2` có Android app `com.sorak.rnr`. Đã bật FCM API, gắn service account có quyền FCM v1 cho đúng package trên Expo và xác nhận lại credential binding. APK nội bộ đã build/cài và mở trên Android emulator. Các bước cấu hình này chưa xác nhận gửi nhận push thực tế.
+- APK kiểm tra có đúng `google_app_id`, sender ID `345751878934` và project `sorak-mobile-test2` trong tài nguyên Android. Lượt thử emulator gặp `FirebaseMessaging SERVICE_NOT_AVAILABLE` và Turnstile hết thời gian chờ trước khi đăng nhập. Chưa xác nhận POST đăng ký thiết bị, nhận push hoặc điều hướng sau chạm; người dùng chọn kiểm tra trên điện thoại thật sau.
+
+### Multi-account PH — nghiệp vụ chốt ngày 11/11/2026
+
+- Mỗi mã HS là account độc lập. Mobile lưu nhiều phiên trên thiết bị, không gọi API tạo quan hệ anh/chị/em. Đổi account dùng token của account đó; dữ liệu PH vẫn lấy từ endpoint theo phiên, không thay studentId của account đang đăng nhập.
+- Đăng ký cùng Expo Push Token cho từng account dùng lại POST `/notifications/device-token` theo guide; gỡ riêng account bằng DELETE cùng endpoint và bearer của account đó. Payload push nối account qua studentId/studentCode, không qua tên. Chưa nghiệm thu đăng ký nhiều account, gỡ riêng hoặc push chuyển bé trên thiết bị thật; không coi kiểm tra logic mô phỏng là bằng chứng backend đã xử lý thành công các ca này.
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

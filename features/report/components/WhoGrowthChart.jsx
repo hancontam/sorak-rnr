@@ -5,14 +5,17 @@ import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { GROWTH_COLORS as colors, growthChartData } from '../utils/growth-chart';
 import { formatDate, formatGender, measurement } from '../utils/report-format';
 
 export function WhoGrowthChart({ student, history, metric }) {
+  const t = useTranslation();
+  const locale = useLocale();
   const [selected, setSelected] = useState(null);
   const chart = growthChartData(student, history, metric);
-  const title = metric === 'height' ? 'Chiều cao theo tuổi' : 'Cân nặng theo tuổi';
+  const title = t(metric === 'height' ? 'Chiều cao theo tuổi' : 'Cân nặng theo tuổi');
   const unit = metric === 'height' ? 'cm' : 'kg';
   const width = 320,
     height = 218,
@@ -47,12 +50,12 @@ export function WhoGrowthChart({ student, history, metric }) {
       <View className="gap-1">
         <Text className="text-sm font-semibold">{title}</Text>
         <Text className="text-[11px] text-muted-foreground">
-          {formatGender(student.gender)} · {unit} · 24–72 tháng
+          {t(formatGender(student.gender))} · {unit} · {t('24–72 tháng')}
         </Text>
       </View>
       {!chart.reference ? (
         <Text className="text-xs leading-5 text-muted-foreground">
-          Chưa có giới tính hợp lệ để chọn bảng tham chiếu WHO.
+          {t('Chưa có giới tính hợp lệ để chọn bảng tham chiếu WHO.')}
         </Text>
       ) : (
         <>
@@ -64,7 +67,9 @@ export function WhoGrowthChart({ student, history, metric }) {
               height={height}
               viewBox={`0 0 ${width} ${height}`}
               accessible
-              accessibilityLabel={`${title}. Số đo chi tiết nằm ngay bên dưới biểu đồ.`}>
+              accessibilityLabel={t('{title}. Số đo chi tiết nằm ngay bên dưới biểu đồ.', {
+                title,
+              })}>
               {[
                 [null, 1, colors.veryLow],
                 [1, 2, colors.low],
@@ -75,7 +80,15 @@ export function WhoGrowthChart({ student, history, metric }) {
               ))}
               {[0, 1, 2, 3, 4].map((i) => {
                 const value = chart.min + ((chart.max - chart.min) * i) / 4;
-                return <ReactGrid key={i} value={value} y={y(value)} left={left} right={right} />;
+                return (
+                  <ReactGrid
+                    key={i}
+                    label={value.toLocaleString(locale, { maximumFractionDigits: 1 })}
+                    y={y(value)}
+                    left={left}
+                    right={right}
+                  />
+                );
               })}
               {[24, 36, 48, 60, 72].map((age) => (
                 <SvgTick key={age} age={age} x={x(age)} top={top} bottom={bottom} />
@@ -115,7 +128,7 @@ export function WhoGrowthChart({ student, history, metric }) {
                 {unit}
               </SvgText>
               <SvgText x={167} y={212} textAnchor="middle" fontSize={10} fill={colors.text}>
-                Tháng tuổi tại ngày đo
+                {t('Tháng tuổi tại ngày đo')}
               </SvgText>
             </Svg>
           </View>
@@ -123,47 +136,61 @@ export function WhoGrowthChart({ student, history, metric }) {
             {legend.map(([color, label]) => (
               <View key={label} className="flex-row items-center gap-1.5">
                 <View style={{ backgroundColor: color, width: 9, height: 9, borderRadius: 2 }} />
-                <Text className="text-[10px] text-muted-foreground">{label}</Text>
+                <Text className="text-[10px] text-muted-foreground">{t(label)}</Text>
               </View>
             ))}
           </View>
           {current ? (
             <Text className="text-xs leading-5">
-              {current.record.roundName || 'Đợt đo'} · {formatDate(current.record.date)}
+              {current.record.roundName || t('Đợt đo')} · {formatDate(current.record.date, locale)}
               {'\n'}
-              {measurement(current.value, unit)} · {current.age.toFixed(2)} tháng tuổi
+              {measurement(current.value, unit, locale)} ·{' '}
+              {t('{age} tháng tuổi', {
+                age: current.age.toLocaleString(locale, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }),
+              })}
             </Text>
           ) : (
             <Text className="text-xs text-muted-foreground">
-              Chưa có số đo hợp lệ trong khung tuổi này.
+              {t('Chưa có số đo hợp lệ trong khung tuổi này.')}
             </Text>
           )}
           {chart.points.length > 1 ? (
             <View className="flex-row flex-wrap gap-2">
-              {chart.points.map((p, index) => (
-                <Button
-                  key={`${p.record.id}-${index}`}
-                  variant={current === p ? 'secondary' : 'outline'}
-                  size="sm"
-                  onPress={() => setSelected(p.record.id)}
-                  accessibilityLabel={`Xem số đo ngày ${formatDate(p.record.date)}`}>
-                  <Text className="text-[11px]">{formatDate(p.record.date)}</Text>
-                </Button>
-              ))}
+              {chart.points.map((p, index) => {
+                const date = formatDate(p.record.date, locale);
+                return (
+                  <Button
+                    key={`${p.record.id}-${index}`}
+                    variant={current === p ? 'secondary' : 'outline'}
+                    size="sm"
+                    onPress={() => setSelected(p.record.id)}
+                    accessibilityLabel={t('Xem số đo ngày {date}', { date })}>
+                    <Text className="text-[11px]">{date}</Text>
+                  </Button>
+                );
+              })}
             </View>
           ) : null}
         </>
       )}
       {chart.outside > 0 || chart.invalid > 0 ? (
         <Text className="text-[11px] leading-4 text-muted-foreground">
-          {chart.outside} đợt ngoài 24–72 tháng; {chart.invalid} đợt thiếu ngày hoặc số đo hợp lệ.
-          Xem đầy đủ trong lịch sử.
+          {t(
+            '{outside} đợt ngoài 24–72 tháng; {invalid} đợt thiếu ngày hoặc số đo hợp lệ. Xem đầy đủ trong lịch sử.',
+            { outside: chart.outside, invalid: chart.invalid }
+          )}
         </Text>
       ) : null}
       <Text className="text-[10px] leading-4 text-muted-foreground">
-        Nguồn WHO 2006 (24–60 tháng) và WHO 2007 (61–72 tháng). Vùng màu là tham chiếu; số đo lấy từ
-        hồ sơ trẻ.
-        {metric === 'weight' ? ' Cân nặng theo tuổi không dùng riêng để kết luận thừa cân.' : ''}
+        {t(
+          'Nguồn WHO 2006 (24–60 tháng) và WHO 2007 (61–72 tháng). Vùng màu là tham chiếu; số đo lấy từ hồ sơ trẻ.'
+        )}
+        {metric === 'weight'
+          ? ` ${t('Cân nặng theo tuổi không dùng riêng để kết luận thừa cân.')}`
+          : ''}
       </Text>
       <Button
         variant="link"
@@ -176,13 +203,13 @@ export function WhoGrowthChart({ student, history, metric }) {
               : 'https://www.who.int/tools/child-growth-standards/standards/weight-for-age'
           ).catch(() => {})
         }>
-        <Text className="text-[11px]">Bảng tham chiếu WHO</Text>
+        <Text className="text-[11px]">{t('Bảng tham chiếu WHO')}</Text>
       </Button>
     </Card>
   );
 }
 
-function ReactGrid({ value, y, left, right }) {
+function ReactGrid({ label, y, left, right }) {
   return (
     <>
       <Line
@@ -196,7 +223,7 @@ function ReactGrid({ value, y, left, right }) {
         opacity={0.3}
       />
       <SvgText x={left - 5} y={y + 3} fontSize={9} textAnchor="end" fill={colors.text}>
-        {Number(value.toFixed(1))}
+        {label}
       </SvgText>
     </>
   );

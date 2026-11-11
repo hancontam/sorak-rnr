@@ -1,5 +1,12 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 export const WEEKDAY_LABELS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+const englishDayFormatter = new Intl.DateTimeFormat('en-US', {
+  weekday: 'long',
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
 
 // Calendar dates are school dates, not UTC timestamps or the device's timezone.
 export function schoolToday(now = new Date()) {
@@ -33,22 +40,26 @@ export function weekDates(value) {
   return Array.from({ length: 7 }, (_, index) => shiftDays(start, index));
 }
 
-export function shortDate(value) {
-  return `${Number(value.slice(8, 10))}/${Number(value.slice(5, 7))}`;
+export function shortDate(value, locale = 'vi-VN') {
+  const month = Number(value.slice(5, 7));
+  const day = Number(value.slice(8, 10));
+  return locale === 'en-US' ? `${month}/${day}` : `${day}/${month}`;
 }
 
-export function dayTitle(value) {
-  const day = calendarDate(value)?.getUTCDay();
-  if (day === undefined) return '';
+export function dayTitle(value, locale) {
+  const date = calendarDate(value);
+  if (!date) return '';
+  if (locale === 'en-US') return englishDayFormatter.format(date);
+  const day = date.getUTCDay();
   return `${['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'][day]}, ${shortDate(value)}/${value.slice(0, 4)}`;
 }
 
-export function weekLabel(dates) {
+export function weekLabel(dates, locale, t) {
   const [start] = dates;
   const end = dates[6];
   return start.slice(0, 7) === end.slice(0, 7)
-    ? `Tuần ${Number(start.slice(8))}–${Number(end.slice(8))}`
-    : `${shortDate(start)}–${shortDate(end)}`;
+    ? t('Tuần {from}–{to}', { from: Number(start.slice(8)), to: Number(end.slice(8)) })
+    : `${shortDate(start, locale)}–${shortDate(end, locale)}`;
 }
 
 export function selectMonth(date, year, month) {

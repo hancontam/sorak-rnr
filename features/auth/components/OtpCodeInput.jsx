@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 export function OtpCodeInput({ otp, onChange, onSubmit, pending, typography }) {
+  const t = useTranslation();
   const [focused, setFocused] = useState(false);
   return (
     <View className="relative">
@@ -20,7 +22,7 @@ export function OtpCodeInput({ otp, onChange, onSubmit, pending, typography }) {
       </View>
       <TextInput
         className="absolute inset-0 h-full w-full opacity-0"
-        accessibilityLabel="Mã xác thực, 6 chữ số"
+        accessibilityLabel={t('Mã xác thực, 6 chữ số')}
         keyboardType="number-pad"
         autoComplete="one-time-code"
         caretHidden

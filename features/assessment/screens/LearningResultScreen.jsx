@@ -10,12 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { Textarea } from '@/components/ui/textarea';
 import { schoolToday } from '@/features/daily/utils/schedule-date';
+import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { MonthlyResultCard, SemesterResultCard } from '../components/ResultCards';
 import { SchoolMonthPicker } from '../components/SchoolMonthPicker';
 import { TeacherWebsiteNotice } from '../components/TeacherWebsiteNotice';
 import { useLearningResults } from '../hooks/useLearningResults';
-import { monthKey, monthLabel, schoolMonths } from '../utils/school-periods';
+import { monthKey, monthLabel, resultDateLabel, schoolMonths } from '../utils/school-periods';
 
 const SEMESTERS = [
   ['SEMESTER_1', 'Học kỳ 1'],
@@ -44,6 +45,8 @@ function Empty({ text }) {
 }
 
 export default function LearningResultScreen() {
+  const locale = useLocale();
+  const t = useTranslation();
   const { kind } = useLocalSearchParams();
   const [period, setPeriod] = useState();
   const [semester, setSemester] = useState(SEMESTERS[0][0]);
@@ -61,7 +64,19 @@ export default function LearningResultScreen() {
   const monthNotEnded =
     selectedMonth && months.some((month) => month.key === monthKey(selectedMonth) && !month.ended);
   const semesterDates = !monthly && !parent ? data?.classInfo?.semesterDates : null;
-  const calculatedUntil = !monthly && !parent ? data?.classInfo?.calculatedUntilVN : null;
+  const semesterStart = resultDateLabel(
+    semesterDates?.startDate,
+    semesterDates?.startDateVN,
+    locale
+  );
+  const semesterEnd = resultDateLabel(semesterDates?.endDate, semesterDates?.endDateVN, locale);
+  const semesterRange =
+    locale === 'en-US' && semesterStart && semesterEnd
+      ? `${semesterStart} – ${semesterEnd}`
+      : semesterDates?.dateRangeLabel;
+  const calculatedUntil = semesterDates
+    ? resultDateLabel(data.classInfo.calculatedUntil, data.classInfo.calculatedUntilVN, locale)
+    : null;
   const schoolDays = data?.classInfo?.totalSchoolDays;
   const weeks = monthly ? (parent ? data?.monthWeeks?.length : data?.classInfo?.totalWeeks) : 0;
   const shownWeek = week <= weeks ? week : 0;
@@ -100,7 +115,13 @@ export default function LearningResultScreen() {
         ? 'Chưa tải được kết quả học tập. Vui lòng thử lại.'
         : query.error?.message
       : '');
-  const title = monthly ? 'Sổ bé ngoan' : 'Kết quả học kỳ';
+  const title = t(monthly ? 'Sổ bé ngoan' : 'Kết quả học kỳ');
+  const yearLabel =
+    typeof schoolYear === 'string'
+      ? schoolYear.replace(/^Năm học\s+(\d{4}\s*[-–—/]\s*\d{4})$/, (_, year) =>
+          t('Năm học {year}', { year })
+        )
+      : schoolYear;
   const header = (
     <View className="gap-3">
       {!parent ? <TeacherWebsiteNotice kind={kind} /> : null}
@@ -112,13 +133,15 @@ export default function LearningResultScreen() {
           onSelect={selectMonth}
         />
       ) : null}
-      {semesterDates?.dateRangeLabel && !error ? (
+      {semesterRange && !error ? (
         <Card className="gap-1 p-3 shadow-none">
-          <Text className="text-xs font-medium">{semesterDates.dateRangeLabel}</Text>
+          <Text className="text-xs font-medium">{semesterRange}</Text>
           <Text className="text-xs text-muted-foreground">
             {calculatedUntil
-              ? `Tính đến ${calculatedUntil}${Number.isInteger(schoolDays) ? ` (${schoolDays} ngày)` : ''}`
-              : semesterDates.statusLabel || 'Chưa có mốc tính kết quả'}
+              ? Number.isInteger(schoolDays)
+                ? t('Tính đến {date} ({days} ngày)', { date: calculatedUntil, days: schoolDays })
+                : t('Tính đến {date}', { date: calculatedUntil })
+              : t(semesterDates.statusLabel || 'Chưa có mốc tính kết quả')}
           </Text>
         </Card>
       ) : null}
@@ -127,7 +150,7 @@ export default function LearningResultScreen() {
           {SEMESTERS.map(([value, label]) => (
             <Option
               key={value}
-              label={label}
+              label={t(label)}
               selected={semester === value}
               onPress={() => setSemester(value)}
             />
@@ -142,12 +165,16 @@ export default function LearningResultScreen() {
           ).map((value) => (
             <Option
               key={value}
-              label={`Tuần ${value}`}
+              label={t('Tuần {week}', { week: value })}
               selected={shownWeek === value}
               onPress={() => setWeek(value)}
             />
           ))}
-          <Option label="Tổng kết tháng" selected={shownWeek === 0} onPress={() => setWeek(0)} />
+          <Option
+            label={t('Tổng kết tháng')}
+            selected={shownWeek === 0}
+            onPress={() => setWeek(0)}
+          />
           {rangeLabel ? (
             <Text className="w-full text-xs text-muted-foreground">{rangeLabel}</Text>
           ) : null}
@@ -155,21 +182,21 @@ export default function LearningResultScreen() {
       ) : null}
       {data?.classInfo?.name && !error ? (
         <Text className="text-xs text-muted-foreground">
-          {[data.classInfo.name, data.classInfo.schoolYear || data.classInfo.academicYear]
-            .filter(Boolean)
-            .join(' · ')}
+          {[data.classInfo.name, yearLabel].filter(Boolean).join(' · ')}
         </Text>
       ) : null}
       {!parent && data && !error ? (
         <Input
           value={search}
           onChangeText={setSearch}
-          accessibilityLabel="Tìm học sinh"
-          placeholder="Tìm theo tên hoặc mã học sinh"
+          accessibilityLabel={t('Tìm học sinh')}
+          placeholder={t('Tìm theo tên hoặc mã học sinh')}
           className="text-sm"
         />
       ) : null}
-      <ActionNotice message={result.message} />
+      {result.message ? (
+        <ActionNotice message={{ ...result.message, text: t(result.message.text) }} />
+      ) : null}
     </View>
   );
 
@@ -177,20 +204,24 @@ export default function LearningResultScreen() {
     if (error)
       return (
         <View className="gap-3">
-          <ActionNotice message={{ error: true, text: error }} />
+          <ActionNotice message={{ error: true, text: t(error) }} />
           {!result.error ? (
             <Button size="sm" variant="outline" onPress={() => query.refetch()}>
-              <Text>Thử lại</Text>
+              <Text>{t('Thử lại')}</Text>
             </Button>
           ) : null}
         </View>
       );
-    if (query.isPending) return <ActivityIndicator accessibilityLabel="Đang tải kết quả học tập" />;
-    if (monthNotEnded) return <Empty text="Kết quả tháng sẽ hiển thị sau khi tháng kết thúc." />;
-    if (semesterNotStarted) return <Empty text="Học kỳ này chưa bắt đầu." />;
+    if (query.isPending)
+      return <ActivityIndicator accessibilityLabel={t('Đang tải kết quả học tập')} />;
+    if (monthNotEnded)
+      return <Empty text={t('Kết quả tháng sẽ hiển thị sau khi tháng kết thúc.')} />;
+    if (semesterNotStarted) return <Empty text={t('Học kỳ này chưa bắt đầu.')} />;
     if (!parent)
       return (
-        <Empty text={queryText ? 'Không tìm thấy học sinh phù hợp.' : 'Chưa có kết quả cho lớp.'} />
+        <Empty
+          text={t(queryText ? 'Không tìm thấy học sinh phù hợp.' : 'Chưa có kết quả cho lớp.')}
+        />
       );
     if (!monthly)
       return semesterResult ? (
@@ -201,7 +232,7 @@ export default function LearningResultScreen() {
           parent
         />
       ) : (
-        <Empty text="Chưa công bố kết quả." />
+        <Empty text={t('Chưa công bố kết quả.')} />
       );
 
     return (
@@ -216,19 +247,19 @@ export default function LearningResultScreen() {
             parent
           />
         ) : (
-          <Empty text="Chưa có phiếu đánh giá tháng này." />
+          <Empty text={t('Chưa có phiếu đánh giá tháng này.')} />
         )}
         {data.record?.id && (shownWeek === 0 || feedback) ? (
           <Card className="gap-3 p-4 shadow-none">
-            <Text className="text-sm font-semibold">Phản hồi cho giáo viên</Text>
-            <Text className="text-xs text-muted-foreground">{monthLabel(data.period)}</Text>
+            <Text className="text-sm font-semibold">{t('Phản hồi cho giáo viên')}</Text>
+            <Text className="text-xs text-muted-foreground">{monthLabel(data.period, locale)}</Text>
             {feedback ? (
               <>
                 <Textarea
                   value={feedback.value}
                   editable={!saving}
-                  accessibilityLabel="Nội dung phản hồi"
-                  placeholder="Nhập nội dung phản hồi"
+                  accessibilityLabel={t('Nội dung phản hồi')}
+                  placeholder={t('Nhập nội dung phản hồi')}
                   className="text-sm"
                   onChangeText={(value) => setFeedback((current) => ({ ...current, value }))}
                 />
@@ -237,21 +268,21 @@ export default function LearningResultScreen() {
                     size="sm"
                     disabled={saving || !dirty || !feedback.value.trim()}
                     onPress={submitFeedback}>
-                    <Text>{saving ? 'Đang gửi…' : 'Gửi phản hồi'}</Text>
+                    <Text>{t(saving ? 'Đang gửi…' : 'Gửi phản hồi')}</Text>
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     disabled={saving}
                     onPress={() => discard(() => setFeedback(null))}>
-                    <Text>Đóng</Text>
+                    <Text>{t('Đóng')}</Text>
                   </Button>
                 </View>
               </>
             ) : (
               <>
                 <Text className="text-xs leading-5">
-                  {data.record.parentFeedback || 'Chưa có phản hồi.'}
+                  {data.record.parentFeedback || t('Chưa có phản hồi.')}
                 </Text>
                 <Button
                   size="sm"
@@ -261,7 +292,7 @@ export default function LearningResultScreen() {
                     const original = data.record.parentFeedback || '';
                     setFeedback({ original, value: original });
                   }}>
-                  <Text>{data.record.parentFeedback ? 'Sửa phản hồi' : 'Viết phản hồi'}</Text>
+                  <Text>{t(data.record.parentFeedback ? 'Sửa phản hồi' : 'Viết phản hồi')}</Text>
                 </Button>
               </>
             )}

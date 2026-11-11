@@ -8,6 +8,7 @@ import { useAuthStore } from '@/features/auth/store/auth.store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { DailyRecordCard } from '../components/DailyRecordCard';
 import { PickupRecordCard } from '../components/PickupRecordCard';
@@ -34,7 +35,9 @@ export default function DailyRecordsScreen() {
 }
 
 function DailyRecordsForm({ kind, date, slotId }) {
+  const t = useTranslation();
   const router = useRouter();
+  const locale = useLocale();
   const form = useDailyRecords({ kind, date, slotId });
   const [search, setSearch] = useState('');
   const confirmDiscard = useUnsavedChanges(form.hasUserEdits, form.isSaving);
@@ -54,26 +57,28 @@ function DailyRecordsForm({ kind, date, slotId }) {
   ).length;
 
   function confirmPickup(row) {
-    const title = `Xác nhận đón ${row.student.name}?`;
+    const title = t('Xác nhận đón {name}?', { name: row.student.name });
     const person = pickupOptions(row.student).find((item) => item.key === row.value.personKey);
-    const detail = [person?.name, dayTitle(date), row.value.time].filter(Boolean).join(' · ');
+    const detail = [person?.name, dayTitle(date, locale), row.value.time]
+      .filter(Boolean)
+      .join(' · ');
     if (Platform.OS === 'web') {
       if (globalThis.confirm(`${title}\n${detail}`)) form.save(row.id);
       return;
     }
     Alert.alert(title, detail, [
-      { text: 'Hủy', style: 'cancel' },
-      { text: 'Xác nhận', onPress: () => form.save(row.id) },
+      { text: t('Hủy'), style: 'cancel' },
+      { text: t('Xác nhận'), onPress: () => form.save(row.id) },
     ]);
   }
 
   function confirmUndoPickup(row) {
-    const title = 'Hủy ghi nhận đón trẻ?';
+    const title = t('Hủy ghi nhận đón trẻ?');
     const name = row.student.name || row.student.code;
     const detail = [
-      `${name} · ${dayTitle(date)}`,
-      'Bé sẽ về trạng thái Chưa đón. Điểm danh và đơn ủy quyền vẫn được giữ.',
-      row.changed && 'Các chỉnh sửa chưa lưu trên thẻ này sẽ bị bỏ.',
+      `${name} · ${dayTitle(date, locale)}`,
+      t('Bé sẽ về trạng thái Chưa đón. Điểm danh và đơn ủy quyền vẫn được giữ.'),
+      row.changed && t('Các chỉnh sửa chưa lưu trên thẻ này sẽ bị bỏ.'),
     ]
       .filter(Boolean)
       .join('\n');
@@ -82,14 +87,14 @@ function DailyRecordsForm({ kind, date, slotId }) {
       return;
     }
     Alert.alert(title, detail, [
-      { text: 'Giữ ghi nhận', style: 'cancel' },
-      { text: 'Hủy ghi nhận', style: 'destructive', onPress: () => form.undoPickup(row.id) },
+      { text: t('Giữ ghi nhận'), style: 'cancel' },
+      { text: t('Hủy ghi nhận'), style: 'destructive', onPress: () => form.undoPickup(row.id) },
     ]);
   }
 
   return (
     <View className="flex-1 bg-background">
-      <Stack.Screen options={{ title: DAILY_ACTIONS[kind] || 'Ghi nhận' }} />
+      <Stack.Screen options={{ title: t(DAILY_ACTIONS[kind] || 'Ghi nhận') }} />
       <FlatList
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8"
@@ -99,50 +104,67 @@ function DailyRecordsForm({ kind, date, slotId }) {
         keyExtractor={(row) => row.id}
         ListHeaderComponent={
           <View className="gap-3">
-            <Text className="text-sm font-semibold">{dayTitle(date)}</Text>
-            {form.slot ? <Text className="text-sm">{form.slot.title}</Text> : null}
+            <Text className="text-sm font-semibold">{dayTitle(date, locale)}</Text>
+            {form.slot ? (
+              <Text className="text-sm">{form.slot.title || t('Hoạt động chưa có tên')}</Text>
+            ) : null}
             {kind === 'pickup' && !form.loading && !form.error ? (
               <View className="gap-1">
                 <Text className="text-sm font-semibold">
-                  Đã đón {dismissed}/{form.rows.length} học sinh
+                  {t('Đã đón {pickedUp}/{total} học sinh', {
+                    pickedUp: dismissed,
+                    total: form.rows.length,
+                  })}
                 </Text>
                 <Text className="text-xs text-muted-foreground">
-                  {awaitingPickup} chưa đón · {absent} vắng · {unrecorded} chưa điểm danh
+                  {t('{awaiting} chưa đón · {absent} vắng · {unrecorded} chưa điểm danh', {
+                    awaiting: awaitingPickup,
+                    absent,
+                    unrecorded,
+                  })}
                 </Text>
                 <Text className="text-xs text-muted-foreground">
-                  Chọn người đón và xác nhận từng bé. Tạo ủy quyền chỉ bổ sung người vào danh sách,
-                  chưa ghi nhận đã đón.
+                  {t(
+                    'Chọn người đón và xác nhận từng bé. Tạo ủy quyền chỉ bổ sung người vào danh sách, chưa ghi nhận đã đón.'
+                  )}
                 </Text>
               </View>
             ) : null}
             {!form.canEdit && !form.error ? (
-              <Text className="text-xs text-muted-foreground">Ngày này chỉ xem.</Text>
+              <Text className="text-xs text-muted-foreground">{t('Ngày này chỉ xem.')}</Text>
             ) : null}
-            <ActionNotice message={form.message} />
+            <ActionNotice
+              message={
+                form.message && { ...form.message, text: t(form.message.text, form.message.values) }
+              }
+            />
             {kind === 'health' ? (
               <Text className="text-xs text-muted-foreground">
-                Nhập đủ chiều cao và cân nặng cho tất cả học sinh có mặt. Học sinh vắng không được
-                gửi số đo mới.
+                {t(
+                  'Nhập đủ chiều cao và cân nặng cho tất cả học sinh có mặt. Học sinh vắng không được gửi số đo mới.'
+                )}
               </Text>
             ) : null}
             {form.needsReload ? (
               <Button size="sm" variant="outline" onPress={reload}>
-                <Text>Tải lại dữ liệu</Text>
+                <Text>{t('Tải lại dữ liệu')}</Text>
               </Button>
             ) : null}
             {form.rows.length > 0 ? (
               <Input
                 value={search}
                 onChangeText={setSearch}
-                accessibilityLabel="Tìm học sinh"
-                placeholder="Tìm theo tên hoặc mã học sinh"
+                accessibilityLabel={t('Tìm học sinh')}
+                placeholder={t('Tìm theo tên hoặc mã học sinh')}
                 className="text-sm"
               />
             ) : null}
             {(kind === 'attendance' || kind === 'assessment') && canChange ? (
               <Text className="text-xs text-muted-foreground">
-                {kind === 'attendance' ? 'Có mặt' : 'Đạt'} được chọn sẵn cho dòng chưa ghi. Kiểm tra
-                đủ {form.rows.length} học sinh rồi bấm Lưu; tìm kiếm không giới hạn danh sách gửi.
+                {t(
+                  '{status} được chọn sẵn cho dòng chưa ghi. Kiểm tra đủ {count} học sinh rồi bấm Lưu; tìm kiếm không giới hạn danh sách gửi.',
+                  { status: t(kind === 'attendance' ? 'Có mặt' : 'Đạt'), count: form.rows.length }
+                )}
               </Text>
             ) : null}
             {kind === 'pickup' && !form.error ? (
@@ -156,7 +178,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
                     params: { date },
                   })
                 }>
-                <Text>Yêu cầu ủy quyền</Text>
+                <Text>{t('Yêu cầu ủy quyền')}</Text>
               </Button>
             ) : null}
           </View>
@@ -205,7 +227,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
               size="sm"
               disabled={!canChange || !form.hasChangesToSave}
               onPress={() => form.save()}>
-              <Text>{form.isSaving ? 'Đang lưu và kiểm tra…' : 'Lưu ghi nhận'}</Text>
+              <Text>{form.isSaving ? t('Đang lưu và kiểm tra…') : t('Lưu ghi nhận')}</Text>
             </Button>
           ) : null
         }

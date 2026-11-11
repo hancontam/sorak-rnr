@@ -7,11 +7,12 @@ import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { ReportState } from '../components/ReportState';
 import { StudentSummary } from '../components/StudentSummary';
 import { useClassStudents } from '../hooks/useClassStudents';
-import { formatDate, formatGender, reportError } from '../utils/report-format';
+import { formatDate, formatGender, reportError, schoolYearValue } from '../utils/report-format';
 
 function searchText(value) {
   return String(value || '')
@@ -23,6 +24,8 @@ function searchText(value) {
 }
 
 export default function TeacherOverviewScreen() {
+  const t = useTranslation();
+  const locale = useLocale();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const { assignment, query } = useClassStudents();
@@ -56,9 +59,9 @@ export default function TeacherOverviewScreen() {
         ListHeaderComponent={
           <View className="gap-4 pb-1">
             <View className="gap-1">
-              <Text className="text-xl font-semibold">Tổng quan lớp</Text>
+              <Text className="text-xl font-semibold">{t('Tổng quan lớp')}</Text>
               <Text className="text-xs text-muted-foreground">
-                Theo dõi hồ sơ và quá trình học của trẻ
+                {t('Theo dõi hồ sơ và quá trình học của trẻ')}
               </Text>
             </View>
             {query.data ? (
@@ -68,21 +71,23 @@ export default function TeacherOverviewScreen() {
                   <Text className="text-sm font-semibold">{query.data.class.name}</Text>
                 </View>
                 <Text className="text-xs text-muted-foreground">
-                  {query.data.students.length} học sinh
+                  {t('{count} học sinh', { count: query.data.students.length })}
                   {query.data.class.academicYear
-                    ? ` · Năm học ${query.data.class.academicYear}`
+                    ? ` · ${t('Năm học {year}', {
+                        year: schoolYearValue(query.data.class.academicYear),
+                      })}`
                     : ''}
                 </Text>
               </Card>
             ) : null}
             <View className="gap-2">
-              <Text className="text-sm font-semibold">Danh sách học sinh</Text>
+              <Text className="text-sm font-semibold">{t('Danh sách học sinh')}</Text>
               <View className="relative justify-center">
                 <Input
                   value={search}
                   onChangeText={setSearch}
-                  placeholder="Tìm tên hoặc mã học sinh…"
-                  accessibilityLabel="Tìm học sinh"
+                  placeholder={t('Tìm tên hoặc mã học sinh…')}
+                  accessibilityLabel={t('Tìm học sinh')}
                   autoCorrect={false}
                   className="h-[34px] rounded-xl pl-9 text-xs"
                 />
@@ -112,7 +117,7 @@ export default function TeacherOverviewScreen() {
         renderItem={({ item }) => (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Xem hồ sơ ${item.fullName}`}
+            accessibilityLabel={t('Xem hồ sơ {name}', { name: item.fullName || t('Học sinh') })}
             onPress={() =>
               router.push({
                 pathname: '/(teacher)/student/[studentId]',
@@ -123,7 +128,8 @@ export default function TeacherOverviewScreen() {
               <StudentSummary student={item} />
               <View className="flex-row items-center gap-2">
                 <Text className="min-w-0 flex-1 text-[11px] leading-4 text-muted-foreground">
-                  {formatGender(item.gender)} · Sinh {formatDate(item.dateOfBirth)}
+                  {t(formatGender(item.gender))} ·{' '}
+                  {t('Sinh {date}', { date: t(formatDate(item.dateOfBirth, locale)) })}
                 </Text>
                 <Icon as={ChevronRight} size={14} className="text-muted-foreground" />
               </View>

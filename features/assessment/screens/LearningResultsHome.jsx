@@ -7,6 +7,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { TeacherWebsiteNotice } from '../components/TeacherWebsiteNotice';
 
@@ -28,14 +29,15 @@ const SECTIONS = [
 export default function LearningResultsHome() {
   const router = useRouter();
   const parent = useAuthStore((state) => state.user?.role === AUTH_ROLES.parent);
+  const t = useTranslation();
   return (
     <ScrollView
       className="flex-1 bg-background"
       contentContainerClassName="mx-auto w-full max-w-xl gap-4 p-4">
       <View className="gap-1">
-        <Text className="text-lg font-semibold">Kết quả học tập</Text>
+        <Text className="text-lg font-semibold">{t('Kết quả học tập')}</Text>
         <Text className="text-xs text-muted-foreground">
-          {parent ? 'Theo dõi kết quả của con' : 'Xem kết quả của lớp được phân công'}
+          {t(parent ? 'Theo dõi kết quả của con' : 'Xem kết quả của lớp được phân công')}
         </Text>
       </View>
       {!parent ? <TeacherWebsiteNotice /> : null}
@@ -57,8 +59,8 @@ export default function LearningResultsHome() {
               <Icon as={icon} size={19} />
             </View>
             <View className="min-w-0 flex-1 gap-1">
-              <Text className="text-sm font-semibold">{title}</Text>
-              <Text className="text-xs text-muted-foreground">{detail}</Text>
+              <Text className="text-sm font-semibold">{t(title)}</Text>
+              <Text className="text-xs text-muted-foreground">{t(detail)}</Text>
             </View>
             <Icon as={ChevronRight} size={16} className="text-muted-foreground" />
           </Card>

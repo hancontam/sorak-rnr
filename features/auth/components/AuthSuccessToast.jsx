@@ -6,11 +6,13 @@ import { FadeInDown, FadeOutUp, ReduceMotion } from 'react-native-reanimated';
 import { Icon } from '@/components/ui/icon';
 import { NativeOnlyAnimatedView } from '@/components/ui/native-only-animated-view';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 const toastEnter = FadeInDown.duration(200).reduceMotion(ReduceMotion.System);
 const toastExit = FadeOutUp.duration(160).reduceMotion(ReduceMotion.System);
 
 export function AuthSuccessToast({ title, description, typography, onDismiss }) {
+  const t = useTranslation();
   const swipe = useMemo(
     () =>
       PanResponder.create({
@@ -34,7 +36,7 @@ export function AuthSuccessToast({ title, description, typography, onDismiss }) 
       exiting={toastExit}
       accessible
       accessibilityLiveRegion="polite"
-      accessibilityActions={[{ name: 'dismiss', label: 'Tắt thông báo' }]}
+      accessibilityActions={[{ name: 'dismiss', label: t('Tắt thông báo') }]}
       onAccessibilityAction={({ nativeEvent }) => {
         if (nativeEvent.actionName === 'dismiss') onDismiss();
       }}

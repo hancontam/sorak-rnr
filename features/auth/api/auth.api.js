@@ -94,8 +94,11 @@ export async function resetPassword({ identifier, resetToken, password }, signal
   );
 }
 
-export async function getCurrentUser() {
-  return readUser(readData(await apiClient.get('/auth/me')).user);
+export async function getCurrentUser(accessToken) {
+  const config = accessToken
+    ? { skipSession: true, headers: { Authorization: `Bearer ${accessToken}` } }
+    : undefined;
+  return readUser(readData(await apiClient.get('/auth/me', config)).user);
 }
 
 export async function refreshTokens(refreshToken) {

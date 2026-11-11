@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { isAbsent, pickupOptions } from '../utils/daily-records';
 import { schoolClock } from '../utils/schedule-date';
@@ -26,6 +27,7 @@ export function PickupRecordCard({
   onUndoPickup,
   onCreateAuthorization,
 }) {
+  const t = useTranslation();
   const { student, value } = row;
   const people = pickupOptions(student);
   const selected = people.find((person) => person.key === value.personKey);
@@ -47,7 +49,7 @@ export function PickupRecordCard({
           <Text className="text-xs text-muted-foreground">{student.code}</Text>
         </View>
         <Badge variant={student.isDismissed ? 'brand' : 'secondary'}>
-          <Text className="text-[11px]">{status}</Text>
+          <Text className="text-[11px]">{t(status)}</Text>
         </Badge>
       </View>
       {student.isDismissed ? (
@@ -60,18 +62,20 @@ export function PickupRecordCard({
       {!student.isPresent ? (
         <Text className="text-xs text-muted-foreground">
           {isAbsent(student)
-            ? 'Học sinh vắng trong ngày này, không ghi nhận đón trẻ.'
-            : 'Chưa có điểm danh Có mặt. Hoàn tất điểm danh rồi quay lại ghi nhận đón trẻ.'}
+            ? t('Học sinh vắng trong ngày này, không ghi nhận đón trẻ.')
+            : t('Chưa có điểm danh Có mặt. Hoàn tất điểm danh rồi quay lại ghi nhận đón trẻ.')}
         </Text>
       ) : null}
       <View className="gap-1.5">
-        <Text className="text-xs">Người đón</Text>
+        <Text className="text-xs">{t('Người đón')}</Text>
         <Select
           disabled={!canWrite || !people.length}
           value={selected ? { value: selected.key, label: personLabel(selected) } : undefined}
           onValueChange={(option) => onChange({ personKey: option?.value || '' })}>
-          <SelectTrigger size="sm" accessibilityLabel={`Người đón ${student.name}`}>
-            <SelectValue placeholder="Chọn người thân hoặc người được ủy quyền" />
+          <SelectTrigger
+            size="sm"
+            accessibilityLabel={t('Người đón {name}', { name: student.name })}>
+            <SelectValue placeholder={t('Chọn người thân hoặc người được ủy quyền')} />
           </SelectTrigger>
           <SelectContent>
             <ScrollView style={{ maxHeight: 240 }} keyboardShouldPersistTaps="handled">
@@ -86,19 +90,19 @@ export function PickupRecordCard({
         ) : null}
         {!people.length ? (
           <Text className="text-xs text-muted-foreground">
-            Chưa có người đón hợp lệ cho ngày này.
+            {t('Chưa có người đón hợp lệ cho ngày này.')}
           </Text>
         ) : null}
       </View>
       <View className="gap-1.5">
         <View className="flex-row items-center justify-between gap-2">
-          <Text className="text-xs">Giờ đón (HH:mm)</Text>
+          <Text className="text-xs">{t('Giờ đón (HH:mm)')}</Text>
           <Button
             size="sm"
             variant="ghost"
             disabled={!canWrite}
             onPress={() => onChange({ time: schoolClock(new Date()) })}>
-            <Text className="text-xs">Giờ hiện tại</Text>
+            <Text className="text-xs">{t('Giờ hiện tại')}</Text>
           </Button>
         </View>
         <Input
@@ -107,18 +111,18 @@ export function PickupRecordCard({
           editable={canWrite}
           maxLength={5}
           placeholder="HH:mm"
-          accessibilityLabel="Giờ đón"
+          accessibilityLabel={t('Giờ đón')}
           className="text-sm"
         />
       </View>
       <View className="gap-1.5">
-        <Text className="text-xs">Dặn dò phụ huynh</Text>
+        <Text className="text-xs">{t('Dặn dò phụ huynh')}</Text>
         <Input
           value={value.note}
           onChangeText={(note) => onChange({ note })}
           editable={canWrite}
           maxLength={500}
-          accessibilityLabel="Dặn dò phụ huynh"
+          accessibilityLabel={t('Dặn dò phụ huynh')}
           className="text-sm"
         />
       </View>
@@ -128,27 +132,31 @@ export function PickupRecordCard({
           !canWrite || !row.changed || !selected || !/^([01]\d|2[0-3]):[0-5]\d$/.test(value.time)
         }
         onPress={onPickup}>
-        <Text>{student.isDismissed ? 'Cập nhật ghi nhận đón trẻ' : 'Xác nhận đã đón trẻ'}</Text>
+        <Text>
+          {student.isDismissed ? t('Cập nhật ghi nhận đón trẻ') : t('Xác nhận đã đón trẻ')}
+        </Text>
       </Button>
       {student.isDismissed && student.isPresent ? (
         <Button
           size="sm"
           variant="outline"
           disabled={!canWrite}
-          accessibilityLabel={`Hủy ghi nhận đón trẻ của ${student.name || student.code}`}
+          accessibilityLabel={t('Hủy ghi nhận đón trẻ của {name}', {
+            name: student.name || student.code,
+          })}
           onPress={onUndoPickup}>
           <Icon as={RotateCcw} size={14} className="text-destructive" />
-          <Text className="text-destructive">Hủy ghi nhận đón trẻ</Text>
+          <Text className="text-destructive">{t('Hủy ghi nhận đón trẻ')}</Text>
         </Button>
       ) : null}
       {row.changed ? (
         <Text className="text-xs text-muted-foreground">
-          Thay đổi chưa lưu. Trạng thái Đã đón chỉ cập nhật sau khi máy chủ xác nhận.
+          {t('Thay đổi chưa lưu. Trạng thái Đã đón chỉ cập nhật sau khi máy chủ xác nhận.')}
         </Text>
       ) : null}
       {editable ? (
         <Button size="sm" variant="outline" onPress={onCreateAuthorization}>
-          <Text>Tạo ủy quyền cho học sinh này</Text>
+          <Text>{t('Tạo ủy quyền cho học sinh này')}</Text>
         </Button>
       ) : null}
     </Card>

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { AuthSubmitButton } from './AuthSubmitButton';
 import { LoginError } from './LoginError';
@@ -17,6 +18,7 @@ export function LoginOtpForm({
   onBack,
   onEdit,
 }) {
+  const t = useTranslation();
   const [otp, setOtp] = useState('');
 
   function submit() {
@@ -27,12 +29,12 @@ export function LoginOtpForm({
     <Card className="gap-3.5 rounded-2xl py-4">
       <CardHeader className="gap-0.5 px-4">
         <CardTitle className="text-sm leading-5" style={typography.semiBold}>
-          Nhập mã xác thực OTP
+          {t('Nhập mã xác thực OTP')}
         </CardTitle>
         <CardDescription className="text-xs leading-[19px]" style={typography.regular}>
           {emailMasked
-            ? `Nhập mã 6 số đã gửi đến ${emailMasked}.`
-            : 'Nhập mã 6 số đã gửi đến email liên kết với tài khoản.'}
+            ? t('Nhập mã 6 số đã gửi đến {email}.', { email: emailMasked })
+            : t('Nhập mã 6 số đã gửi đến email liên kết với tài khoản.')}
         </CardDescription>
       </CardHeader>
       <CardContent className="gap-3.5 px-4">
@@ -48,7 +50,7 @@ export function LoginOtpForm({
         />
         <LoginError message={error} typography={typography} />
         <AuthSubmitButton
-          label="Xác minh"
+          label={t('Xác minh')}
           labelStyle={typography.semiBold}
           pending={pending}
           disabled={otp.length !== 6}
@@ -56,7 +58,7 @@ export function LoginOtpForm({
         />
         <Button variant="ghost" size="sm" disabled={pending} onPress={onBack}>
           <Text className="text-xs" style={typography.medium}>
-            Quay lại đăng nhập
+            {t('Quay lại đăng nhập')}
           </Text>
         </Button>
       </CardContent>

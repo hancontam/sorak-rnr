@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { getChallengeUrl, login, verifyLoginOtp } from '../api/auth.api';
 import { acceptLogin } from '../session';
+import { useAuthStore } from '../store/auth.store';
 
 function errorMessage(error, isOtp) {
   switch (error.response?.status) {
@@ -28,8 +29,9 @@ function errorMessage(error, isOtp) {
   }
 }
 
-export function useLogin(role) {
+export function useLogin(role, { adding = false, accountId, onAuthenticated } = {}) {
   const activeRequest = useRef(null);
+  const originId = useRef(useAuthStore.getState().user?.id);
   const [challenge, setChallenge] = useState(null);
   const [error, setError] = useState('');
   const { mutateAsync, isPending, reset } = useMutation({
@@ -37,8 +39,15 @@ export function useLogin(role) {
     gcTime: 0,
     mutationFn: async ({ send, remember, signal }) => {
       const result = await send(signal);
-      if (result.user) await acceptLogin(result, role, remember, signal);
-      else if (!signal.aborted) setChallenge({ ...result, remember });
+      if (result.user) {
+        await acceptLogin(result, role, remember, signal, {
+          adding,
+          accountId,
+          originId: originId.current,
+        });
+        // Re-adding the active account keeps the same guarded stack identity.
+        if (!signal.aborted && result.user.id === originId.current) onAuthenticated?.();
+      } else if (!signal.aborted) setChallenge({ ...result, remember });
     },
   });
 

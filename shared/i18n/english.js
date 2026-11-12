@@ -858,4 +858,66 @@ export const english = {
     'The server received the request, but the status could not be verified. Reload the list.',
   'Chưa xác nhận được thao tác. Hãy tải lại danh sách trước khi gửi lại.':
     'The action could not be confirmed. Reload the list before trying again.',
+  // Redesign: Cài đặt, thông báo đẩy, tài liệu pháp lý.
+  'Bản cài này chưa hỗ trợ thông báo đẩy (Expo Go hoặc web).':
+    'This install does not support push notifications (Expo Go or web).',
+  'Bản nháp, nhà trường cần rà soát trước khi phát hành. Cập nhật {date}.':
+    'Draft for the school to review before release. Updated {date}.',
+  Bật: 'On',
+  Tắt: 'Off',
+  'Bật thông báo': 'Turn on notifications',
+  'Bật thông báo từ nhà trường?': 'Get notifications from school?',
+  'Bật để nhận thông báo ngay khi nhà trường cập nhật.':
+    'Turn on to hear from the school as soon as something changes.',
+  'Chính sách bảo mật': 'Privacy policy',
+  'Chưa bật thông báo vì máy chưa được cấp quyền.':
+    'Notifications are still off because this device has not allowed them.',
+  'Chưa bật được thông báo. Hãy thử lại trong Cài đặt.':
+    'Couldn’t turn on notifications. Try again in Settings.',
+  'Chưa bật được thông báo. Hãy thử lại.': 'Couldn’t turn on notifications. Try again.',
+  'Chưa lưu được lựa chọn âm thanh.': 'Couldn’t save the sound setting.',
+  'Chưa tắt được thông báo trên máy chủ. Hãy thử lại.':
+    'Couldn’t turn off notifications on the server. Try again.',
+  'Chế độ hiển thị': 'Display mode',
+  'Cá nhân': 'Personal',
+  Email: 'Email',
+  'Hỗ trợ': 'Support',
+  Khác: 'More',
+  'Không tìm thấy tài liệu này.': 'This document could not be found.',
+  'Mã đăng nhập và đặt lại mật khẩu luôn được gửi tới {email}.':
+    'Sign-in and password reset codes are always sent to {email}.',
+  'Mở Cài đặt của máy, chọn Sorak rồi bật Thông báo để nhận tin từ nhà trường.':
+    'Open your device Settings, choose Sorak and turn on Notifications to hear from the school.',
+  'Mở cài đặt': 'Open settings',
+  'Mở cài đặt của máy': 'Open device settings',
+  'Nhận ngay đơn ủy quyền đón trẻ, kết quả học tập và tin của lớp. Bạn có thể đổi lại trong Cài đặt > Thông báo.':
+    'Get pickup requests, learning results and class news right away. You can change this in Settings > Notifications.',
+  'Nhận thông báo mới của Sorak trên máy này.': 'New Sorak notifications arrive on this device.',
+  'Phiên bản': 'Version',
+  'Pháp lý': 'Legal',
+  'Phát âm thanh khi có thông báo lúc Sorak đang mở.':
+    'Play a sound for notifications while Sorak is open.',
+  'Thông báo đang bị tắt': 'Notifications are off',
+  'Thông báo đang bị tắt trong cài đặt của máy.':
+    'Notifications are turned off in your device settings.',
+  'Thông báo đẩy': 'Push notifications',
+  'Trên điện thoại': 'On this phone',
+  'Tài liệu': 'Guides',
+  'Tài liệu hướng dẫn Sorak': 'Sorak user guide',
+  'Tên riêng, nhận xét và nội dung từ nhà trường giữ nguyên ngôn ngữ gốc.':
+    'Names, comments and content from the school stay in their original language.',
+  'Tùy chỉnh các thông báo bạn muốn nhận trong Sorak.':
+    'Choose which notifications you get from Sorak.',
+  'Vai trò': 'Role',
+  'Yêu cầu mã OTP ở phiên đăng nhập mới': 'Ask for an emailed code on new sign-ins',
+  'Áp dụng cho các tài khoản phụ huynh đã thêm trên máy này.':
+    'Applies to every parent account added on this device.',
+  'Âm thanh': 'Sound',
+  'Điều khoản sử dụng': 'Terms of use',
+  'Đã bật thông báo trên máy này': 'Notifications on for this device',
+  'Đã bật xác thực hai bước': 'Two-step verification on',
+  'Đã tắt thông báo trên máy này': 'Notifications off for this device',
+  'Đã tắt xác thực hai bước': 'Two-step verification off',
+  'Đã đổi mật khẩu': 'Password changed',
+  'Để sau': 'Not now',
 };

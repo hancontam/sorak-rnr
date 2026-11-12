@@ -7,7 +7,7 @@ export function SettingsContent({ children }) {
       <ScrollView
         keyboardShouldPersistTaps="handled"
         className="flex-1"
-        contentContainerClassName="mx-auto w-full max-w-md gap-4 p-4">
+        contentContainerClassName="mx-auto w-full max-w-md gap-5 px-4 pb-8 pt-4">
         {children}
       </ScrollView>
     </SafeAreaView>

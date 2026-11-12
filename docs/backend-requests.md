@@ -11,7 +11,8 @@ Ngày 05/11/2026, môi trường test2. Tập trung yêu cầu/nghiệm thu, kh�
 1. Xác nhận phân trang, thứ tự, thời gian có timezone và loại thông báo của hộp hiện có.
 2. Tổng unreadCount tài khoản độc lập trang hiện tại. Trả cùng danh sách hoặc API thống kê đều được, không bắt tạo endpoint mới nếu hiện tại đủ.
 3. Guide đã mô tả Expo Push Token, API đăng ký/gỡ và test push. Cần nghiệm thu các API này có phiên, gồm việc ngừng nhận push sau đăng xuất và hành vi khi phiên hết hạn.
-4. API tùy chọn nhận thông báo/email nếu có. Mobile không dùng switch local để giả ngừng email server.
+4. API tùy chọn nhận thông báo/email nếu có. 12/11: backend chỉ gửi email OTP, chưa có email theo loại thông báo hay API tùy chọn; web đang lưu công tắc email vào localStorage. Nếu làm email thông báo, cần API đọc/ghi tùy chọn theo tài khoản để web và mobile dùng chung. Mobile không dùng switch local để giả ngừng email server.
+5. API đọc danh sách thiết bị đã đăng ký push của tài khoản (hoặc trả trạng thái trong response POST/DELETE) để xác nhận lại sau khi bật/tắt thông báo trên máy.
 
 **Vì sao:** cần dữ liệu thật, badge đúng, mở nội dung đúng quyền. Backend gửi push đến thiết bị đã đăng ký; mobile xin quyền và xử lý khi bấm. Logout/đổi tài khoản phải xử lý liên kết thiết bị để không gửi nhầm dữ liệu.
 

@@ -98,6 +98,12 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 - Mỗi mã HS là account độc lập. Mobile lưu nhiều phiên trên thiết bị, không gọi API tạo quan hệ anh/chị/em. Đổi account dùng token của account đó; dữ liệu PH vẫn lấy từ endpoint theo phiên, không thay studentId của account đang đăng nhập.
 - Đăng ký cùng Expo Push Token cho từng account dùng lại POST `/notifications/device-token` theo guide; gỡ riêng account bằng DELETE cùng endpoint và bearer của account đó. Payload push nối account qua studentId/studentCode, không qua tên. Chưa nghiệm thu đăng ký nhiều account, gỡ riêng hoặc push chuyển bé trên thiết bị thật; không coi kiểm tra logic mô phỏng là bằng chứng backend đã xử lý thành công các ca này.
 
+## Cài đặt thông báo và thiết bị push trên test2 — 12/11/2026
+
+- Gọi HTTP trực tiếp test2 bằng tài khoản GV và PH người dùng cung cấp (header `X-Client-Platform: android`, không dùng bypass). Với token Expo giả `ExponentPushToken[sorak-redesign-contract-0001]`: `POST /notifications/device-token` trả 200 cả lần đầu và lần lặp; `DELETE` cùng đường dẫn với body `{deviceToken}` trả 200 cả khi token đã bị gỡ; thiếu `deviceToken` trả 400 `VALIDATION_ERROR`. Đã gỡ token giả và đăng xuất phiên test sau khi kiểm tra.
+- Không có API đọc danh sách thiết bị đã đăng ký, nên chưa đọc lại được tác động của POST/DELETE; chưa gửi/nhận push thật trên thiết bị. Không gọi `test-push`.
+- Mã nguồn `sorak-api` chỉ gửi email OTP (`sendOtpEmail`); không có email theo loại thông báo, không có bảng/API tùy chọn thông báo. Màn "Cài đặt thông báo" của web lưu công tắc email/push/âm thanh vào `localStorage`, không gọi API, nên các công tắc email trên web hiện không điều khiển email nào. Mobile chỉ làm công tắc push theo thiết bị (đăng ký/gỡ token thật) và âm thanh khi app đang mở (cài đặt cục bộ).
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

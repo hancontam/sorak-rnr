@@ -6,6 +6,7 @@ import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { AccountHeader } from '../components/AccountHeader';
 import { SettingsContent } from '../components/SettingsContent';
+import { SettingsSection } from '../components/SettingsRow';
 
 export default function ProfileScreen() {
   const t = useTranslation();
@@ -14,23 +15,26 @@ export default function ProfileScreen() {
 
   const fields = [
     [t('Họ và tên'), user.fullName || user.name],
-    [t('Số điện thoại'), user.phone],
+    [t('Số điện thoại'), user.phone, true],
     ['Email', user.email],
     [t('Địa chỉ'), user.address || user.teacher?.address || user.student?.address],
   ];
 
   return (
     <SettingsContent>
-      <AccountHeader user={user} />
-      <Text className="text-xs text-muted-foreground">{t('Hồ sơ do nhà trường quản lý')}</Text>
-      {fields.map(([label, value]) => (
-        <View key={label} className="gap-1.5">
-          <Text className="text-xs font-semibold">{label}</Text>
-          <View className="min-h-10 justify-center rounded-xl border border-border px-3 py-2">
-            <Text className="text-xs leading-5">{value || t('Chưa có thông tin')}</Text>
+      <View className="border-b border-border pb-5">
+        <AccountHeader user={user} />
+      </View>
+      <SettingsSection title={t('Thông tin cá nhân')} footer={t('Hồ sơ do nhà trường quản lý')}>
+        {fields.map(([label, value, mono]) => (
+          <View key={label} className="gap-1 rounded-lg bg-muted/70 px-3 py-2.5 dark:bg-muted/60">
+            <Text className="text-2xs text-muted-foreground">{label}</Text>
+            <Text className={mono && value ? 'font-mono text-xs' : 'text-xs'}>
+              {value || t('Chưa có thông tin')}
+            </Text>
           </View>
-        </View>
-      ))}
+        ))}
+      </SettingsSection>
     </SettingsContent>
   );
 }

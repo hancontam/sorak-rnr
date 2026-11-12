@@ -1,15 +1,19 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Baby, CalendarDays, GraduationCap, LayoutGrid } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
+import { useState } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import { AuthSuccessToast } from '@/features/auth/components/AuthSuccessToast';
 import { ActionNotice } from '@/components/shared/ActionNotice';
 import { useSession } from '@/features/auth/hooks/useSession';
 import { useAccounts } from '@/features/auth/hooks/useAccounts';
 import { describeAccount } from '@/features/auth/utils/linked-accounts';
+import { PushPermissionSheet } from '@/features/notification/components/PushPermissionSheet';
 import { useNotificationInbox } from '@/features/notification/hooks/useNotifications';
+import { usePushSettings } from '@/features/notification/hooks/usePushPreference';
 import { THEME } from '@/lib/theme';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
@@ -26,7 +30,30 @@ export function HomeTabs({ role }) {
   const isParent = role === 'parent';
   const inbox = useNotificationInbox();
   const accounts = useAccounts();
+  const push = usePushSettings();
+  const [pushPromptClosed, setPushPromptClosed] = useState(false);
   if (!user) return null;
+  const showPushPrompt =
+    !pushPromptClosed &&
+    push.supported &&
+    push.ready &&
+    push.preference === 'unset' &&
+    push.permission?.status === 'undetermined';
+
+  async function enablePush() {
+    try {
+      if ((await push.enable()) === 'enabled') toast.success(t('Đã bật thông báo trên máy này'));
+    } catch {
+      toast.error(t('Chưa bật được thông báo. Hãy thử lại trong Cài đặt.'));
+    } finally {
+      setPushPromptClosed(true);
+    }
+  }
+
+  function declinePush() {
+    setPushPromptClosed(true);
+    void push.decline();
+  }
   const currentAccount =
     accounts.accounts.find((account) => account.id === user.id) || describeAccount(user);
 
@@ -112,6 +139,12 @@ export function HomeTabs({ role }) {
           />
         </View>
       ) : null}
+      <PushPermissionSheet
+        open={showPushPrompt}
+        busy={push.busy}
+        onEnable={enablePush}
+        onLater={declinePush}
+      />
     </View>
   );
 }

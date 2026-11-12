@@ -9,6 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { OtpCodeInput } from '@/components/shared/OtpCodeInput';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +21,7 @@ import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { AuthSubmitButton } from '../components/AuthSubmitButton';
 import { LoginError } from '../components/LoginError';
-import { OtpCodeInput } from '../components/OtpCodeInput';
+
 import { usePasswordRecovery } from '../hooks/usePasswordRecovery';
 
 // Cùng quy tắc với validator resetPasswordSchema của API.

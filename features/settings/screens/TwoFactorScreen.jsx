@@ -1,11 +1,12 @@
 import { useNavigation, useRouter } from 'expo-router';
 import { CircleAlert } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+import { toast } from 'sonner-native';
 
+import { OtpCodeInput } from '@/components/shared/OtpCodeInput';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
@@ -38,7 +39,9 @@ export default function TwoFactorScreen() {
   if (user?.role !== AUTH_ROLES.teacher || !user.email) {
     return (
       <SettingsContent>
-        <Text className="text-xs">{t('Tài khoản chưa hỗ trợ xác thực hai bước qua email.')}</Text>
+        <Text className="px-1 text-xs text-muted-foreground">
+          {t('Tài khoản chưa hỗ trợ xác thực hai bước qua email.')}
+        </Text>
       </SettingsContent>
     );
   }
@@ -56,11 +59,14 @@ export default function TwoFactorScreen() {
     }
   }
 
-  async function submit() {
-    if (pending || (enabled ? !value : !sent || value.length !== 6)) return;
+  // onSubmitEditing truyền event, onComplete của ô OTP truyền chuỗi mã vừa nhập đủ.
+  async function submit(code) {
+    const input = typeof code === 'string' ? code : value;
+    if (pending || (enabled ? !input : !sent || input.length !== 6)) return;
     setError('');
     try {
-      await update.mutateAsync({ enabled, value });
+      await update.mutateAsync({ enabled, value: input });
+      toast.success(enabled ? t('Đã tắt xác thực hai bước') : t('Đã bật xác thực hai bước'));
       if (!navigation.isFocused()) return;
       if (router.canGoBack()) router.back();
       else router.replace('/settings/account');
@@ -81,7 +87,7 @@ export default function TwoFactorScreen() {
 
   return (
     <SettingsContent>
-      <Text className="text-xs leading-5 text-muted-foreground">
+      <Text className="px-1 text-xs leading-5 text-muted-foreground">
         {enabled
           ? t('Nhập mật khẩu hiện tại để tắt xác thực hai bước.')
           : t('Sorak gửi mã gồm 6 chữ số tới email liên kết với tài khoản.')}
@@ -96,15 +102,11 @@ export default function TwoFactorScreen() {
         />
       ) : (
         <>
-          <Button
-            size="sm"
-            variant="outline"
-            onPress={requestCode}
-            disabled={pending || Boolean(seconds)}>
+          <Button variant="outline" onPress={requestCode} disabled={pending || Boolean(seconds)}>
             {sendCode.isPending ? (
               <ActivityIndicator size="small" />
             ) : (
-              <Text className="text-xs">
+              <Text>
                 {seconds
                   ? t('Gửi lại sau {seconds}s', { seconds })
                   : sent
@@ -114,36 +116,29 @@ export default function TwoFactorScreen() {
             )}
           </Button>
           {sent ? (
-            <Input
-              accessibilityLabel={t('Mã xác thực')}
-              placeholder={t('Mã xác thực')}
-              keyboardType="number-pad"
-              autoComplete="one-time-code"
-              value={value}
-              onChangeText={(text) => setValue(text.replace(/\D/g, '').slice(0, 6))}
-              editable={!pending}
-              onSubmitEditing={submit}
-              className="min-h-11 rounded-xl text-xs"
-            />
+            <View className="items-center py-1">
+              <OtpCodeInput
+                otp={value}
+                onChange={setValue}
+                onSubmit={submit}
+                pending={pending}
+                autoFocus
+              />
+            </View>
           ) : null}
         </>
       )}
       {error ? (
-        <Alert icon={CircleAlert}>
+        <Alert icon={CircleAlert} variant="destructive">
           <AlertDescription>{t(error)}</AlertDescription>
         </Alert>
       ) : null}
       {enabled || sent ? (
-        <Button
-          size="sm"
-          onPress={submit}
-          disabled={pending || (enabled ? !value : value.length !== 6)}>
+        <Button onPress={submit} disabled={pending || (enabled ? !value : value.length !== 6)}>
           {update.isPending ? (
             <ActivityIndicator size="small" />
           ) : (
-            <Text className="text-xs">
-              {enabled ? t('Tắt xác thực hai bước') : t('Bật xác thực hai bước')}
-            </Text>
+            <Text>{enabled ? t('Tắt xác thực hai bước') : t('Bật xác thực hai bước')}</Text>
           )}
         </Button>
       ) : null}

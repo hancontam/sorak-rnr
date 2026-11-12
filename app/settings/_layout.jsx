@@ -47,6 +47,8 @@ export default function SettingsLayout() {
       <Stack.Screen name="change-password" options={{ title: t('Đổi mật khẩu') }} />
       <Stack.Screen name="two-factor" options={{ title: t('Xác thực hai bước') }} />
       <Stack.Screen name="about" options={{ title: t('Giới thiệu') }} />
+      <Stack.Screen name="notifications" options={{ title: t('Thông báo') }} />
+      <Stack.Screen name="legal/[doc]" options={{ title: '' }} />
     </Stack>
   );
 }

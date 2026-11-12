@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { OtpCodeInput } from '@/components/shared/OtpCodeInput';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
@@ -7,14 +8,13 @@ import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { AuthSubmitButton } from './AuthSubmitButton';
 import { LoginError } from './LoginError';
-import { OtpCodeInput } from './OtpCodeInput';
 
 export function LoginOtpForm({ emailMasked, error, pending, onSubmit, onBack, onEdit }) {
   const t = useTranslation();
   const [otp, setOtp] = useState('');
 
-  function submit() {
-    if (!pending && otp.length === 6) onSubmit(otp);
+  function submit(code = otp) {
+    if (!pending && code.length === 6) onSubmit(code);
   }
 
   return (

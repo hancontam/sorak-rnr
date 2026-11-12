@@ -1,8 +1,29 @@
+import Constants from 'expo-constants';
+import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 
+import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import { clearPushToken, readPushToken, writePushToken } from '@/shared/storage/push.storage';
 
 import { registerPushDevice, unregisterPushDevice } from './api/push.api';
+
+export const pushProjectId =
+  Constants.easConfig?.projectId || Constants.expoConfig?.extra?.eas?.projectId;
+// Expo Go (storeClient), web và máy ảo iOS không nhận Expo Push Token.
+export const supportsPush =
+  (Platform.OS === 'android' || Device.isDevice) &&
+  Constants.executionEnvironment !== 'storeClient' &&
+  Boolean(pushProjectId);
+
+// Các tài khoản trên máy dùng chung token push: PH là mọi tài khoản PH còn phiên, GV là tài khoản hiện tại.
+export function pushAccounts(user, linkedAccounts) {
+  if (!user) return [];
+  return user.role === AUTH_ROLES.parent
+    ? linkedAccounts.filter(
+        (account) => account.role === AUTH_ROLES.parent && !account.requiresLogin
+      )
+    : linkedAccounts.filter((account) => account.id === user.id);
+}
 
 let pendingRegistration;
 const pausedUsers = new Set();

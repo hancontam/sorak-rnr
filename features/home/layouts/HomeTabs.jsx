@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthSuccessToast } from '@/features/auth/components/AuthSuccessToast';
 import { ActionNotice } from '@/components/shared/ActionNotice';
-import { useAuthTypography } from '@/features/auth/hooks/useAuthTypography';
 import { useSession } from '@/features/auth/hooks/useSession';
 import { useAccounts } from '@/features/auth/hooks/useAccounts';
 import { describeAccount } from '@/features/auth/utils/linked-accounts';
@@ -21,7 +20,6 @@ export function HomeTabs({ role }) {
   const t = useTranslation();
   const router = useRouter();
   const { user, notice, loginSucceeded, dismissLoginSuccess } = useSession();
-  const typography = useAuthTypography();
   const { colorScheme } = useColorScheme();
   const theme = THEME[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
@@ -71,7 +69,7 @@ export function HomeTabs({ role }) {
           ),
           tabBarActiveTintColor: theme.foreground,
           tabBarInactiveTintColor: theme.mutedForeground,
-          tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
+          tabBarLabelStyle: { fontSize: 11 },
           tabBarStyle: { backgroundColor: theme.background, borderTopColor: theme.border },
         }}>
         <Tabs.Screen
@@ -110,7 +108,6 @@ export function HomeTabs({ role }) {
           <AuthSuccessToast
             title={t('Đăng nhập hoàn tất!')}
             description={t('Bạn đã kết nối với Sorak.')}
-            typography={typography}
             onDismiss={dismissLoginSuccess}
           />
         </View>

@@ -1,6 +1,7 @@
 import { Icon } from '@/components/ui/icon';
 import { NativeOnlyAnimatedView } from '@/components/ui/native-only-animated-view';
 import { TextClassContext } from '@/components/ui/text';
+import { fontStyle } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
 import * as SelectPrimitive from '@rn-primitives/select';
 import { Check, ChevronDown, ChevronDownIcon, ChevronUpIcon } from 'lucide-react-native';
@@ -10,16 +11,18 @@ import { FadeIn, FadeOut, ReduceMotion } from 'react-native-reanimated';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 const Select = SelectPrimitive.Root;
 const SelectGroup = SelectPrimitive.Group;
-function SelectValue({ ref, className, ...props }) {
+function SelectValue({ ref, className, style, ...props }) {
   const { value } = SelectPrimitive.useRootContext();
+  const merged = cn(
+    'line-clamp-1 flex flex-row items-center gap-2 text-xs text-foreground',
+    !value && 'text-muted-foreground',
+    className
+  );
   return (
     <SelectPrimitive.Value
       ref={ref}
-      className={cn(
-        'line-clamp-1 flex flex-row items-center gap-2 text-sm text-foreground',
-        !value && 'text-muted-foreground',
-        className
-      )}
+      className={merged}
+      style={[fontStyle(merged), style]}
       {...props}
     />
   );
@@ -129,7 +132,10 @@ function SelectItem({ className, children, ...props }) {
           <Icon as={Check} className="size-4 shrink-0 text-muted-foreground" />
         </SelectPrimitive.ItemIndicator>
       </View>
-      <SelectPrimitive.ItemText className="select-none text-sm text-foreground group-active:text-accent-foreground" />
+      <SelectPrimitive.ItemText
+        className="select-none text-xs text-foreground group-active:text-accent-foreground"
+        style={fontStyle()}
+      />
     </SelectPrimitive.Item>
   );
 }

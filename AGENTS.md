@@ -33,22 +33,30 @@
 - Khi prototype và nghiệp vụ thật khác nhau, làm trước phần đã rõ rồi hỏi người dùng theo `grill-me` về điểm ảnh hưởng đến luồng hoặc giao diện. Nêu chi tiết gốc, giới hạn đã kiểm tra và lựa chọn đề xuất. Ví dụ shell WebView giữ bố cục đã duyệt, thanh địa chỉ hiện host thật, nút Tiếp tục chỉ xuất hiện sau khi nhận kết quả Turnstile.
 - Trước bàn giao, đối chiếu với prototype ở cùng kích thước màn và trạng thái khi có thiết bị. Kiểm tra màn hẹp, màu sáng/tối, bàn phím và trạng thái loading/error/success liên quan. Báo rõ các điểm khác mẫu do nghiệp vụ đã chốt và phần chưa nhìn được trên máy thật.
 
-### Kích thước tham chiếu và mật độ RNR toàn app
+### Chuẩn giao diện và mật độ RNR toàn app
 
-- Dùng vùng nội dung **376 × 791 CSS px** làm mốc thiết kế và so ảnh cho toàn bộ Sorak Mobile. Mốc này lấy từ prototype HTML có khung ngoài **400 × 815**, đệm **11 px** và viền trong **1 px** mỗi cạnh. Nếu xem cả trang trình diễn có khung máy, mở ở zoom 100% với viewport desktop từ **1280 × 960 CSS px**. Thanh trạng thái, viền máy và thanh công cụ demo được tính riêng.
-- Đọc kích thước trực tiếp trong CSS. Lấy **1 CSS px ≈ 1 dp** cho bố cục và cỡ chữ tương ứng ở mức chữ hệ thống mặc định làm điểm bắt đầu. Khi so hai ảnh, quy chúng về cùng chiều rộng vùng nội dung trước. Không nhân cỡ chữ, icon hoặc khoảng đệm theo độ phân giải ảnh, mật độ điểm ảnh hay chiều rộng thiết bị. Màn rộng tăng vùng trống hoặc giới hạn chiều rộng nội dung, không phóng to toàn bộ giao diện.
-- Dùng các mốc sau cho màn, form, Card, danh sách, tab, sheet và hộp thoại mới. Các phần có cùng vai trò giữ cùng cỡ chữ, khoảng đệm và kiểu icon. Chọn kích thước lớn hơn khi thứ bậc nội dung, vùng bấm, chữ hệ thống hoặc prototype của màn đó cần.
+- Chuẩn hình ảnh từ đợt redesign (12/11/2026) là bản RNR mobile showcase (`react_native_reusables_mobile_showcase.html`): token zinc, Card `rounded-2xl` có viền và shadow mảnh, danh sách gom trong một Card kẻ mảnh, segmented control nền muted có ô đang chọn nổi, toast sonner, bottom sheet bo 28 có thanh kéo, alert dialog bo 2xl. Nội dung, thứ tự khối và luồng lấy từ app hiện tại; prototype Sorak chỉ để hiểu flow cũ.
+- Màu: primary zinc-900 (tối: zinc-100). Xanh cobalt `#1447E6` dùng chung với web, chỉ cho badge vai trò, link và chấm thông báo. Đỏ chỉ cho cảnh báo/hành động nguy hiểm; xanh lá chỉ ở icon toast thành công. `global.css` và `lib/theme.js` phải khớp nhau.
+- Font: Inter cho chữ giao diện, JetBrains Mono cho dữ liệu (mã HS/CB, giờ, ngày, số đếm). Font nạp một lần ở `app/_layout.jsx` trước khi ẩn splash. `Text`, `Label`, `Input` và tiêu đề dialog quy `font-medium/semibold/bold/mono` về đúng file font qua `lib/fonts.js`; không đặt `fontFamily`/`fontWeight` riêng ở screen. Chưa có file Inter 700 nên `font-bold` hiển thị như SemiBold.
+- Đo ở vùng nội dung **376 dp**, kiểm tra thêm 360/412 dp; 1 CSS px của showcase ≈ 1 dp. Màn rộng tăng khoảng trống, không phóng to.
 
-| Phần UI | Mốc mặc định của Sorak |
+| Phần UI | Mốc mặc định |
 | --- | --- |
-| Lề nội dung, đệm Card hoặc sheet | **16 dp** |
-| Khoảng giữa các nhóm, khoảng nhãn đến ô nhập | **14–16 dp**, **6 dp** |
-| Tiêu đề màn, tiêu đề nhóm hoặc Card | **18–20 sp**, **14 sp** |
-| Chữ nội dung, nhãn và mô tả phụ | Nội dung **12–14 sp**, nhãn và giá trị form **12 sp**, mô tả phụ **11–12 sp** |
-| Input và nút trong form | Input **34 dp**, nút **36 dp** với `Button size="sm"` |
-| Icon và nút icon | Icon inline **14–16 dp**, nút icon nhỏ **28–32 dp** phần hiển thị |
+| Lề màn, đệm Card/sheet | **16 dp** (sheet 20 dp) |
+| Khoảng giữa nhóm / trong nhóm / nhãn đến ô | **16** / **8–12** / **6 dp** |
+| Tiêu đề màn | **18 sp** semibold (`text-lg`) |
+| Tiêu đề Card, tên, dòng danh sách chính | **14 sp** semibold (`text-sm`) |
+| Nội dung, nhãn form, giá trị | **12 sp** (`text-xs`) |
+| Phụ, meta, badge, nhãn tab | **11 sp** (`text-2xs`), không dùng dưới 11 |
+| Input / nút | Input **40 dp**; nút **40 dp** (`sm` 36, `lg` 44), chữ nút 12 semibold |
+| Vùng bấm | **≥ 44 dp** bằng kích thước, padding hoặc `hitSlop` |
+| Icon | Inline **16**, tab **18**, nút icon nhỏ **32 dp** phần hiển thị |
+| Bo góc | Card/nhóm **16**, ô nhỏ/segmented **12**, nút/input **8**, badge tròn hẳn, sheet **28** |
+| Shadow | Card `shadow-sm` rất mảnh; lớp nổi (toast, sheet, dialog) `shadow-xl` |
 
-- Giữ font đã duyệt, dùng bố cục hoặc `hitSlop` để vùng bấm đủ rộng, hỗ trợ cuộn và xuống dòng khi người dùng tăng cỡ chữ. Giữ tỷ lệ của ảnh và biểu đồ theo thiết kế, ví dụ ảnh giữa Welcome **288:405**. Khi bàn giao từng màn, so ở **376 dp** và kiểm tra thêm **360 dp** và **412 dp** nếu có thiết bị.
+- Chọn trên mobile dùng bottom sheet (`components/ui/bottom-sheet.jsx`), xác nhận thao tác dùng `AlertDialog`, kết quả tức thời dùng toast sonner; lỗi cần đọc lại vẫn dùng `Alert` trong màn. Không tự dựng lại badge/nút bằng màu và viền riêng.
+- Ảnh minh họa dạng card AspectRatio (ảnh đen trắng, không người/không chữ) đặt ở `assets/images/`; nội dung ảnh không được gợi ý dữ liệu thật.
+- Giữ font đã duyệt, hỗ trợ cuộn và xuống dòng khi người dùng tăng cỡ chữ hệ thống. Giữ tỷ lệ ảnh và biểu đồ theo thiết kế.
 
 ## Ranh giới code bắt buộc
 

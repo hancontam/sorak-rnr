@@ -6,7 +6,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { THEME } from '@/lib/theme';
 
-export function AuthSubmitButton({ label, icon, labelStyle, pending, disabled, onPress }) {
+export function AuthSubmitButton({ label, icon, pending, disabled, onPress }) {
   const { colorScheme } = useColorScheme();
   const theme = THEME[colorScheme ?? 'light'];
   const unavailable = disabled && !pending;
@@ -25,9 +25,7 @@ export function AuthSubmitButton({ label, icon, labelStyle, pending, disabled, o
         <ActivityIndicator size="small" color={theme.primaryForeground} />
       ) : (
         <>
-          <Text className={`text-xs font-semibold ${labelColor}`} style={labelStyle}>
-            {label}
-          </Text>
+          <Text className={`text-xs font-semibold ${labelColor}`}>{label}</Text>
           {icon ? <Icon as={icon} size={14} className={labelColor} /> : null}
         </>
       )}

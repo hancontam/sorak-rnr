@@ -30,7 +30,6 @@ import { LoginError } from '../components/LoginError';
 import { LoginOtpForm } from '../components/LoginOtpForm';
 import { RoleSheet } from '../components/RoleSheet';
 import { TurnstileChallenge } from '../components/TurnstileChallenge';
-import { useAuthTypography } from '../hooks/useAuthTypography';
 import { useLogin } from '../hooks/useLogin';
 import { useAuthStore } from '../store/auth.store';
 import { AUTH_ROLES, isMobileRole, roleLabel } from '../utils/auth-roles';
@@ -74,7 +73,6 @@ function LoginFlow({ role, adding, accountId }) {
   const t = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const typography = useAuthTypography();
   const parent = role === AUTH_ROLES.parent;
   const accountLabel = parent ? t('Mã học sinh') : t('Mã cán bộ');
   const [username, setUsername] = useState(
@@ -145,7 +143,6 @@ function LoginFlow({ role, adding, accountId }) {
     return (
       <PasswordRecoveryScreen
         initialIdentifier={username.trim()}
-        typography={typography}
         onBack={closeRecovery}
         onComplete={(identifier) => {
           setUsername(identifier);
@@ -196,19 +193,14 @@ function LoginFlow({ role, adding, accountId }) {
               setRoleSheetOpen(true);
             }}>
             <Icon as={parent ? UsersRound : GraduationCap} size={14} className="text-brand-link" />
-            <Text className="text-xs" style={typography.semiBold}>
-              {t(roleLabel(role))}
-            </Text>
-            <Text className="text-[10px] text-muted-foreground" style={typography.mono}>
-              {t('Đổi vai trò')}
-            </Text>
+            <Text className="text-xs font-semibold">{t(roleLabel(role))}</Text>
+            <Text className="font-mono text-[10px] text-muted-foreground">{t('Đổi vai trò')}</Text>
             <Icon as={ChevronDown} size={13} className="text-muted-foreground" />
           </Button>
         </View>
-        <RoleBanner role={role} typography={typography} />
+        <RoleBanner role={role} />
         {needsOtp ? (
           <LoginOtpForm
-            typography={typography}
             emailMasked={emailMasked}
             pending={isPending}
             error={error}
@@ -223,24 +215,20 @@ function LoginFlow({ role, adding, accountId }) {
           <>
             <Card className="gap-3.5 rounded-2xl py-4">
               <CardHeader className="gap-0.5 px-4">
-                <CardTitle className="text-sm leading-5" style={typography.semiBold}>
+                <CardTitle className="text-sm font-semibold leading-5">
                   {t('Đăng nhập tài khoản')}
                 </CardTitle>
-                <CardDescription className="text-xs leading-[19px]" style={typography.regular}>
+                <CardDescription className="text-xs leading-[19px]">
                   {t('Nhập thông tin tài khoản để xác minh bảo mật qua WebView.')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="gap-3.5 px-4">
                 <View className="gap-1.5">
-                  <Label
-                    nativeID="account-label"
-                    className="text-xs leading-4"
-                    style={typography.medium}>
+                  <Label nativeID="account-label" className="text-xs font-medium leading-4">
                     {accountLabel}
                   </Label>
                   <Input
                     className="h-auto min-h-[34px] rounded-lg py-1.5 text-xs leading-4 sm:h-auto"
-                    style={typography.regular}
                     aria-labelledby="account-label"
                     accessibilityLabel={accountLabel}
                     placeholder={parent ? t('Nhập mã học sinh') : t('Nhập mã cán bộ')}
@@ -261,10 +249,7 @@ function LoginFlow({ role, adding, accountId }) {
                 </View>
                 <View className="gap-1.5">
                   <View className="flex-row flex-wrap items-center justify-between gap-x-2">
-                    <Label
-                      nativeID="password-label"
-                      className="text-xs leading-4"
-                      style={typography.medium}>
+                    <Label nativeID="password-label" className="text-xs font-medium leading-4">
                       {t('Mật khẩu')}
                     </Label>
                     {!parent ? (
@@ -275,7 +260,7 @@ function LoginFlow({ role, adding, accountId }) {
                         hitSlop={8}
                         disabled={isPending}
                         onPress={openRecovery}>
-                        <Text className="text-xs leading-4 underline" style={typography.medium}>
+                        <Text className="text-xs font-medium leading-4 underline">
                           {t('Quên mật khẩu?')}
                         </Text>
                       </Button>
@@ -285,7 +270,6 @@ function LoginFlow({ role, adding, accountId }) {
                     <Input
                       ref={passwordField}
                       className="h-auto min-h-8 w-auto flex-1 rounded-none border-0 bg-transparent py-1.5 pr-1 text-xs leading-4 shadow-none dark:bg-transparent sm:h-auto"
-                      style={typography.regular}
                       aria-labelledby="password-label"
                       accessibilityLabel={t('Mật khẩu')}
                       placeholder={t('Nhập mật khẩu')}
@@ -332,15 +316,12 @@ function LoginFlow({ role, adding, accountId }) {
                   <View className="flex-1 gap-0.5">
                     <Label
                       nativeID="remember-label"
-                      className="text-xs leading-4"
-                      style={typography.medium}
+                      className="text-xs font-medium leading-4"
                       disabled={adding || Boolean(accountId) || isPending}
                       onPress={() => !adding && !accountId && setRemember((value) => !value)}>
                       {t('Ghi nhớ phiên đăng nhập')}
                     </Label>
-                    <Text
-                      className="text-[11px] leading-4 text-muted-foreground"
-                      style={typography.regular}>
+                    <Text className="text-[11px] leading-4 text-muted-foreground">
                       {t(
                         adding
                           ? 'Các tài khoản được ghi nhớ bảo mật trên thiết bị này.'
@@ -349,10 +330,9 @@ function LoginFlow({ role, adding, accountId }) {
                     </Text>
                   </View>
                 </View>
-                <LoginError message={error} typography={typography} />
+                <LoginError message={error} />
                 <AuthSubmitButton
                   label={t('Đăng nhập (WebView)')}
-                  labelStyle={typography.semiBold}
                   icon={ExternalLink}
                   pending={isPending}
                   disabled={!canSubmit}
@@ -362,19 +342,17 @@ function LoginFlow({ role, adding, accountId }) {
             </Card>
             {parent ? (
               <Alert icon={School}>
-                <AlertTitle className="text-xs" style={typography.semiBold}>
-                  {t('Quên mật khẩu?')}
-                </AlertTitle>
-                <AlertDescription className="text-[11px] leading-[15px]" style={typography.regular}>
+                <AlertTitle className="text-xs font-semibold">{t('Quên mật khẩu?')}</AlertTitle>
+                <AlertDescription className="text-[11px] leading-[15px]">
                   {t('Phụ huynh vui lòng liên hệ giáo viên chủ nhiệm để được hỗ trợ.')}
                 </AlertDescription>
               </Alert>
             ) : (
               <Alert icon={KeyRound}>
-                <AlertTitle className="text-xs" style={typography.semiBold}>
+                <AlertTitle className="text-xs font-semibold">
                   {t('Giáo viên tìm lại mật khẩu')}
                 </AlertTitle>
-                <AlertDescription className="text-[11px] leading-[15px]" style={typography.regular}>
+                <AlertDescription className="text-[11px] leading-[15px]">
                   {t('Nhận mã OTP qua email đã liên kết với tài khoản cán bộ.')}
                 </AlertDescription>
                 <Button
@@ -383,7 +361,7 @@ function LoginFlow({ role, adding, accountId }) {
                   className="ml-6 h-auto self-start px-0 py-1"
                   disabled={isPending}
                   onPress={openRecovery}>
-                  <Text className="text-xs text-brand-link" style={typography.semiBold}>
+                  <Text className="text-xs font-semibold text-brand-link">
                     {t('Tìm lại mật khẩu ngay')}
                   </Text>
                 </Button>
@@ -400,14 +378,12 @@ function LoginFlow({ role, adding, accountId }) {
           <AuthSuccessToast
             title={t('Đã đặt lại mật khẩu')}
             description={t('Đăng nhập bằng mật khẩu mới để tiếp tục.')}
-            typography={typography}
             onDismiss={dismissResetToast}
           />
         </View>
       ) : null}
       <RoleSheet
         visible={roleSheetOpen}
-        typography={typography}
         selectedRole={role}
         onClose={() => setRoleSheetOpen(false)}
         onSelect={(nextRole) => {
@@ -420,7 +396,6 @@ function LoginFlow({ role, adding, accountId }) {
           url={challengeUrl}
           role={role}
           account={username.trim()}
-          typography={typography}
           onVerified={handleVerified}
           onClose={closeChallenge}
         />
@@ -429,20 +404,16 @@ function LoginFlow({ role, adding, accountId }) {
   );
 }
 
-function RoleBanner({ role, typography }) {
+function RoleBanner({ role }) {
   const t = useTranslation();
   return (
     <View className="flex-row items-center gap-2.5 rounded-2xl border border-border bg-muted/50 p-3">
       <View className="size-8 items-center justify-center rounded-lg border border-dashed border-input bg-background">
-        <Text className="text-xs" style={typography.monoSemiBold}>
-          S×H
-        </Text>
+        <Text className="font-mono text-xs font-semibold">S×H</Text>
       </View>
       <View className="min-w-0 flex-1 gap-0.5">
-        <Text className="text-xs leading-4" style={typography.semiBold}>
-          {t('Sorak × Mầm Non Hòn Tre')}
-        </Text>
-        <Text className="text-[11px] leading-4 text-muted-foreground" style={typography.regular}>
+        <Text className="text-xs font-semibold leading-4">{t('Sorak × Mầm Non Hòn Tre')}</Text>
+        <Text className="text-[11px] leading-4 text-muted-foreground">
           {t('Cổng đăng nhập dành cho {role}', { role: t(roleLabel(role)) })}
         </Text>
       </View>

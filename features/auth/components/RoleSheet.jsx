@@ -10,7 +10,7 @@ import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { AUTH_ROLES, roleLabel, WEB_ACCOUNT_NOTICE } from '../utils/auth-roles';
 
-export function RoleSheet({ visible, selectedRole, typography, onClose, onSelect }) {
+export function RoleSheet({ visible, selectedRole, onClose, onSelect }) {
   const t = useTranslation();
   return (
     <Modal
@@ -34,12 +34,10 @@ export function RoleSheet({ visible, selectedRole, typography, onClose, onSelect
             <View className="mb-1.5 h-1.5 w-10 self-center rounded-full bg-muted-foreground/35" />
             <View className="flex-row items-center justify-between gap-2">
               <View className="flex-1 gap-0.5">
-                <Text className="text-sm leading-5" style={typography.semiBold}>
+                <Text className="text-sm font-semibold leading-5">
                   {t('Chọn vai trò đăng nhập')}
                 </Text>
-                <Text
-                  className="text-xs leading-4 text-muted-foreground"
-                  style={typography.regular}>
+                <Text className="text-xs leading-4 text-muted-foreground">
                   {t('Chọn loại tài khoản để tiếp tục.')}
                 </Text>
               </View>
@@ -57,7 +55,6 @@ export function RoleSheet({ visible, selectedRole, typography, onClose, onSelect
               role={AUTH_ROLES.teacher}
               selected={selectedRole === AUTH_ROLES.teacher}
               icon={GraduationCap}
-              typography={typography}
               tag={t('Mã cán bộ')}
               description={t('Điểm danh lớp học và cập nhật nhật ký ngày cho phụ huynh.')}
               onSelect={onSelect}
@@ -66,14 +63,11 @@ export function RoleSheet({ visible, selectedRole, typography, onClose, onSelect
               role={AUTH_ROLES.parent}
               selected={selectedRole === AUTH_ROLES.parent}
               icon={UsersRound}
-              typography={typography}
               tag={t('Mã học sinh')}
               description={t('Xem hoạt động, hồ sơ và kết quả đánh giá của con.')}
               onSelect={onSelect}
             />
-            <Text
-              className="text-[10px] leading-[14px] text-muted-foreground"
-              style={typography.regular}>
+            <Text className="text-[10px] leading-[14px] text-muted-foreground">
               {t(WEB_ACCOUNT_NOTICE)}
             </Text>
           </ScrollView>
@@ -83,7 +77,7 @@ export function RoleSheet({ visible, selectedRole, typography, onClose, onSelect
   );
 }
 
-function RoleOption({ role, selected, icon, tag, description, typography, onSelect }) {
+function RoleOption({ role, selected, icon, tag, description, onSelect }) {
   const t = useTranslation();
   const label = t(roleLabel(role));
   return (
@@ -104,20 +98,12 @@ function RoleOption({ role, selected, icon, tag, description, typography, onSele
       </View>
       <View className="min-w-0 flex-1 gap-0.5">
         <View className="flex-row flex-wrap items-center gap-2">
-          <Text className="text-xs leading-4" style={typography.semiBold}>
-            {label}
-          </Text>
+          <Text className="text-xs font-semibold leading-4">{label}</Text>
           <Badge variant="brand">
-            <Text className="text-[11px] leading-[14px]" style={typography.semiBold}>
-              {tag}
-            </Text>
+            <Text className="text-[11px] font-semibold leading-[14px]">{tag}</Text>
           </Badge>
         </View>
-        <Text
-          className="text-[11px] leading-[14px] text-muted-foreground"
-          style={typography.regular}>
-          {description}
-        </Text>
+        <Text className="text-[11px] leading-[14px] text-muted-foreground">{description}</Text>
       </View>
       <Icon
         as={selected ? Check : ChevronRight}

@@ -4,7 +4,7 @@ import { TextInput, View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
-export function OtpCodeInput({ otp, onChange, onSubmit, pending, typography }) {
+export function OtpCodeInput({ otp, onChange, onSubmit, pending }) {
   const t = useTranslation();
   const [focused, setFocused] = useState(false);
   return (
@@ -14,9 +14,7 @@ export function OtpCodeInput({ otp, onChange, onSubmit, pending, typography }) {
           <View
             key={index}
             className={`min-h-11 flex-1 items-center justify-center rounded-lg border py-1 ${focused && index === Math.min(otp.length, 5) ? 'border-primary' : 'border-input'}`}>
-            <Text className="text-sm leading-5" style={typography.monoSemiBold}>
-              {otp[index] || ''}
-            </Text>
+            <Text className="font-mono text-sm font-semibold leading-5">{otp[index] || ''}</Text>
           </View>
         ))}
       </View>

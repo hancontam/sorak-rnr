@@ -11,7 +11,7 @@ import { useTranslation } from '@/shared/i18n/useLanguage';
 const toastEnter = FadeInDown.duration(200).reduceMotion(ReduceMotion.System);
 const toastExit = FadeOutUp.duration(160).reduceMotion(ReduceMotion.System);
 
-export function AuthSuccessToast({ title, description, typography, onDismiss }) {
+export function AuthSuccessToast({ title, description, onDismiss }) {
   const t = useTranslation();
   const swipe = useMemo(
     () =>
@@ -46,14 +46,8 @@ export function AuthSuccessToast({ title, description, typography, onDismiss }) 
         <Icon as={CircleCheck} size={16} className="text-brand-foreground" />
       </View>
       <View className="flex-1 gap-0.5">
-        <Text className="text-xs leading-4 text-primary-foreground" style={typography.semiBold}>
-          {title}
-        </Text>
-        <Text
-          className="text-[11px] leading-4 text-primary-foreground/85"
-          style={typography.regular}>
-          {description}
-        </Text>
+        <Text className="text-xs font-semibold leading-4 text-primary-foreground">{title}</Text>
+        <Text className="text-[11px] leading-4 text-primary-foreground/85">{description}</Text>
       </View>
     </NativeOnlyAnimatedView>
   );

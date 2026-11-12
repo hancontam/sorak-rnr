@@ -26,7 +26,7 @@ import { usePasswordRecovery } from '../hooks/usePasswordRecovery';
 // Cùng quy tắc với validator resetPasswordSchema của API.
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\;/])/;
 
-export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, onComplete }) {
+export function PasswordRecoveryScreen({ initialIdentifier, onBack, onComplete }) {
   const t = useTranslation();
   const [identifier, setIdentifier] = useState(initialIdentifier);
   const [otp, setOtp] = useState('');
@@ -88,7 +88,7 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
             <Icon as={ArrowLeft} size={16} />
           </Button>
           <Badge variant="secondary">
-            <Text className="text-[11px]" style={typography.mono}>
+            <Text className="font-mono text-[11px]">
               {t('Bước {step} / 02', { step: challenge ? '02' : '01' })}
             </Text>
           </Badge>
@@ -97,15 +97,13 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
           <CardHeader className="gap-1 px-4">
             {!challenge ? (
               <Badge className="self-start" variant="brand">
-                <Text className="text-[11px]" style={typography.semiBold}>
-                  {t('Giáo viên')}
-                </Text>
+                <Text className="text-[11px] font-semibold">{t('Giáo viên')}</Text>
               </Badge>
             ) : null}
-            <CardTitle className="text-sm leading-5" style={typography.semiBold}>
+            <CardTitle className="text-sm font-semibold leading-5">
               {challenge ? t('Nhập mã xác thực OTP') : t('Tìm lại mật khẩu')}
             </CardTitle>
-            <CardDescription className="text-xs leading-[19px]" style={typography.regular}>
+            <CardDescription className="text-xs leading-[19px]">
               {challenge
                 ? t('Mã 6 số đã được gửi đến {email}.', {
                     email: challenge.emailMasked || t('email liên kết với tài khoản'),
@@ -117,10 +115,7 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
             {challenge ? (
               <>
                 {otpVerified ? (
-                  <Text
-                    accessibilityLiveRegion="polite"
-                    className="text-xs"
-                    style={typography.medium}>
+                  <Text accessibilityLiveRegion="polite" className="text-xs font-medium">
                     {t('Đã xác minh mã OTP.')}
                   </Text>
                 ) : (
@@ -128,7 +123,6 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
                     <OtpCodeInput
                       otp={otp}
                       pending={isPending || otpNeedsResend}
-                      typography={typography}
                       onChange={(value) => {
                         setOtp(value);
                         clearError();
@@ -140,23 +134,19 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
                       className="h-auto self-end px-0 py-1"
                       disabled={isPending || !canSend}
                       onPress={sendCode}>
-                      <Text className="text-xs" style={typography.medium}>
-                        {resendLabel}
-                      </Text>
+                      <Text className="text-xs font-medium">{resendLabel}</Text>
                     </Button>
                   </>
                 )}
                 <View className="gap-1.5">
                   <Label
                     nativeID="recovery-password-label"
-                    className="text-xs leading-4"
-                    style={typography.medium}>
+                    className="text-xs font-medium leading-4">
                     {t('Mật khẩu mới')}
                   </Label>
                   <View className="min-h-[34px] flex-row items-center rounded-lg border border-input bg-background dark:bg-input/30">
                     <Input
                       className="h-auto min-h-8 w-auto flex-1 rounded-none border-0 bg-transparent py-1.5 pr-1 text-xs leading-4 shadow-none dark:bg-transparent sm:h-auto"
-                      style={typography.regular}
                       aria-labelledby="recovery-password-label"
                       accessibilityLabel={t('Mật khẩu mới')}
                       placeholder={t('Nhập mật khẩu mới')}
@@ -190,16 +180,13 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
                       />
                     </Button>
                   </View>
-                  <Text
-                    className="text-[11px] leading-4 text-muted-foreground"
-                    style={typography.regular}>
+                  <Text className="text-[11px] leading-4 text-muted-foreground">
                     {t('Ít nhất 8 ký tự, có chữ hoa, chữ số và ký tự đặc biệt.')}
                   </Text>
                 </View>
-                <LoginError message={passwordError || error} typography={typography} />
+                <LoginError message={passwordError || error} />
                 <AuthSubmitButton
                   label={t('Đặt lại mật khẩu')}
-                  labelStyle={typography.semiBold}
                   pending={isPending}
                   disabled={!password || otpNeedsResend || (!otpVerified && otp.length !== 6)}
                   onPress={submit}
@@ -210,13 +197,11 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
                 <View className="gap-1.5">
                   <Label
                     nativeID="recovery-account-label"
-                    className="text-xs leading-4"
-                    style={typography.medium}>
+                    className="text-xs font-medium leading-4">
                     {t('Mã cán bộ')}
                   </Label>
                   <Input
                     className="h-auto min-h-[34px] rounded-lg py-1.5 text-xs leading-4 sm:h-auto"
-                    style={typography.regular}
                     aria-labelledby="recovery-account-label"
                     accessibilityLabel={t('Mã cán bộ')}
                     placeholder={t('Nhập mã cán bộ')}
@@ -233,10 +218,9 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
                     onSubmitEditing={sendCode}
                   />
                 </View>
-                <LoginError message={error} typography={typography} />
+                <LoginError message={error} />
                 <AuthSubmitButton
                   label={secondsLeft > 0 ? resendLabel : t('Gửi mã xác thực OTP')}
-                  labelStyle={typography.semiBold}
                   icon={ArrowRight}
                   pending={isPending}
                   disabled={!canSend}
@@ -254,14 +238,10 @@ export function PasswordRecoveryScreen({ initialIdentifier, typography, onBack, 
             className="rounded-2xl border border-border bg-card px-4">
             <AccordionItem value="help" className="border-b-0">
               <AccordionTrigger className="py-3">
-                <Text className="text-xs" style={typography.semiBold}>
-                  {t('Không nhận được mã OTP?')}
-                </Text>
+                <Text className="text-xs font-semibold">{t('Không nhận được mã OTP?')}</Text>
               </AccordionTrigger>
               <AccordionContent className="pb-3">
-                <Text
-                  className="text-xs leading-[19px] text-muted-foreground"
-                  style={typography.regular}>
+                <Text className="text-xs leading-[19px] text-muted-foreground">
                   {t(
                     'Kiểm tra hộp thư đến và thư rác. Nếu chưa liên kết email, hãy liên hệ Ban giám hiệu.'
                   )}

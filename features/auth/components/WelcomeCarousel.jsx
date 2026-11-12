@@ -46,7 +46,7 @@ function wrap(index) {
   return (index + count) % count;
 }
 
-export function WelcomeCarousel({ paused, branding, typography }) {
+export function WelcomeCarousel({ paused, branding }) {
   const t = useTranslation();
   const [index, setIndex] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(true);
@@ -96,8 +96,7 @@ export function WelcomeCarousel({ paused, branding, typography }) {
         {branding}
         <Text
           role="heading"
-          className="px-4 text-center text-xl leading-[27px] tracking-tight"
-          style={typography.monoMedium}>
+          className="px-4 text-center font-mono text-xl font-medium leading-[27px] tracking-tight">
           {t(slide.headline)}
         </Text>
       </View>
@@ -133,9 +132,7 @@ export function WelcomeCarousel({ paused, branding, typography }) {
                   <Badge
                     variant="outline"
                     className="min-w-0 shrink rounded-md border-white/15 bg-black/45">
-                    <Text
-                      className="shrink text-[10px] uppercase leading-[13px] tracking-wider text-white"
-                      style={typography.monoSemiBold}>
+                    <Text className="shrink font-mono text-[10px] font-semibold uppercase leading-[13px] tracking-wider text-white">
                       {String(index + 1).padStart(2, '0')} / 0{count} • {t(slide.label)}
                     </Text>
                   </Badge>
@@ -151,7 +148,7 @@ export function WelcomeCarousel({ paused, branding, typography }) {
                   </Button>
                 </View>
                 <View className="gap-2">
-                  <Text className="text-xs leading-4 text-white" style={typography.medium}>
+                  <Text className="text-xs font-medium leading-4 text-white">
                     {t(slide.caption)}
                   </Text>
                   <View className="flex-row items-center gap-1.5 pt-1">

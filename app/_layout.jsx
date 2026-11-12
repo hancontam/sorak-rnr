@@ -2,12 +2,18 @@ import '@/global.css';
 
 import { PortalHost } from '@rn-primitives/portal';
 import { focusManager, QueryClientProvider } from '@tanstack/react-query';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { ThemeProvider } from 'expo-router/react-navigation';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { useEffect, useState } from 'react';
 import { AppState, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+import { BottomSheetModalProvider } from '@/components/ui/bottom-sheet';
+import { Toaster } from '@/components/ui/sonner';
 
 import { SessionGate } from '@/features/auth/components/SessionGate';
 import { useSessionBootstrap } from '@/features/auth/hooks/useSessionBootstrap';
@@ -15,6 +21,7 @@ import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import PushNotifications from '@/features/notification/components/PushNotifications';
 import { useRestoreThemePreference } from '@/features/settings/hooks/useThemePreference';
+import { FONT_ASSETS } from '@/lib/fonts';
 import { NAV_THEME } from '@/lib/theme';
 import { createQueryClient } from '@/shared/api/query-client';
 import { useLocale, useRestoreLanguage, useTranslation } from '@/shared/i18n/useLanguage';
@@ -23,8 +30,13 @@ export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
+// Giữ splash đến khi Inter/JetBrains Mono sẵn sàng để màn đầu không nháy font hệ thống.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 export default function RootLayout() {
   const [queryClient] = useState(createQueryClient);
+  const [fontsLoaded, fontError] = useFonts(FONT_ASSETS);
+  const fontsReady = fontsLoaded || Boolean(fontError);
   const { colorScheme } = useColorScheme();
   const locale = useLocale();
   useRestoreThemePreference();
@@ -49,15 +61,27 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
+  useEffect(() => {
+    // Lỗi nạp font không chặn app; Text rơi về font hệ thống.
+    if (fontsReady) SplashScreen.hideAsync().catch(() => {});
+  }, [fontsReady]);
+
+  if (!fontsReady) return null;
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <AuthStack />
-        <PushNotifications />
-        <PortalHost />
-      </ThemeProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+          <BottomSheetModalProvider>
+            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+            <AuthStack />
+            <PushNotifications />
+            <Toaster />
+            <PortalHost />
+          </BottomSheetModalProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
 

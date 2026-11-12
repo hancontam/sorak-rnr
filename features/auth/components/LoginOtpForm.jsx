@@ -9,15 +9,7 @@ import { AuthSubmitButton } from './AuthSubmitButton';
 import { LoginError } from './LoginError';
 import { OtpCodeInput } from './OtpCodeInput';
 
-export function LoginOtpForm({
-  emailMasked,
-  error,
-  pending,
-  typography,
-  onSubmit,
-  onBack,
-  onEdit,
-}) {
+export function LoginOtpForm({ emailMasked, error, pending, onSubmit, onBack, onEdit }) {
   const t = useTranslation();
   const [otp, setOtp] = useState('');
 
@@ -28,10 +20,10 @@ export function LoginOtpForm({
   return (
     <Card className="gap-3.5 rounded-2xl py-4">
       <CardHeader className="gap-0.5 px-4">
-        <CardTitle className="text-sm leading-5" style={typography.semiBold}>
+        <CardTitle className="text-sm font-semibold leading-5">
           {t('Nhập mã xác thực OTP')}
         </CardTitle>
-        <CardDescription className="text-xs leading-[19px]" style={typography.regular}>
+        <CardDescription className="text-xs leading-[19px]">
           {emailMasked
             ? t('Nhập mã 6 số đã gửi đến {email}.', { email: emailMasked })
             : t('Nhập mã 6 số đã gửi đến email liên kết với tài khoản.')}
@@ -40,7 +32,6 @@ export function LoginOtpForm({
       <CardContent className="gap-3.5 px-4">
         <OtpCodeInput
           otp={otp}
-          typography={typography}
           pending={pending}
           onChange={(value) => {
             setOtp(value);
@@ -48,18 +39,15 @@ export function LoginOtpForm({
           }}
           onSubmit={submit}
         />
-        <LoginError message={error} typography={typography} />
+        <LoginError message={error} />
         <AuthSubmitButton
           label={t('Xác minh')}
-          labelStyle={typography.semiBold}
           pending={pending}
           disabled={otp.length !== 6}
           onPress={submit}
         />
         <Button variant="ghost" size="sm" disabled={pending} onPress={onBack}>
-          <Text className="text-xs" style={typography.medium}>
-            {t('Quay lại đăng nhập')}
-          </Text>
+          <Text className="text-xs font-medium">{t('Quay lại đăng nhập')}</Text>
         </Button>
       </CardContent>
     </Card>

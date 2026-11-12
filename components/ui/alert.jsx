@@ -14,7 +14,8 @@ function Alert({ className, variant, children, icon, iconClassName, ...props }) 
       <View
         role="alert"
         className={cn(
-          'relative w-full rounded-lg border border-border bg-card px-4 pb-2 pt-3.5',
+          'relative w-full rounded-xl border border-border bg-card px-3.5 pb-3 pt-3.5',
+          variant === 'destructive' && 'border-destructive/30 bg-destructive/5',
           className
         )}
         {...props}>

@@ -1,6 +1,7 @@
 import { Bell, RefreshCw } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Platform, Pressable, View } from 'react-native';
+import { toast } from 'sonner-native';
 
 import { ActionNotice } from '@/components/shared/ActionNotice';
 import { Button } from '@/components/ui/button';
@@ -21,15 +22,19 @@ export default function NotificationInboxScreen() {
   const error =
     actions.error || (query.isError ? t('Chưa tải được thông báo. Vui lòng thử lại.') : '');
 
+  async function readAll() {
+    if (await actions.markRead('all')) toast.success(t('Đã đánh dấu tất cả là đã đọc'));
+  }
+
   function confirmReadAll() {
     const title = t('Đánh dấu tất cả thông báo là đã đọc?');
     if (Platform.OS === 'web') {
-      if (globalThis.confirm(title)) actions.markRead('all');
+      if (globalThis.confirm(title)) readAll();
       return;
     }
     Alert.alert(title, undefined, [
       { text: t('Quay lại'), style: 'cancel' },
-      { text: t('Đánh dấu đã đọc'), onPress: () => actions.markRead('all') },
+      { text: t('Đánh dấu đã đọc'), onPress: readAll },
     ]);
   }
 

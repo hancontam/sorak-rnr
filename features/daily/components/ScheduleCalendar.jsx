@@ -1,162 +1,145 @@
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { MonthCalendar, monthIdOf } from '@/components/shared/MonthCalendar';
+import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Text } from '@/components/ui/text';
+import { cn } from '@/lib/utils';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import {
   calendarDate,
   dayTitle,
-  selectMonth,
   shiftDays,
   WEEKDAY_LABELS,
   weekDates,
-  weekLabel,
 } from '../utils/schedule-date';
 
 const monthYearFormatter = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
+  month: 'long',
   year: 'numeric',
   timeZone: 'UTC',
 });
-const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' });
 const weekdayFormatter = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'UTC' });
 
+// Tiêu đề tháng mở lịch tháng (sheet), hai nút chuyển tuần, nút Hôm nay và dải tuần dạng segmented.
 export function ScheduleCalendar({ date, today, onChange }) {
   const t = useTranslation();
   const locale = useLocale();
-  const [monthOpen, setMonthOpen] = useState(false);
-  const [year, setYear] = useState(Number(date.slice(0, 4)));
+  const english = locale === 'en-US';
+  const [open, setOpen] = useState(false);
+  const [monthId, setMonthId] = useState(monthIdOf(date));
   const days = weekDates(date);
+  const monthTitle = english
+    ? monthYearFormatter.format(calendarDate(date))
+    : t('Tháng {month}/{year}', { month: Number(date.slice(5, 7)), year: date.slice(0, 4) });
+
+  function showMonth() {
+    setMonthId(monthIdOf(date));
+    setOpen(true);
+  }
+
+  function pick(id) {
+    setOpen(false);
+    onChange(id);
+  }
+
   return (
     <View className="gap-3">
-      <View className="flex-row flex-wrap items-center justify-between gap-y-2">
-        <Popover
-          open={monthOpen}
-          onOpenChange={(open) => {
-            if (open) setYear(Number(date.slice(0, 4)));
-            setMonthOpen(open);
-          }}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 gap-1 rounded-xl px-2"
-              accessibilityLabel={t('Chọn tháng và năm')}>
-              <Text className="text-xs font-semibold">
-                {locale === 'en-US'
-                  ? monthYearFormatter.format(calendarDate(date))
-                  : 'Tháng ' + Number(date.slice(5, 7)) + '/' + date.slice(0, 4)}
-              </Text>
-              <Icon as={ChevronDown} size={14} className="text-muted-foreground" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-64 gap-3 rounded-xl p-3">
-            <View className="flex-row items-center justify-between">
-              <CalendarArrow
-                label={t('Năm trước')}
-                icon={ChevronLeft}
-                onPress={() => setYear(year - 1)}
-                disabled={year <= 1900}
-              />
-              <Text className="text-sm font-semibold">{year}</Text>
-              <CalendarArrow
-                label={t('Năm sau')}
-                icon={ChevronRight}
-                onPress={() => setYear(year + 1)}
-                disabled={year >= 9998}
-              />
-            </View>
-            <View className="flex-row flex-wrap">
-              {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => {
-                const selected =
-                  year === Number(date.slice(0, 4)) && month === Number(date.slice(5, 7));
-                return (
-                  <View key={month} className="w-1/3 p-1">
-                    <Button
-                      variant={selected ? 'default' : 'ghost'}
-                      size="sm"
-                      accessibilityState={{ selected }}
-                      onPress={() => {
-                        onChange(selectMonth(date, year, month));
-                        setMonthOpen(false);
-                      }}>
-                      <Text className="text-xs">
-                        {locale === 'en-US'
-                          ? monthFormatter.format(new Date(Date.UTC(year, month - 1)))
-                          : 'Tháng ' + month}
-                      </Text>
-                    </Button>
-                  </View>
-                );
-              })}
-            </View>
-          </PopoverContent>
-        </Popover>
-        <View className="flex-row items-center">
-          <CalendarArrow
-            label={t('Tuần trước')}
-            icon={ChevronLeft}
-            onPress={() => onChange(shiftDays(date, -7))}
-          />
-          <Text className="text-[11px] font-medium">{weekLabel(days, locale, t)}</Text>
-          <CalendarArrow
-            label={t('Tuần sau')}
-            icon={ChevronRight}
-            onPress={() => onChange(shiftDays(date, 7))}
-          />
-        </View>
+      <View className="flex-row items-center gap-2">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('Chọn ngày trên lịch tháng, đang xem {date}', {
+            date: dayTitle(date, locale),
+          })}
+          hitSlop={6}
+          onPress={showMonth}
+          className="min-w-0 flex-1 flex-row items-center gap-1 rounded-lg py-1 active:opacity-70">
+          <Text numberOfLines={1} className="shrink text-lg font-semibold tracking-tight">
+            {monthTitle}
+          </Text>
+          <Icon as={ChevronDown} size={16} className="text-muted-foreground" />
+        </Pressable>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          accessibilityLabel={t('Tuần trước')}
+          onPress={() => onChange(shiftDays(date, -7))}>
+          <Icon as={ChevronLeft} size={16} />
+        </Button>
         <Button
           variant="outline"
           size="sm"
-          className="h-9 min-w-9 rounded-xl px-2"
+          className="px-3"
+          disabled={date === today}
           accessibilityLabel={t('Về hôm nay, {date}', { date: dayTitle(today, locale) })}
           onPress={() => onChange(today)}>
-          <Text className="text-xs font-semibold">{Number(today.slice(8))}</Text>
+          <Text>{t('Hôm nay')}</Text>
+        </Button>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          accessibilityLabel={t('Tuần sau')}
+          onPress={() => onChange(shiftDays(date, 7))}>
+          <Icon as={ChevronRight} size={16} />
         </Button>
       </View>
-      <View className="flex-row gap-1.5">
-        {days.map((day, index) => (
-          <View key={day} className="min-w-0 flex-1 gap-1.5">
-            <Text className="text-center text-[11px] text-muted-foreground">
-              {locale === 'en-US'
-                ? weekdayFormatter.format(calendarDate(day))
-                : WEEKDAY_LABELS[index]}
-            </Text>
-            <Button
-              variant={day === date ? 'default' : 'outline'}
-              size="sm"
+      <View
+        accessibilityRole="radiogroup"
+        className="flex-row rounded-2xl border border-border/60 bg-muted p-1 dark:bg-card">
+        {days.map((day, index) => {
+          const selected = day === date;
+          return (
+            <Pressable
+              key={day}
+              accessibilityRole="radio"
               accessibilityLabel={dayTitle(day, locale)}
-              accessibilityState={{ selected: day === date }}
-              className="h-10 rounded-xl px-0"
-              onPress={() => onChange(day)}>
-              <Text className="text-xs font-semibold">{Number(day.slice(8))}</Text>
-            </Button>
-            <View className="h-1 items-center">
-              {day === today ? <View className="size-1 rounded-full bg-brand" /> : null}
-            </View>
-          </View>
-        ))}
+              accessibilityState={{ selected }}
+              onPress={() => onChange(day)}
+              className={cn(
+                'min-w-0 flex-1 items-center gap-0.5 rounded-xl py-2 shadow-none shadow-black/5 active:opacity-70',
+                selected && 'bg-background shadow-sm dark:bg-muted'
+              )}>
+              <Text
+                className={cn(
+                  'text-2xs text-muted-foreground',
+                  selected && 'font-semibold text-foreground'
+                )}>
+                {english ? weekdayFormatter.format(calendarDate(day)) : WEEKDAY_LABELS[index]}
+              </Text>
+              <Text className={cn('font-mono text-sm', selected && 'font-semibold')}>
+                {Number(day.slice(8))}
+              </Text>
+              <View
+                className={cn(
+                  'size-1 rounded-full',
+                  day === today ? 'bg-foreground' : 'bg-transparent'
+                )}
+              />
+            </Pressable>
+          );
+        })}
       </View>
+      <BottomSheet
+        open={open}
+        onOpenChange={setOpen}
+        title={t('Chọn ngày')}
+        description={dayTitle(date, locale)}
+        closeLabel={t('Đóng')}
+        enableContentPanningGesture={false}>
+        <MonthCalendar
+          monthId={monthId}
+          onMonthChange={setMonthId}
+          ranges={[{ startId: date, endId: date }]}
+          onDayPress={pick}
+        />
+        <Button variant="outline" disabled={date === today} onPress={() => pick(today)}>
+          <Text>{t('Về hôm nay')}</Text>
+        </Button>
+      </BottomSheet>
     </View>
-  );
-}
-
-function CalendarArrow({ label, icon, onPress, disabled }) {
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="size-8"
-      hitSlop={4}
-      accessibilityLabel={label}
-      onPress={onPress}
-      disabled={disabled}>
-      <Icon as={icon} size={16} />
-    </Button>
   );
 }

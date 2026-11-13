@@ -78,7 +78,11 @@ export function HomeTabs({ role }) {
       router.push({ pathname: '/add-account', params: { accountId: account.id } });
       return;
     }
-    void accounts.choose(account.id);
+    const name = account.fullName || account.username;
+    // Lỗi chuyển tài khoản đã hiện qua notice của phiên; chỉ báo thành công khi đã kích hoạt xong.
+    accounts.choose(account.id).then((ok) => {
+      if (ok) toast.success(t('Đã chuyển sang {name}', { name }));
+    });
   }
 
   // Ngữ cảnh ở header: lớp được phân công (GV) hoặc bé của tài khoản đang dùng (PH).

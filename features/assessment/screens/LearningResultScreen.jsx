@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 
 import { ActionNotice } from '@/components/shared/ActionNotice';
+import { useActionToast } from '@/components/shared/useActionToast';
 import { useUnsavedChanges } from '@/components/shared/useUnsavedChanges';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -55,6 +56,8 @@ export default function LearningResultScreen() {
   const [feedback, setFeedback] = useState(null);
   const monthly = kind === 'monthly';
   const result = useLearningResults({ kind, period, semester });
+  // Lưu phản hồi thành công báo bằng toast; lỗi vẫn hiện trong form để đọc lại.
+  useActionToast(result.message?.error ? null : result.message, t);
   const { parent, query, saving } = result;
   const data = query.data;
   const shownPeriod = parent ? data?.period : data?.classInfo;
@@ -194,7 +197,7 @@ export default function LearningResultScreen() {
           className="text-sm"
         />
       ) : null}
-      {result.message ? (
+      {result.message?.error ? (
         <ActionNotice message={{ ...result.message, text: t(result.message.text) }} />
       ) : null}
     </View>

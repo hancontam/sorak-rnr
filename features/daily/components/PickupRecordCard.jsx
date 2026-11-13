@@ -1,4 +1,4 @@
-import { RotateCcw } from 'lucide-react-native';
+import { Plus, RotateCcw } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { SelectField } from '@/components/shared/SelectField';
@@ -13,6 +13,7 @@ import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { isAbsent, pickupOptions } from '../utils/daily-records';
 import { schoolClock } from '../utils/schedule-date';
+import { StudentHeader } from './StudentHeader';
 
 export function PickupRecordCard({
   row,
@@ -27,32 +28,35 @@ export function PickupRecordCard({
   const people = pickupOptions(student);
   const selected = people.find((person) => person.key === value.personKey);
   const canWrite = editable && student.isPresent;
-  const status = student.isDismissed
-    ? 'Đã đón'
+  const [status, variant] = student.isDismissed
+    ? ['Đã đón', 'default']
     : student.isPresent
-      ? 'Chưa đón'
+      ? ['Chưa đón', 'secondary']
       : isAbsent(student)
-        ? 'Vắng'
-        : 'Chưa điểm danh';
+        ? ['Vắng', 'outline']
+        : ['Chưa điểm danh', 'outline'];
   const personLabel = (person) => [person.name, person.relationship].filter(Boolean).join(' · ');
+  const pickedAt = schoolClock(student.checkOutTime);
 
   return (
-    <Card className="gap-3 p-4 shadow-none">
-      <View className="flex-row items-start justify-between gap-2">
-        <View className="min-w-0 flex-1 gap-1">
-          <Text className="text-sm font-semibold">{student.name || student.code}</Text>
-          <Text className="text-xs text-muted-foreground">{student.code}</Text>
-        </View>
-        <Badge variant={student.isDismissed ? 'brand' : 'secondary'}>
-          <Text className="text-[11px]">{t(status)}</Text>
-        </Badge>
-      </View>
+    <Card className="gap-3 px-4 py-3.5">
+      <StudentHeader
+        name={student.name}
+        code={student.code}
+        avatarUrl={row.avatarUrl}
+        right={
+          <Badge variant={variant}>
+            <Text>{t(status)}</Text>
+          </Badge>
+        }
+      />
       {student.isDismissed ? (
-        <Text className="text-xs">
-          {[student.pickupPersonName, student.pickupRelationship, schoolClock(student.checkOutTime)]
-            .filter(Boolean)
-            .join(' · ')}
-        </Text>
+        <View className="flex-row items-center gap-2 rounded-xl bg-muted px-3 py-2">
+          {pickedAt ? <Text className="font-mono text-xs font-semibold">{pickedAt}</Text> : null}
+          <Text numberOfLines={2} className="min-w-0 flex-1 text-xs text-muted-foreground">
+            {[student.pickupPersonName, student.pickupRelationship].filter(Boolean).join(' · ')}
+          </Text>
+        </View>
       ) : null}
       {!student.isPresent ? (
         <Text className="text-xs text-muted-foreground">
@@ -61,78 +65,89 @@ export function PickupRecordCard({
             : t('Chưa có điểm danh Có mặt. Hoàn tất điểm danh rồi quay lại ghi nhận đón trẻ.')}
         </Text>
       ) : null}
-      <View className="gap-1.5">
-        <SelectField
-          label={t('Người đón')}
-          placeholder={t('Chọn người thân hoặc người được ủy quyền')}
-          disabled={!canWrite || !people.length}
-          value={selected?.key}
-          options={people.map((person) => ({
-            value: person.key,
-            label: personLabel(person),
-            description: person.phone,
-          }))}
-          onChange={(personKey) => onChange({ personKey })}
-        />
-        {selected?.phone ? (
-          <Text className="text-xs text-muted-foreground">{selected.phone}</Text>
-        ) : null}
-        {!people.length ? (
-          <Text className="text-xs text-muted-foreground">
-            {t('Chưa có người đón hợp lệ cho ngày này.')}
-          </Text>
-        ) : null}
-      </View>
-      <TimeField
-        label={t('Giờ đón')}
-        value={value.time}
-        disabled={!canWrite}
-        now={() => schoolClock(new Date())}
-        onChange={(time) => onChange({ time })}
-      />
-      <View className="gap-1.5">
-        <Text className="text-xs">{t('Dặn dò phụ huynh')}</Text>
-        <Input
-          value={value.note}
-          onChangeText={(note) => onChange({ note })}
-          editable={canWrite}
-          maxLength={500}
-          accessibilityLabel={t('Dặn dò phụ huynh')}
-          className="text-sm"
-        />
-      </View>
-      <Button
-        size="sm"
-        disabled={
-          !canWrite || !row.changed || !selected || !/^([01]\d|2[0-3]):[0-5]\d$/.test(value.time)
-        }
-        onPress={onPickup}>
-        <Text>
-          {student.isDismissed ? t('Cập nhật ghi nhận đón trẻ') : t('Xác nhận đã đón trẻ')}
-        </Text>
-      </Button>
-      {student.isDismissed && student.isPresent ? (
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={!canWrite}
-          accessibilityLabel={t('Hủy ghi nhận đón trẻ của {name}', {
-            name: student.name || student.code,
-          })}
-          onPress={onUndoPickup}>
-          <Icon as={RotateCcw} size={14} className="text-destructive" />
-          <Text className="text-destructive">{t('Hủy ghi nhận đón trẻ')}</Text>
-        </Button>
-      ) : null}
-      {row.changed ? (
-        <Text className="text-xs text-muted-foreground">
-          {t('Thay đổi chưa lưu. Trạng thái Đã đón chỉ cập nhật sau khi máy chủ xác nhận.')}
-        </Text>
+      {student.isPresent ? (
+        <>
+          <View className="gap-1.5">
+            <SelectField
+              label={t('Người đón')}
+              placeholder={t('Chọn người thân hoặc người được ủy quyền')}
+              disabled={!canWrite || !people.length}
+              value={selected?.key}
+              options={people.map((person) => ({
+                value: person.key,
+                label: personLabel(person),
+                description: person.phone,
+              }))}
+              onChange={(personKey) => onChange({ personKey })}
+            />
+            {selected?.phone ? (
+              <Text className="font-mono text-2xs text-muted-foreground">{selected.phone}</Text>
+            ) : null}
+            {!people.length ? (
+              <Text className="text-xs text-muted-foreground">
+                {t('Chưa có người đón hợp lệ cho ngày này.')}
+              </Text>
+            ) : null}
+          </View>
+          <TimeField
+            label={t('Giờ đón')}
+            value={value.time}
+            disabled={!canWrite}
+            now={() => schoolClock(new Date())}
+            onChange={(time) => onChange({ time })}
+          />
+          <View className="gap-1.5">
+            <Text className="text-2xs font-medium text-muted-foreground">
+              {t('Dặn dò phụ huynh')}
+            </Text>
+            <Input
+              value={value.note}
+              onChangeText={(note) => onChange({ note })}
+              editable={canWrite}
+              maxLength={500}
+              accessibilityLabel={t('Dặn dò phụ huynh')}
+            />
+          </View>
+          {row.changed ? (
+            <Text className="text-2xs text-muted-foreground">
+              {t('Thay đổi chưa lưu. Trạng thái Đã đón chỉ cập nhật sau khi máy chủ xác nhận.')}
+            </Text>
+          ) : null}
+          <Button
+            disabled={
+              !canWrite ||
+              !row.changed ||
+              !selected ||
+              !/^([01]\d|2[0-3]):[0-5]\d$/.test(value.time)
+            }
+            onPress={onPickup}>
+            <Text>
+              {student.isDismissed ? t('Cập nhật ghi nhận đón trẻ') : t('Xác nhận đã đón trẻ')}
+            </Text>
+          </Button>
+        </>
       ) : null}
       {editable ? (
-        <Button size="sm" variant="outline" onPress={onCreateAuthorization}>
-          <Text>{t('Tạo ủy quyền cho học sinh này')}</Text>
-        </Button>
+        <View className="flex-row flex-wrap gap-2">
+          {student.isDismissed && student.isPresent ? (
+            <Button
+              size="sm"
+              variant="destructive-soft"
+              className="flex-1"
+              disabled={!canWrite}
+              accessibilityLabel={t('Hủy ghi nhận đón trẻ của {name}', {
+                name: student.name || student.code,
+              })}
+              onPress={onUndoPickup}>
+              <Icon as={RotateCcw} size={14} className="text-destructive" />
+              <Text>{t('Hủy ghi nhận')}</Text>
+            </Button>
+          ) : null}
+          <Button size="sm" variant="outline" className="flex-1" onPress={onCreateAuthorization}>
+            <Icon as={Plus} size={14} />
+            <Text>{t('Tạo ủy quyền')}</Text>
+          </Button>
+        </View>
       ) : null}
     </Card>
   );

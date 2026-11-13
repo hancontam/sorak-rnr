@@ -79,13 +79,18 @@ function AlertDialogDescription({ className, style, ...props }) {
     />
   );
 }
-function AlertDialogAction({ className, ...props }) {
+// `variant` như Button (ví dụ destructive cho thao tác xóa/hủy); không truyền lớp nút qua className.
+function AlertDialogAction({ className, variant, ...props }) {
   return (
     <TextClassContext.Provider
       value={buttonTextVariants({
         className,
+        variant,
       })}>
-      <AlertDialogPrimitive.Action className={cn(buttonVariants(), className)} {...props} />
+      <AlertDialogPrimitive.Action
+        className={cn(buttonVariants({ variant }), className)}
+        {...props}
+      />
     </TextClassContext.Provider>
   );
 }

@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Check, LogOut, Plus, Settings } from 'lucide-react-native';
 import { Alert, Pressable, ScrollView, View } from 'react-native';
+import { toast } from 'sonner-native';
 
 import { AccountAvatar } from '@/components/shared/AccountAvatar';
 import { ActionNotice } from '@/components/shared/ActionNotice';
@@ -30,7 +31,14 @@ export default function AccountsScreen() {
   function confirmRemove(account) {
     Alert.alert(t('Đăng xuất tài khoản này?'), account.username, [
       { text: t('Hủy'), style: 'cancel' },
-      { text: t('Đăng xuất'), style: 'destructive', onPress: () => void remove(account.id) },
+      {
+        text: t('Đăng xuất'),
+        style: 'destructive',
+        onPress: async () => {
+          if (await remove(account.id))
+            toast.success(t('Đã đăng xuất {name}', { name: account.username }));
+        },
+      },
     ]);
   }
 
@@ -44,7 +52,10 @@ export default function AccountsScreen() {
       else router.replace('/(parent)/(tabs)/child-profile');
       return;
     }
-    void choose(account.id);
+    choose(account.id).then((ok) => {
+      if (ok)
+        toast.success(t('Đã chuyển sang {name}', { name: account.fullName || account.username }));
+    });
   }
 
   return (

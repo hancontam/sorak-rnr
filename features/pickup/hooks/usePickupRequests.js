@@ -13,6 +13,12 @@ import {
   submitPickupRequest,
 } from '../api/pickup-requests.api';
 
+const DONE_MESSAGES = {
+  cancel: 'Đã hủy đơn ủy quyền.',
+  approve: 'Đã duyệt đơn ủy quyền.',
+  reject: 'Đã từ chối đơn ủy quyền.',
+};
+
 const EXPECTED_STATUS = {
   create: 'PENDING',
   cancel: 'CANCELLED',
@@ -148,7 +154,14 @@ export function usePickupRequests({ enabled = true, date = schoolToday(), creati
       setNeedsReload(!confirmed);
       setMessage(
         confirmed
-          ? { text: 'Đã cập nhật và kiểm tra lại trạng thái đơn.' }
+          ? {
+              text:
+                action === 'create'
+                  ? isParent
+                    ? 'Đã gửi đơn ủy quyền, đang chờ cô duyệt.'
+                    : 'Đã tạo đơn ủy quyền đã duyệt.'
+                  : DONE_MESSAGES[action],
+            }
           : {
               error: true,
               text: 'Máy chủ đã nhận yêu cầu nhưng chưa đối chiếu được trạng thái. Hãy tải lại danh sách.',

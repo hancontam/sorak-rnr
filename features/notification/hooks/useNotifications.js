@@ -24,13 +24,13 @@ export function useNotificationReadActions(query) {
 
   async function markRead(id) {
     if (writing.current || !user?.id || useAuthStore.getState().user !== user || !query.isSuccess)
-      return;
+      return false;
     if (
       id === 'all'
         ? query.data.unreadCount === 0
         : !query.data.notifications.some((item) => item.id === id && !item.isRead)
     )
-      return;
+      return false;
 
     writing.current = true;
     const targeted = new Set(
@@ -42,17 +42,19 @@ export function useNotificationReadActions(query) {
     setError('');
     try {
       await mutation.mutateAsync(id);
-      if (useAuthStore.getState().user !== user) return;
+      if (useAuthStore.getState().user !== user) return false;
       const result = await query.refetch();
-      if (useAuthStore.getState().user !== user) return;
+      if (useAuthStore.getState().user !== user) return false;
       if (result.isError) {
         setError('Chưa tải lại được trạng thái thông báo. Hãy làm mới danh sách.');
       } else if (result.data.notifications.some((item) => targeted.has(item.id) && !item.isRead)) {
         setError('Một số thông báo vừa chọn vẫn chưa được đánh dấu đã đọc. Hãy thử lại.');
-      }
+      } else return true;
+      return false;
     } catch {
       if (useAuthStore.getState().user === user)
         setError('Chưa xác nhận được thay đổi. Hãy tải lại danh sách trước khi thử lại.');
+      return false;
     } finally {
       writing.current = false;
       setBusy(false);

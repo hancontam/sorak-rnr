@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 
+import { MeasureField } from '@/components/shared/MeasureField';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -41,27 +42,25 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
           </View>
         ) : (
           <>
-            <View className="flex-row gap-2">
-              <View className="min-w-0 flex-1">
-                <Field
-                  label={t('Chiều cao (cm)')}
-                  value={value.height}
-                  onChangeText={(height) => onChange({ height })}
-                  editable={canWrite}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <View className="min-w-0 flex-1">
-                <Field
-                  label={t('Cân nặng (kg)')}
-                  value={value.weight}
-                  onChangeText={(weight) => onChange({ weight })}
-                  editable={canWrite}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-            </View>
-            {bmi ? <Text className="text-xs text-muted-foreground">BMI {bmi} kg/m²</Text> : null}
+            <MeasureField
+              label={t('Chiều cao')}
+              unit="cm"
+              value={value.height ?? ''}
+              onChange={(height) => onChange({ height })}
+              editable={canWrite}
+              steps={[0.5, 1]}
+            />
+            <MeasureField
+              label={t('Cân nặng')}
+              unit="kg"
+              value={value.weight ?? ''}
+              onChange={(weight) => onChange({ weight })}
+              editable={canWrite}
+              steps={[0.1, 0.5]}
+            />
+            {bmi ? (
+              <Text className="font-mono text-2xs text-muted-foreground">BMI {bmi} kg/m²</Text>
+            ) : null}
           </>
         )
       ) : (

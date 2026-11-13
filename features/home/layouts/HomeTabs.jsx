@@ -38,7 +38,9 @@ export function HomeTabs({ role }) {
     push.supported &&
     push.ready &&
     push.preference === 'unset' &&
-    push.permission?.status === 'undetermined';
+    // Android 13+ trả 'denied' + canAskAgain trước lần hỏi đầu, nên không dựa vào 'undetermined'.
+    push.permission?.granted === false &&
+    push.permission.canAskAgain;
 
   async function enablePush() {
     try {

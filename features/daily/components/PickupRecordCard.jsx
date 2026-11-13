@@ -1,18 +1,13 @@
 import { RotateCcw } from 'lucide-react-native';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
 
+import { SelectField } from '@/components/shared/SelectField';
+import { TimeField } from '@/components/shared/TimeField';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Text } from '@/components/ui/text';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
@@ -67,24 +62,18 @@ export function PickupRecordCard({
         </Text>
       ) : null}
       <View className="gap-1.5">
-        <Text className="text-xs">{t('Người đón')}</Text>
-        <Select
+        <SelectField
+          label={t('Người đón')}
+          placeholder={t('Chọn người thân hoặc người được ủy quyền')}
           disabled={!canWrite || !people.length}
-          value={selected ? { value: selected.key, label: personLabel(selected) } : undefined}
-          onValueChange={(option) => onChange({ personKey: option?.value || '' })}>
-          <SelectTrigger
-            size="sm"
-            accessibilityLabel={t('Người đón {name}', { name: student.name })}>
-            <SelectValue placeholder={t('Chọn người thân hoặc người được ủy quyền')} />
-          </SelectTrigger>
-          <SelectContent>
-            <ScrollView style={{ maxHeight: 240 }} keyboardShouldPersistTaps="handled">
-              {people.map((person) => (
-                <SelectItem key={person.key} value={person.key} label={personLabel(person)} />
-              ))}
-            </ScrollView>
-          </SelectContent>
-        </Select>
+          value={selected?.key}
+          options={people.map((person) => ({
+            value: person.key,
+            label: personLabel(person),
+            description: person.phone,
+          }))}
+          onChange={(personKey) => onChange({ personKey })}
+        />
         {selected?.phone ? (
           <Text className="text-xs text-muted-foreground">{selected.phone}</Text>
         ) : null}
@@ -94,27 +83,13 @@ export function PickupRecordCard({
           </Text>
         ) : null}
       </View>
-      <View className="gap-1.5">
-        <View className="flex-row items-center justify-between gap-2">
-          <Text className="text-xs">{t('Giờ đón (HH:mm)')}</Text>
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={!canWrite}
-            onPress={() => onChange({ time: schoolClock(new Date()) })}>
-            <Text className="text-xs">{t('Giờ hiện tại')}</Text>
-          </Button>
-        </View>
-        <Input
-          value={value.time}
-          onChangeText={(time) => onChange({ time })}
-          editable={canWrite}
-          maxLength={5}
-          placeholder="HH:mm"
-          accessibilityLabel={t('Giờ đón')}
-          className="text-sm"
-        />
-      </View>
+      <TimeField
+        label={t('Giờ đón')}
+        value={value.time}
+        disabled={!canWrite}
+        now={() => schoolClock(new Date())}
+        onChange={(time) => onChange({ time })}
+      />
       <View className="gap-1.5">
         <Text className="text-xs">{t('Dặn dò phụ huynh')}</Text>
         <Input

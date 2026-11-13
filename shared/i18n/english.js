@@ -920,4 +920,17 @@ export const english = {
   'Đã tắt xác thực hai bước': 'Two-step verification off',
   'Đã đổi mật khẩu': 'Password changed',
   'Để sau': 'Not now',
+  // Redesign 4b: ô chọn ngày, giờ, số đo.
+  'Chọn giờ': 'Choose time',
+  'Chọn lại': 'Reset',
+  'Chọn ngày': 'Choose dates',
+  'Chọn ngày bắt đầu': 'Choose a start date',
+  'Giảm {label}': 'Decrease {label}',
+  'Giờ {time}': 'Time {time}',
+  'Tháng sau': 'Next month',
+  'Tháng trước': 'Previous month',
+  'Tháng {month}/{year}': '{month}/{year}',
+  'Thời hạn ủy quyền': 'Authorization period',
+  'Tăng {label}': 'Increase {label}',
+  Xong: 'Done',
 };

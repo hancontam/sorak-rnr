@@ -1,18 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Image, ScrollView, View } from 'react-native';
+import { Image, View } from 'react-native';
 import { Camera, ImagePlus } from 'lucide-react-native';
 
+import { DateRangeField } from '@/components/shared/DateRangeField';
+import { SelectField } from '@/components/shared/SelectField';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Icon } from '@/components/ui/icon';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
 import { Text } from '@/components/ui/text';
 import { calendarDate, schoolToday } from '@/features/daily/utils/schedule-date';
 import { useTranslation } from '@/shared/i18n/useLanguage';
@@ -27,8 +22,8 @@ const FIELDS = [
     keyboardType: 'number-pad',
     maxLength: 20,
   },
-  { name: 'start_date', label: 'Ngày bắt đầu (YYYY-MM-DD)', maxLength: 10 },
-  { name: 'end_date', label: 'Ngày kết thúc (YYYY-MM-DD)', maxLength: 10 },
+  { name: 'start_date', date: true },
+  { name: 'end_date', date: true },
   { name: 'note', label: 'Ghi chú đón trẻ (không bắt buộc)', maxLength: 500 },
 ];
 
@@ -101,6 +96,21 @@ export function PickupRequestForm({
     onSend(isParent ? body : { ...body, studentId, photoUrl: photo?.url || null });
   }
 
+  function renderField({ name, label, date, ...props }) {
+    return (
+      <View key={name} className="gap-1.5">
+        <Text className="text-xs font-medium">{t(label)}</Text>
+        <Input
+          {...props}
+          value={values[name] || ''}
+          editable={!disabled}
+          accessibilityLabel={t(label)}
+          onChangeText={(value) => setValues((current) => ({ ...current, [name]: value }))}
+        />
+      </View>
+    );
+  }
+
   return (
     <Card className="gap-3 p-4 shadow-none">
       <Text className="text-sm font-semibold">{t('Tạo đơn ủy quyền đón trẻ')}</Text>
@@ -109,51 +119,39 @@ export function PickupRequestForm({
       ) : null}
       {!isParent ? (
         <View className="gap-1.5">
-          <Text className="text-xs">{t('Học sinh được ủy quyền')}</Text>
-          <Select
+          <SelectField
+            label={t('Học sinh được ủy quyền')}
+            placeholder={t('Chọn học sinh')}
             disabled={disabled}
-            value={
-              selected
-                ? { value: studentId, label: `${selected.name} · ${selected.code}` }
-                : undefined
-            }
-            onValueChange={(option) => {
-              setStudentId(option?.value || '');
+            value={studentId}
+            options={students.map((item) => ({
+              value: String(item.id),
+              label: item.name,
+              description: item.code,
+            }))}
+            onChange={(value) => {
+              setStudentId(value);
               setError('');
-            }}>
-            <SelectTrigger size="sm" accessibilityLabel={t('Chọn học sinh')}>
-              <SelectValue placeholder={t('Chọn học sinh')} />
-            </SelectTrigger>
-            <SelectContent>
-              <ScrollView style={{ maxHeight: 260 }} keyboardShouldPersistTaps="handled">
-                {students.map((item) => (
-                  <SelectItem
-                    key={item.id}
-                    value={String(item.id)}
-                    label={`${item.name} · ${item.code}`}
-                  />
-                ))}
-              </ScrollView>
-            </SelectContent>
-          </Select>
+            }}
+          />
           <Text className="text-xs text-muted-foreground">
             {t('Đơn do giáo viên tạo được duyệt ngay. Người đón xuất hiện theo thời hạn hiệu lực.')}
           </Text>
         </View>
       ) : null}
-      {FIELDS.map(({ name, label, ...props }) => (
-        <View key={name} className="gap-1">
-          <Text className="text-xs">{t(label)}</Text>
-          <Input
-            {...props}
-            value={values[name] || ''}
-            editable={!disabled}
-            accessibilityLabel={t(label)}
-            className="text-sm"
-            onChangeText={(value) => setValues((current) => ({ ...current, [name]: value }))}
-          />
-        </View>
-      ))}
+      {FIELDS.filter((field) => !field.date && field.name !== 'note').map(renderField)}
+      <DateRangeField
+        label={t('Thời hạn ủy quyền')}
+        startId={values.start_date}
+        endId={values.end_date}
+        todayId={schoolToday()}
+        minDateId={isParent ? schoolToday() : undefined}
+        disabled={disabled}
+        onChange={({ startId, endId }) =>
+          setValues((current) => ({ ...current, start_date: startId, end_date: endId }))
+        }
+      />
+      {FIELDS.filter((field) => field.name === 'note').map(renderField)}
       {photo ? (
         <View className="gap-2">
           <Text className="text-xs">{t('Ảnh người được ủy quyền (không bắt buộc)')}</Text>

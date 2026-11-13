@@ -21,7 +21,7 @@ const SCHOOL_PHOTO = require('@/assets/images/auth-webview-school.jpg');
 const CONFIRM_WINDOW_MS = 5 * 60_000;
 const EXPIRED_MESSAGE = 'Mã xác minh đã hết hạn. Tải lại để xác minh tiếp.';
 
-export function TurnstileChallenge({ url, role, account, typography, onVerified, onClose }) {
+export function TurnstileChallenge({ url, role, account, onVerified, onClose }) {
   const [attempt, setAttempt] = useState(0);
   return (
     <Modal
@@ -41,7 +41,6 @@ export function TurnstileChallenge({ url, role, account, typography, onVerified,
             url={url}
             role={role}
             account={account}
-            typography={typography}
             onVerified={onVerified}
             onClose={onClose}
             onRetry={() => setAttempt((key) => key + 1)}
@@ -52,7 +51,7 @@ export function TurnstileChallenge({ url, role, account, typography, onVerified,
   );
 }
 
-function ChallengeAttempt({ url, role, account, typography, onVerified, onClose, onRetry }) {
+function ChallengeAttempt({ url, role, account, onVerified, onClose, onRetry }) {
   const t = useTranslation();
   const [error, setError] = useState('');
   const [verified, setVerified] = useState(false);
@@ -133,7 +132,7 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
 
   return (
     <>
-      <BrowserBar host={host} typography={typography} onClose={onClose} onReload={restart} />
+      <BrowserBar host={host} onClose={onClose} onReload={restart} />
       <Progress
         className="h-0.5 rounded-none"
         value={verified ? 100 : progress}
@@ -141,43 +140,34 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
       />
       <ScrollView className="flex-1" contentContainerClassName="gap-4 py-4" nestedScrollEnabled>
         <View className="gap-4 px-4">
-          <SchoolBanner typography={typography} />
+          <SchoolBanner />
           <Card className="gap-3 rounded-2xl bg-muted/30 py-4 shadow-none">
             <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 px-4">
-              <CardTitle className="text-xs" style={typography.semiBold}>
+              <CardTitle className="text-xs font-semibold">
                 {t('Xác nhận quyền truy cập')}
               </CardTitle>
               <Badge>
-                <Text className="text-[10px]" style={typography.monoSemiBold}>
-                  {t(roleLabel(role))}
-                </Text>
+                <Text className="font-mono text-2xs font-semibold">{t(roleLabel(role))}</Text>
               </Badge>
             </CardHeader>
             <CardContent className="gap-3 px-4">
               <View className="gap-1.5 rounded-xl border border-border bg-background p-3">
                 <View className="flex-row justify-between gap-3">
-                  <Text className="text-xs text-muted-foreground" style={typography.mono}>
-                    {t('Tài khoản')}
-                  </Text>
+                  <Text className="font-mono text-xs text-muted-foreground">{t('Tài khoản')}</Text>
                   <Text
-                    className="min-w-0 flex-1 text-right text-xs"
-                    style={typography.monoSemiBold}
+                    className="min-w-0 flex-1 text-right font-mono text-xs font-semibold"
                     numberOfLines={1}>
                     {account}
                   </Text>
                 </View>
                 <View className="flex-row justify-between gap-3">
-                  <Text className="text-xs text-muted-foreground" style={typography.mono}>
-                    {t('Trường')}
-                  </Text>
-                  <Text className="text-right text-xs" style={typography.mono}>
-                    {t('MN Hòn Tre')}
-                  </Text>
+                  <Text className="font-mono text-xs text-muted-foreground">{t('Trường')}</Text>
+                  <Text className="text-right font-mono text-xs">{t('MN Hòn Tre')}</Text>
                 </View>
               </View>
               {verified && !error ? (
                 <Button size="sm" className="h-auto min-h-9 rounded-xl py-2" onPress={confirm}>
-                  <Text className="text-xs" style={typography.semiBold}>
+                  <Text className="text-xs font-semibold">
                     {t('Cho phép & Tiếp tục vào Sorak')}
                   </Text>
                   <Icon as={ArrowUpRight} size={14} />
@@ -186,17 +176,13 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
               {error ? (
                 <>
                   <Alert icon={CircleAlert} variant="destructive">
-                    <AlertTitle className="text-sm leading-5" style={typography.semiBold}>
+                    <AlertTitle className="text-sm font-semibold leading-5">
                       {t('Chưa xác minh được')}
                     </AlertTitle>
-                    <AlertDescription className="text-xs leading-4" style={typography.regular}>
-                      {t(error)}
-                    </AlertDescription>
+                    <AlertDescription className="text-xs leading-4">{t(error)}</AlertDescription>
                   </Alert>
                   <Button variant="outline" size="sm" onPress={restart}>
-                    <Text className="text-xs" style={typography.medium}>
-                      {t('Thử lại')}
-                    </Text>
+                    <Text className="text-xs font-medium">{t('Thử lại')}</Text>
                   </Button>
                 </>
               ) : null}
@@ -235,15 +221,13 @@ function ChallengeAttempt({ url, role, account, typography, onVerified, onClose,
       </ScrollView>
       <View className="mx-4 flex-row items-center justify-center gap-2 border-t border-border py-2.5">
         {waiting ? <ActivityIndicator size="small" /> : null}
-        <Text className="text-[10px] text-muted-foreground" style={typography.mono}>
-          Cloudflare Turnstile
-        </Text>
+        <Text className="font-mono text-2xs text-muted-foreground">Cloudflare Turnstile</Text>
       </View>
     </>
   );
 }
 
-function BrowserBar({ host, typography, onClose, onReload }) {
+function BrowserBar({ host, onClose, onReload }) {
   const t = useTranslation();
   return (
     <View className="flex-row items-center gap-2 border-b border-border bg-muted/60 px-2 py-1.5">
@@ -254,15 +238,12 @@ function BrowserBar({ host, typography, onClose, onReload }) {
         hitSlop={6}
         onPress={onClose}
         accessibilityLabel={t('Đóng xác minh')}>
-        <Text className="text-xs" style={typography.semiBold}>
-          {t('Đóng')}
-        </Text>
+        <Text className="text-xs font-semibold">{t('Đóng')}</Text>
       </Button>
       <View className="min-w-0 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-2 py-1.5">
         <Icon as={LockKeyhole} size={13} className="text-muted-foreground" />
         <Text
-          className="shrink text-[10px]"
-          style={typography.mono}
+          className="shrink font-mono text-2xs"
           numberOfLines={1}
           accessibilityLabel={t('Địa chỉ xác minh {host}', { host })}>
           {host}
@@ -281,7 +262,7 @@ function BrowserBar({ host, typography, onClose, onReload }) {
   );
 }
 
-function SchoolBanner({ typography }) {
+function SchoolBanner() {
   const t = useTranslation();
   return (
     <View className="h-32 overflow-hidden rounded-2xl border border-border bg-muted">
@@ -298,11 +279,9 @@ function SchoolBanner({ typography }) {
       </Svg>
       <View className="flex-1 items-start justify-end gap-1 p-3">
         <Badge variant="secondary">
-          <Text className="text-[10px]" style={typography.monoSemiBold}>
-            {t('Xác minh bảo mật')}
-          </Text>
+          <Text className="font-mono text-2xs font-semibold">{t('Xác minh bảo mật')}</Text>
         </Badge>
-        <Text className="text-xs text-white" style={typography.semiBold}>
+        <Text className="text-xs font-semibold text-white">
           {t('Cổng xác thực Trường Mầm Non Hòn Tre')}
         </Text>
       </View>

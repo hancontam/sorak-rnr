@@ -2,24 +2,47 @@ import { View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { displayValue } from '../utils/report-format';
 
-export function ReportFields({ title, fields, children }) {
+/**
+ * Danh sách nhãn–giá trị trong một Card, mỗi dòng cách nhau bằng đường kẻ mảnh.
+ * fields: [label, value, { mono }?]; `badge` nằm cạnh tiêu đề, `children` (thao tác) ở cuối.
+ */
+export function ReportFields({ title, badge, fields, children }) {
   const t = useTranslation();
   return (
-    <Card className="gap-3 rounded-2xl p-3.5 shadow-none">
-      {title ? <Text className="text-sm font-semibold leading-5">{title}</Text> : null}
-      {fields.map(([label, value]) => (
-        <View key={label} className="flex-row gap-3">
-          <Text className="w-[38%] text-xs leading-5 text-muted-foreground">{t(label)}</Text>
-          <Text className="min-w-0 flex-1 text-xs leading-5">
-            {displayValue(value) ?? t('Chưa có thông tin')}
-          </Text>
+    <Card className="gap-0 py-0">
+      {title || badge ? (
+        <View className="flex-row items-start gap-2 px-4 pb-2.5 pt-3.5">
+          <Text className="min-w-0 flex-1 text-sm font-semibold leading-5">{title}</Text>
+          {badge}
         </View>
-      ))}
-      {children}
+      ) : null}
+      {fields.map(([label, value, options], index) => {
+        const shown = displayValue(value);
+        return (
+          <View
+            key={label}
+            className={cn(
+              'flex-row gap-3 px-4 py-2.5',
+              (index > 0 || title || badge) && 'border-t border-border'
+            )}>
+            <Text className="w-[38%] text-xs leading-5 text-muted-foreground">{t(label)}</Text>
+            <Text
+              className={cn(
+                'min-w-0 flex-1 text-xs leading-5',
+                shown === null && 'text-muted-foreground',
+                options?.mono && shown !== null && 'font-mono'
+              )}>
+              {shown ?? t('Chưa có thông tin')}
+            </Text>
+          </View>
+        );
+      })}
+      {children ? <View className="border-t border-border px-4 py-3">{children}</View> : null}
     </Card>
   );
 }

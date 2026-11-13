@@ -4,7 +4,9 @@ import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import { notificationAccount } from '@/features/auth/utils/linked-accounts';
 
-import { supportsPush, usePushRegistration } from '../hooks/usePushRegistration';
+import { usePushPreferenceStore, useRestorePushPreference } from '../hooks/usePushPreference';
+import { usePushRegistration } from '../hooks/usePushRegistration';
+import { supportsPush } from '../push-registration';
 import { usePushResponse } from '../hooks/usePushResponse';
 
 if (supportsPush) {
@@ -19,7 +21,8 @@ if (supportsPush) {
       return {
         shouldShowBanner: show,
         shouldShowList: show,
-        shouldPlaySound: show,
+        // Âm thanh khi app đang mở theo lựa chọn trong Cài đặt > Thông báo.
+        shouldPlaySound: show && usePushPreferenceStore.getState().sound,
         shouldSetBadge: false,
       };
     },
@@ -31,6 +34,7 @@ export default function PushNotifications() {
 }
 
 function NativePushNotifications() {
+  useRestorePushPreference();
   usePushRegistration();
   const response = Notifications.useLastNotificationResponse();
   usePushResponse(response);

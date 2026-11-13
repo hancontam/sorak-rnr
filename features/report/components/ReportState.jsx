@@ -20,19 +20,21 @@ export function ReportState({ loading, error, title = 'Chưa có dữ liệu', d
     return (
       <View className="gap-3">
         <Alert icon={CircleAlert} variant="destructive">
-          <AlertTitle className="text-sm">{t('Chưa tải được báo cáo')}</AlertTitle>
-          <AlertDescription className="text-xs leading-5">{t(error)}</AlertDescription>
+          <AlertTitle>{t('Chưa tải được báo cáo')}</AlertTitle>
+          <AlertDescription>{t(error)}</AlertDescription>
         </Alert>
         {onRetry ? (
           <Button variant="outline" size="sm" onPress={onRetry}>
-            <Text className="text-xs">{t('Thử lại')}</Text>
+            <Text>{t('Thử lại')}</Text>
           </Button>
         ) : null}
       </View>
     );
   return (
-    <View className="items-center gap-2 rounded-2xl border border-dashed border-border p-6">
-      <Icon as={FileSearch} size={24} className="text-muted-foreground" />
+    <View className="items-center gap-2 rounded-2xl border border-dashed border-border px-5 py-8">
+      <View className="mb-1 size-10 items-center justify-center rounded-xl bg-muted">
+        <Icon as={FileSearch} size={20} className="text-muted-foreground" />
+      </View>
       <Text className="text-center text-sm font-semibold">{t(title)}</Text>
       {description ? (
         <Text className="text-center text-xs leading-5 text-muted-foreground">

@@ -1,6 +1,7 @@
 import { buttonTextVariants, buttonVariants } from '@/components/ui/button';
 import { NativeOnlyAnimatedView } from '@/components/ui/native-only-animated-view';
 import { TextClassContext } from '@/components/ui/text';
+import { fontStyle } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
 import * as AlertDialogPrimitive from '@rn-primitives/alert-dialog';
 import * as React from 'react';
@@ -40,7 +41,7 @@ function AlertDialogContent({ className, portalHost, ...props }) {
       <AlertDialogOverlay>
         <AlertDialogPrimitive.Content
           className={cn(
-            'z-50 flex w-full max-w-[calc(100%-2rem)] flex-col gap-4 rounded-lg border border-border bg-background p-6 shadow-lg shadow-black/5 sm:max-w-lg',
+            'z-50 flex w-full max-w-[calc(100%-2.5rem)] flex-col gap-4 rounded-2xl border border-border bg-popover p-5 shadow-xl shadow-black/20 sm:max-w-lg',
             Platform.select({
               web: 'duration-200 animate-in fade-in-0 zoom-in-95',
             }),
@@ -54,42 +55,42 @@ function AlertDialogContent({ className, portalHost, ...props }) {
 }
 function AlertDialogHeader({ className, ...props }) {
   return (
-    <TextClassContext.Provider value="text-center sm:text-left">
-      <View className={cn('flex flex-col gap-2', className)} {...props} />
+    <TextClassContext.Provider value="text-left">
+      <View className={cn('flex flex-col gap-1.5', className)} {...props} />
     </TextClassContext.Provider>
   );
 }
 function AlertDialogFooter({ className, ...props }) {
+  return <View className={cn('flex flex-row justify-end gap-2 pt-1', className)} {...props} />;
+}
+function AlertDialogTitle({ className, style, ...props }) {
+  const merged = cn('text-sm font-semibold text-foreground', className);
   return (
-    <View
-      className={cn('flex flex-col-reverse gap-2 sm:flex-row sm:justify-end', className)}
-      {...props}
-    />
+    <AlertDialogPrimitive.Title className={merged} style={[fontStyle(merged), style]} {...props} />
   );
 }
-function AlertDialogTitle({ className, ...props }) {
-  return (
-    <AlertDialogPrimitive.Title
-      className={cn('text-lg font-semibold text-foreground', className)}
-      {...props}
-    />
-  );
-}
-function AlertDialogDescription({ className, ...props }) {
+function AlertDialogDescription({ className, style, ...props }) {
+  const merged = cn('text-xs leading-5 text-muted-foreground', className);
   return (
     <AlertDialogPrimitive.Description
-      className={cn('text-sm text-muted-foreground', className)}
+      className={merged}
+      style={[fontStyle(merged), style]}
       {...props}
     />
   );
 }
-function AlertDialogAction({ className, ...props }) {
+// `variant` như Button (ví dụ destructive cho thao tác xóa/hủy); không truyền lớp nút qua className.
+function AlertDialogAction({ className, variant, ...props }) {
   return (
     <TextClassContext.Provider
       value={buttonTextVariants({
         className,
+        variant,
       })}>
-      <AlertDialogPrimitive.Action className={cn(buttonVariants(), className)} {...props} />
+      <AlertDialogPrimitive.Action
+        className={cn(buttonVariants({ variant }), className)}
+        {...props}
+      />
     </TextClassContext.Provider>
   );
 }

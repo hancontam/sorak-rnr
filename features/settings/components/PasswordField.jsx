@@ -13,14 +13,14 @@ export function PasswordField({ label, ...props }) {
   const [visible, setVisible] = useState(false);
   return (
     <View className="gap-1.5">
-      <Text className="text-xs font-semibold">{label}</Text>
+      <Text className="text-xs font-medium">{label}</Text>
       <View className="relative justify-center">
         <Input
           accessibilityLabel={label}
           secureTextEntry={!visible}
           autoCapitalize="none"
           autoCorrect={false}
-          className="min-h-11 rounded-xl pr-11 text-xs"
+          className="h-11 pr-11"
           {...props}
         />
         <Button
@@ -29,7 +29,7 @@ export function PasswordField({ label, ...props }) {
           accessibilityLabel={visible ? t('Ẩn mật khẩu') : t('Hiện mật khẩu')}
           onPress={() => setVisible(!visible)}
           className="absolute right-0.5 size-10">
-          <Icon as={visible ? EyeOff : Eye} size={15} className="text-muted-foreground" />
+          <Icon as={visible ? EyeOff : Eye} size={16} className="text-muted-foreground" />
         </Button>
       </View>
     </View>

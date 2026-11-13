@@ -74,48 +74,67 @@ export function routineTitle(frame, isParent, t) {
   return isParent && !frame.key.startsWith('extra:') ? frame.title : t(frame.title);
 }
 
-function countLabel(count, message, t) {
-  return Number.isInteger(count) && count >= 0 ? t(message, { count }) : t('Chưa có thông tin');
-}
+const count = (value) => (Number.isInteger(value) && value >= 0 ? value : null);
+const recordState = (flag) => (flag === true ? 'done' : flag === false ? 'todo' : 'unknown');
 
-export function daySummary(data, date, isParent, t) {
+export const ATTENDANCE_LABELS = {
+  PRESENT: 'Có mặt',
+  EXCUSED_ABSENCE: 'Vắng có phép',
+  UNEXCUSED_ABSENCE: 'Vắng không phép',
+  ABSENT: 'Vắng',
+};
+
+// Tình hình trong ngày từ dữ liệu thật: số liệu thiếu giữ null để UI hiện "Chưa có thông tin".
+export function dayOverview(data, date, isParent) {
   if (!isParent) {
-    const stats = data.stats;
+    const stats = data.stats || {};
     return {
-      attendance:
-        stats?.isRecorded === false
-          ? t('Chưa ghi nhận')
-          : stats?.isRecorded === true
-            ? countLabel(stats.presentCount, '{count} có mặt', t)
-            : t('Chưa có thông tin'),
-      health:
-        stats?.isHealthRecorded === false
-          ? t('Chưa ghi nhận')
-          : stats?.isHealthRecorded === true
-            ? countLabel(stats.healthCount, '{count} đã đo', t)
-            : t('Chưa có thông tin'),
-      pickup: countLabel(stats?.dismissedCount, '{count} đã đón', t),
+      total: count(stats.totalStudents),
+      attendance: {
+        state: recordState(stats.isRecorded),
+        present: count(stats.presentCount),
+        absent: count(stats.absentCount),
+      },
+      health: { state: recordState(stats.isHealthRecorded), count: count(stats.healthCount) },
+      pickup: { state: recordState(stats.isDismissalRecorded), count: count(stats.dismissedCount) },
     };
   }
   const attendance = data.attendance.records.find((record) => record.isoDate === date);
   const health = data.health.history.filter((record) => record.rawDate?.slice(0, 10) === date);
-  const attendanceLabel = {
-    PRESENT: 'Có mặt',
-    EXCUSED_ABSENCE: 'Vắng có phép',
-    UNEXCUSED_ABSENCE: 'Vắng không phép',
-    ABSENT: 'Vắng',
-  }[attendance?.rawStatus];
   return {
-    attendance: attendance
-      ? attendanceLabel
-        ? t(attendanceLabel)
-        : attendance.statusLabel || t('Đã ghi nhận')
-      : t('Chưa ghi nhận'),
-    health: t(health.length ? 'Đã có số đo' : 'Chưa ghi nhận'),
-    pickup: attendance?.checkOutTime
-      ? t('Đã đón {time}', { time: attendance.checkOutTime })
-      : t('Chưa ghi nhận'),
+    attendance: {
+      state: attendance ? 'done' : 'todo',
+      label: ATTENDANCE_LABELS[attendance?.rawStatus] || '',
+      rawLabel: attendance?.statusLabel || '',
+    },
+    health: { state: health.length ? 'done' : 'todo' },
+    pickup: {
+      state: attendance?.checkOutTime ? 'done' : 'todo',
+      time: attendance?.checkOutTime || '',
+    },
   };
+}
+
+// Gom các khung trống liên tiếp thành một dòng thu gọn; khung có hoạt động giữ nguyên thứ tự.
+export function timelineItems(frames) {
+  const items = [];
+  let run = [];
+  const flush = () => {
+    if (run.length) items.push({ key: `empty:${run[0].key}`, type: 'empty', frames: run });
+    run = [];
+  };
+  for (const frame of frames) {
+    if (frame.activities.length) {
+      flush();
+      items.push({ key: frame.key, type: 'frame', frame });
+    } else run.push(frame);
+  }
+  flush();
+  return items;
+}
+
+export function isCurrentFrame(frame, now) {
+  return Boolean(now && frame.start && frame.end && frame.start <= now && now < frame.end);
 }
 
 export function childDayResults(data, date, routineSlot) {

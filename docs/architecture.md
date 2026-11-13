@@ -70,8 +70,8 @@ Phân loại theo trách nhiệm, không chỉ theo việc component có phải 
 
 | Nơi đặt | Trách nhiệm | Ví dụ |
 | --- | --- | --- |
-| `components/ui/` | UI nền RNR và primitive chung, không biết nghiệp vụ | Button, Input, Card |
-| `components/shared/` | UI ghép dùng ở nhiều feature, nhận props/callback | EmptyState, OtpCodeInput |
+| `components/ui/` | UI nền RNR và primitive chung, không biết nghiệp vụ | Button, Input, Card, BottomSheet |
+| `components/shared/` | UI ghép dùng ở nhiều feature, nhận props/callback | ConfirmDialog, SelectField, ChipTabs, HeroCard, OtpCodeInput |
 | `features/<feature>/components/` | UI hiểu dữ liệu hiển thị của feature, không tự tải dữ liệu | StudentReportCard, ActivityCard |
 
 Screen gọi hook, truyền data và callback cho component. Component có thể giữ state UI cục bộ; API/query nghiệp vụ vẫn ở hook của feature. Component dùng chung không import ngược feature. Chỉ nâng component lên shared khi có nhu cầu dùng chung thực tế.
@@ -139,7 +139,7 @@ Nền dùng chung có API nhỏ để các feature sử dụng:
 2. `app/index.jsx` mở Welcome. `app/auth/login.jsx` mở form theo vai trò được chọn trong sheet. Shell WebView hiển thị host và tiến trình tải thật. Khi Turnstile trả token, nút **Cho phép & Tiếp tục vào Sorak** xuất hiện. Chỉ khi bấm nút, form nhận token để đăng nhập.
 3. `useLogin` gửi dữ liệu qua `auth.api.js` và Axios. Nếu server yêu cầu OTP, hook giữ `tempToken` và lựa chọn ghi nhớ của lần đăng nhập đó. Lỗi request được trả về form để hiện RNR Alert.
 4. Khi server trả user và token, `features/auth/session.js` kiểm tra vai trò rồi cập nhật Zustand. Cặp token giữ trong RAM. Khi chọn **Ghi nhớ phiên đăng nhập**, cặp token cũng được lưu vào SecureStore và cập nhật sau refresh. Phiên chỉ lưu trong RAM vẫn refresh được khi app còn chạy.
-5. Từ bước 4, guard mở nhóm `(teacher)` hoặc `(parent)` theo vai trò backend. Header Home giữ toast đăng nhập có thể vuốt tắt và lối vào Settings. Khi đăng xuất, session dọn cache, xóa token và đổi số phiên để bỏ phản hồi cũ.
+5. Từ bước 4, guard mở nhóm `(teacher)` hoặc `(parent)` theo vai trò backend. Home hiện toast đăng nhập (sonner) và giữ lối vào Settings ở avatar trên header. Khi đăng xuất, session dọn cache, xóa token và đổi số phiên để bỏ phản hồi cũ.
 
 `shared/api/session-interceptors.js` nhận callback từ session để gắn Bearer token. Các request nhận 401 dùng chung lần refresh nếu cùng token và chỉ gửi lại một lần. Lỗi mạng và 403 giữ phiên. Khi mở lại app, phiên đã lưu được kiểm tra qua `/auth/me`.
 

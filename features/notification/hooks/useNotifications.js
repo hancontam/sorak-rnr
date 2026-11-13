@@ -9,8 +9,8 @@ import { getNotifications, markNotificationRead } from '../api/notification.api'
 export function useNotificationInbox() {
   const user = useAuthStore((state) => state.user);
   return useQuery({
-    queryKey: ['notification-inbox', user?.id],
-    queryFn: ({ signal }) => getNotifications(signal),
+    queryKey: ['notification-inbox', user?.id, user?.role],
+    queryFn: ({ signal }) => getNotifications(user.role, signal),
     enabled: Boolean(user?.id && isMobileRole(user.role)),
   });
 }
@@ -20,17 +20,17 @@ export function useNotificationReadActions(query) {
   const writing = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const mutation = useMutation({ mutationFn: markNotificationRead });
+  const mutation = useMutation({ mutationFn: (id) => markNotificationRead(user.role, id) });
 
   async function markRead(id) {
     if (writing.current || !user?.id || useAuthStore.getState().user !== user || !query.isSuccess)
-      return;
+      return false;
     if (
       id === 'all'
         ? query.data.unreadCount === 0
         : !query.data.notifications.some((item) => item.id === id && !item.isRead)
     )
-      return;
+      return false;
 
     writing.current = true;
     const targeted = new Set(
@@ -42,17 +42,19 @@ export function useNotificationReadActions(query) {
     setError('');
     try {
       await mutation.mutateAsync(id);
-      if (useAuthStore.getState().user !== user) return;
+      if (useAuthStore.getState().user !== user) return false;
       const result = await query.refetch();
-      if (useAuthStore.getState().user !== user) return;
+      if (useAuthStore.getState().user !== user) return false;
       if (result.isError) {
         setError('Chưa tải lại được trạng thái thông báo. Hãy làm mới danh sách.');
       } else if (result.data.notifications.some((item) => targeted.has(item.id) && !item.isRead)) {
         setError('Một số thông báo vừa chọn vẫn chưa được đánh dấu đã đọc. Hãy thử lại.');
-      }
+      } else return true;
+      return false;
     } catch {
       if (useAuthStore.getState().user === user)
         setError('Chưa xác nhận được thay đổi. Hãy tải lại danh sách trước khi thử lại.');
+      return false;
     } finally {
       writing.current = false;
       setBusy(false);

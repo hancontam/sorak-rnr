@@ -80,7 +80,7 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 
 - GET tháng và học kỳ của GV trả 200, khớp UUID lớp, có `students` và `stats`. Kỳ 2 trả `isStarted: false`. GET `/parent/good-behavior` khớp con của phiên và trả đúng `period.month/year` khi truyền query. Mẫu PH tháng 9–11 chưa có `record.id`; không thể thử lưu phản hồi thật trên mẫu này.
 - Mẫu PH trả học kỳ 1 có 5 lĩnh vực với `isPublished: false` và `isDraft: true`. Bản 6A lọc bản nháp trước khi đưa kết quả vào cache. Backend vẫn gửi bản nháp trong response; ẩn ở mobile không thay quyền đọc của API. Chưa có mẫu học kỳ đã công bố.
-- Cả GV lẫn PH gọi GET `/parent/notifications` trả 200, có `unreadCount` và `notifications`. Mẫu GV có 3 mục chưa đọc, PH rỗng. GET `/notifications` trả 404. PATCH `/parent/notifications/{id}/read` và ID `all` theo web/backend tham chiếu. Chưa gửi PATCH thay đổi dữ liệu staging trong lượt này. Context backend đếm trong 30 thông báo mới nhất; chưa có mẫu test2 đủ lớn để xác minh giới hạn thực tế.
+- Cả GV lẫn PH gọi GET `/parent/notifications` trả 200, có `unreadCount` và `notifications`. Mẫu GV có 3 mục chưa đọc, PH rỗng. Sửa 13/11/2026: 200 của GV là do nhóm route PH thiếu kiểm tra vai trò, không phải contract của GV. Web test2 cho GV dùng `GET /notifications/my` (`data.items`, `unreadCount`, `pagination`, `createdAt` ISO), `PATCH /notifications/{id}/read` và `PATCH /notifications/read-all`; mobile đã tách theo vai trò, GV lấy trang 1, 30 mục. Chưa gửi PATCH của GV trên test2. GET `/notifications` trả 404. PATCH `/parent/notifications/{id}/read` và ID `all` theo web/backend tham chiếu. Chưa gửi PATCH thay đổi dữ liệu staging trong lượt này. Context backend đếm trong 30 thông báo mới nhất; chưa có mẫu test2 đủ lớn để xác minh giới hạn thực tế.
 - Guide Expo push được dùng để xác định phạm vi 6B. Ba đường dẫn token/test-push trả 401 khi thiếu phiên. Chưa đăng ký thiết bị hay gửi push thử.
 - Bundle JavaScript Android qua. Emulator nối Metro của `wt-rebuild` hiển thị Sổ bé ngoan của PH, các tháng và tuần theo API, cùng trạng thái chưa có phiếu. Chưa kiểm tra ghi phản hồi hoặc đánh dấu đọc từ app.
 - Đối chiếu bộ chọn tháng của web test2 và trường năm học trong API: GV/PH đều trả năm học 2026–2027. Bộ chọn mobile liệt kê tháng 9–5 theo năm học và chỉ mở tháng đã kết thúc. API GV trả khoảng ngày HK1 05/09/2026–15/01/2027, tính đến 11/11/2026 (48 ngày), và HK2 16/01/2027–31/05/2027 chưa bắt đầu. App hiển thị các giá trị từ response.
@@ -97,6 +97,18 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 
 - Mỗi mã HS là account độc lập. Mobile lưu nhiều phiên trên thiết bị, không gọi API tạo quan hệ anh/chị/em. Đổi account dùng token của account đó; dữ liệu PH vẫn lấy từ endpoint theo phiên, không thay studentId của account đang đăng nhập.
 - Đăng ký cùng Expo Push Token cho từng account dùng lại POST `/notifications/device-token` theo guide; gỡ riêng account bằng DELETE cùng endpoint và bearer của account đó. Payload push nối account qua studentId/studentCode, không qua tên. Chưa nghiệm thu đăng ký nhiều account, gỡ riêng hoặc push chuyển bé trên thiết bị thật; không coi kiểm tra logic mô phỏng là bằng chứng backend đã xử lý thành công các ca này.
+
+## Cài đặt thông báo và thiết bị push trên test2 — 12/11/2026
+
+- Gọi HTTP trực tiếp test2 bằng tài khoản GV và PH người dùng cung cấp (header `X-Client-Platform: android`, không dùng bypass). Với token Expo giả `ExponentPushToken[sorak-redesign-contract-0001]`: `POST /notifications/device-token` trả 200 cả lần đầu và lần lặp; `DELETE` cùng đường dẫn với body `{deviceToken}` trả 200 cả khi token đã bị gỡ; thiếu `deviceToken` trả 400 `VALIDATION_ERROR`. Đã gỡ token giả và đăng xuất phiên test sau khi kiểm tra.
+- Không có API đọc danh sách thiết bị đã đăng ký, nên chưa đọc lại được tác động của POST/DELETE; chưa gửi/nhận push thật trên thiết bị. Không gọi `test-push`.
+- Mã nguồn `sorak-api` chỉ gửi email OTP (`sendOtpEmail`); không có email theo loại thông báo, không có bảng/API tùy chọn thông báo. Màn "Cài đặt thông báo" của web lưu công tắc email/push/âm thanh vào `localStorage`, không gọi API, nên các công tắc email trên web hiện không điều khiển email nào. Mobile chỉ làm công tắc push theo thiết bị (đăng ký/gỡ token thật) và âm thanh khi app đang mở (cài đặt cục bộ).
+
+### Avatar học sinh theo endpoint (test2, 12–13/11/2026)
+
+- Chỉ GET, tài khoản GV (lớp Nhà Trẻ 1 và Lá 1). `GET /classes/{id}/students` và `GET /attendance/classes/{id}/dismissal` trả `avatarUrl` (dicebear SVG, tải được 200 `image/svg+xml`); `GET /attendance/classes/{id}/authorizations` trả `student.avatarUrl`.
+- `GET /attendance/classes/{id}/timetable` (`students`) và các endpoint kết quả `assessment` tháng/học kỳ không có trường avatar. `id` học sinh của lịch và kết quả khớp `id` trong danh sách lớp (4/4 và 8/8 bé), nên mobile ghép avatar theo `id` trong hook.
+- Không có ảnh thật nào trên test2 để kiểm tra trường hợp ảnh tải lên.
 
 ## Nguồn và lịch sử
 

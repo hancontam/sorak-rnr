@@ -1,13 +1,21 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, FlatList, Platform, View } from 'react-native';
+import { CircleAlert, Search, ShieldCheck } from 'lucide-react-native';
 import { useState } from 'react';
+import { FlatList, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { useActionToast } from '@/components/shared/useActionToast';
 import { useUnsavedChanges } from '@/components/shared/useUnsavedChanges';
-import { ActionNotice } from '@/components/shared/ActionNotice';
-import { useAuthStore } from '@/features/auth/store/auth.store';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { Text } from '@/components/ui/text';
+import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { DailyRecordCard } from '../components/DailyRecordCard';
@@ -40,7 +48,10 @@ function DailyRecordsForm({ kind, date, slotId }) {
   const locale = useLocale();
   const form = useDailyRecords({ kind, date, slotId });
   const [search, setSearch] = useState('');
-  const confirmDiscard = useUnsavedChanges(form.hasUserEdits, form.isSaving);
+  const [confirm, setConfirm] = useState(null);
+  const unsaved = useUnsavedChanges(form.hasUserEdits, form.isSaving);
+  const confirmDiscard = unsaved.confirmDiscard;
+  useActionToast(form.message, t);
   const reload = () => confirmDiscard(form.reload);
   const text = search.trim().toLocaleLowerCase('vi');
   const rows = form.rows.filter(({ student }) =>
@@ -55,42 +66,138 @@ function DailyRecordsForm({ kind, date, slotId }) {
   const unrecorded = form.rows.filter(
     ({ student }) => student.isAttendanceRecorded === false
   ).length;
+  const showSaveBar = kind !== 'pickup' && form.canEdit && !form.error && form.rows.length > 0;
 
   function confirmPickup(row) {
-    const title = t('Xác nhận đón {name}?', { name: row.student.name });
     const person = pickupOptions(row.student).find((item) => item.key === row.value.personKey);
-    const detail = [person?.name, dayTitle(date, locale), row.value.time]
-      .filter(Boolean)
-      .join(' · ');
-    if (Platform.OS === 'web') {
-      if (globalThis.confirm(`${title}\n${detail}`)) form.save(row.id);
-      return;
-    }
-    Alert.alert(title, detail, [
-      { text: t('Hủy'), style: 'cancel' },
-      { text: t('Xác nhận'), onPress: () => form.save(row.id) },
-    ]);
+    setConfirm({
+      title: t('Xác nhận đón {name}?', { name: row.student.name }),
+      description: [person?.name, dayTitle(date, locale), row.value.time]
+        .filter(Boolean)
+        .join(' · '),
+      cancelLabel: t('Hủy'),
+      confirmLabel: t('Xác nhận'),
+      onConfirm: () => form.save(row.id),
+    });
   }
 
   function confirmUndoPickup(row) {
-    const title = t('Hủy ghi nhận đón trẻ?');
     const name = row.student.name || row.student.code;
-    const detail = [
-      `${name} · ${dayTitle(date, locale)}`,
-      t('Bé sẽ về trạng thái Chưa đón. Điểm danh và đơn ủy quyền vẫn được giữ.'),
-      row.changed && t('Các chỉnh sửa chưa lưu trên thẻ này sẽ bị bỏ.'),
-    ]
-      .filter(Boolean)
-      .join('\n');
-    if (Platform.OS === 'web') {
-      if (globalThis.confirm(`${title}\n${detail}`)) form.undoPickup(row.id);
-      return;
-    }
-    Alert.alert(title, detail, [
-      { text: t('Giữ ghi nhận'), style: 'cancel' },
-      { text: t('Hủy ghi nhận'), style: 'destructive', onPress: () => form.undoPickup(row.id) },
-    ]);
+    setConfirm({
+      title: t('Hủy ghi nhận đón trẻ?'),
+      description: [
+        `${name} · ${dayTitle(date, locale)}`,
+        t('Bé sẽ về trạng thái Chưa đón. Điểm danh và đơn ủy quyền vẫn được giữ.'),
+        row.changed && t('Các chỉnh sửa chưa lưu trên thẻ này sẽ bị bỏ.'),
+      ]
+        .filter(Boolean)
+        .join('\n'),
+      cancelLabel: t('Giữ ghi nhận'),
+      confirmLabel: t('Hủy ghi nhận'),
+      destructive: true,
+      onConfirm: () => form.undoPickup(row.id),
+    });
   }
+
+  const header = (
+    <View className="gap-3 pb-1">
+      <View className="gap-1">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Text className="text-sm font-semibold">{dayTitle(date, locale)}</Text>
+          {!form.canEdit && !form.error ? (
+            <Badge variant="outline">
+              <Text>{t('Chỉ xem')}</Text>
+            </Badge>
+          ) : null}
+        </View>
+        {form.slot ? (
+          <Text className="text-xs text-muted-foreground">
+            {form.slot.title || t('Hoạt động chưa có tên')}
+          </Text>
+        ) : null}
+      </View>
+      {kind === 'pickup' && !form.loading && !form.error ? (
+        <Card className="gap-2.5 px-4 py-3.5">
+          <View className="flex-row items-center justify-between gap-2">
+            <Text className="text-sm font-semibold">{t('Đón trẻ')}</Text>
+            <Text className="font-mono text-xs font-medium text-muted-foreground">
+              {dismissed}/{form.rows.length}
+            </Text>
+          </View>
+          {form.rows.length ? (
+            <Progress
+              value={Math.round((dismissed / form.rows.length) * 100)}
+              className="h-1.5 bg-muted"
+              accessibilityLabel={t('Đã đón {pickedUp}/{total} học sinh', {
+                pickedUp: dismissed,
+                total: form.rows.length,
+              })}
+            />
+          ) : null}
+          <Text className="text-2xs text-muted-foreground">
+            {t('{awaiting} chưa đón · {absent} vắng · {unrecorded} chưa điểm danh', {
+              awaiting: awaitingPickup,
+              absent,
+              unrecorded,
+            })}
+          </Text>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={form.isSaving}
+            onPress={() =>
+              router.push({ pathname: '/(teacher)/pickup-requests', params: { date } })
+            }>
+            <Icon as={ShieldCheck} size={14} />
+            <Text>{t('Yêu cầu ủy quyền')}</Text>
+          </Button>
+        </Card>
+      ) : null}
+      {form.needsReload ? (
+        <Alert variant="destructive" icon={CircleAlert}>
+          <AlertDescription className="text-xs">
+            {t('Cần tải lại để đối chiếu với máy chủ trước khi thao tác tiếp.')}
+          </AlertDescription>
+          <Button size="sm" variant="outline" className="ml-6 mt-1 self-start" onPress={reload}>
+            <Text>{t('Tải lại dữ liệu')}</Text>
+          </Button>
+        </Alert>
+      ) : null}
+      {canChange && kind !== 'pickup' ? (
+        <Text className="text-2xs leading-4 text-muted-foreground">
+          {kind === 'health'
+            ? t(
+                'Nhập đủ chiều cao và cân nặng cho tất cả học sinh có mặt. Học sinh vắng không được gửi số đo mới.'
+              )
+            : t(
+                '{status} được chọn sẵn cho dòng chưa ghi. Kiểm tra đủ {count} học sinh rồi bấm Lưu; tìm kiếm không giới hạn danh sách gửi.',
+                { status: t(kind === 'attendance' ? 'Có mặt' : 'Đạt'), count: form.rows.length }
+              )}
+        </Text>
+      ) : null}
+      {kind === 'pickup' && canChange ? (
+        <Text className="text-2xs leading-4 text-muted-foreground">
+          {t(
+            'Chọn người đón và xác nhận từng bé. Tạo ủy quyền chỉ bổ sung người vào danh sách, chưa ghi nhận đã đón.'
+          )}
+        </Text>
+      ) : null}
+      {form.rows.length > 0 ? (
+        <View className="justify-center">
+          <Input
+            value={search}
+            onChangeText={setSearch}
+            accessibilityLabel={t('Tìm học sinh')}
+            placeholder={t('Tìm theo tên hoặc mã học sinh')}
+            className="pl-9"
+          />
+          <View pointerEvents="none" className="absolute left-3">
+            <Icon as={Search} size={16} className="text-muted-foreground" />
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
 
   return (
     <View className="flex-1 bg-background">
@@ -102,90 +209,11 @@ function DailyRecordsForm({ kind, date, slotId }) {
         automaticallyAdjustKeyboardInsets
         data={form.error ? [] : rows}
         keyExtractor={(row) => row.id}
-        ListHeaderComponent={
-          <View className="gap-3">
-            <Text className="text-sm font-semibold">{dayTitle(date, locale)}</Text>
-            {form.slot ? (
-              <Text className="text-sm">{form.slot.title || t('Hoạt động chưa có tên')}</Text>
-            ) : null}
-            {kind === 'pickup' && !form.loading && !form.error ? (
-              <View className="gap-1">
-                <Text className="text-sm font-semibold">
-                  {t('Đã đón {pickedUp}/{total} học sinh', {
-                    pickedUp: dismissed,
-                    total: form.rows.length,
-                  })}
-                </Text>
-                <Text className="text-xs text-muted-foreground">
-                  {t('{awaiting} chưa đón · {absent} vắng · {unrecorded} chưa điểm danh', {
-                    awaiting: awaitingPickup,
-                    absent,
-                    unrecorded,
-                  })}
-                </Text>
-                <Text className="text-xs text-muted-foreground">
-                  {t(
-                    'Chọn người đón và xác nhận từng bé. Tạo ủy quyền chỉ bổ sung người vào danh sách, chưa ghi nhận đã đón.'
-                  )}
-                </Text>
-              </View>
-            ) : null}
-            {!form.canEdit && !form.error ? (
-              <Text className="text-xs text-muted-foreground">{t('Ngày này chỉ xem.')}</Text>
-            ) : null}
-            <ActionNotice
-              message={
-                form.message && { ...form.message, text: t(form.message.text, form.message.values) }
-              }
-            />
-            {kind === 'health' ? (
-              <Text className="text-xs text-muted-foreground">
-                {t(
-                  'Nhập đủ chiều cao và cân nặng cho tất cả học sinh có mặt. Học sinh vắng không được gửi số đo mới.'
-                )}
-              </Text>
-            ) : null}
-            {form.needsReload ? (
-              <Button size="sm" variant="outline" onPress={reload}>
-                <Text>{t('Tải lại dữ liệu')}</Text>
-              </Button>
-            ) : null}
-            {form.rows.length > 0 ? (
-              <Input
-                value={search}
-                onChangeText={setSearch}
-                accessibilityLabel={t('Tìm học sinh')}
-                placeholder={t('Tìm theo tên hoặc mã học sinh')}
-                className="text-sm"
-              />
-            ) : null}
-            {(kind === 'attendance' || kind === 'assessment') && canChange ? (
-              <Text className="text-xs text-muted-foreground">
-                {t(
-                  '{status} được chọn sẵn cho dòng chưa ghi. Kiểm tra đủ {count} học sinh rồi bấm Lưu; tìm kiếm không giới hạn danh sách gửi.',
-                  { status: t(kind === 'attendance' ? 'Có mặt' : 'Đạt'), count: form.rows.length }
-                )}
-              </Text>
-            ) : null}
-            {kind === 'pickup' && !form.error ? (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={form.isSaving}
-                onPress={() =>
-                  router.push({
-                    pathname: '/(teacher)/pickup-requests',
-                    params: { date },
-                  })
-                }>
-                <Text>{t('Yêu cầu ủy quyền')}</Text>
-              </Button>
-            ) : null}
-          </View>
-        }
+        ListHeaderComponent={header}
         ListEmptyComponent={
           <ScheduleState
             loading={form.loading}
+            loadingLabel={t('Đang tải danh sách học sinh…')}
             error={
               typeof form.error === 'string'
                 ? form.error
@@ -221,17 +249,24 @@ function DailyRecordsForm({ kind, date, slotId }) {
             />
           )
         }
-        ListFooterComponent={
-          kind !== 'pickup' && form.canEdit && !form.error && form.rows.length ? (
-            <Button
-              size="sm"
-              disabled={!canChange || !form.hasChangesToSave}
-              onPress={() => form.save()}>
-              <Text>{form.isSaving ? t('Đang lưu và kiểm tra…') : t('Lưu ghi nhận')}</Text>
-            </Button>
-          ) : null
-        }
       />
+      {showSaveBar ? (
+        <SafeAreaView edges={['bottom']} className="border-t border-border bg-background">
+          <View className="mx-auto w-full max-w-xl px-4 py-3">
+            <Button disabled={!canChange || !form.hasChangesToSave} onPress={() => form.save()}>
+              <Text>
+                {form.isSaving
+                  ? t('Đang lưu và kiểm tra…')
+                  : form.changedCount
+                    ? t('Lưu ghi nhận · {count} thay đổi', { count: form.changedCount })
+                    : t('Lưu ghi nhận')}
+              </Text>
+            </Button>
+          </View>
+        </SafeAreaView>
+      ) : null}
+      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
+      <ConfirmDialog {...unsaved.dialog} />
     </View>
   );
 }

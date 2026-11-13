@@ -35,6 +35,8 @@ module.exports = {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        success: 'hsl(var(--success))',
+        warning: 'hsl(var(--warning))',
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
@@ -51,6 +53,14 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+      },
+      // Text ở components/ui/text.jsx quy font-medium/semibold/bold sang đúng file font.
+      fontFamily: {
+        sans: ['Inter_400Regular'],
+        mono: ['JetBrainsMono_400Regular'],
+      },
+      fontSize: {
+        '2xs': ['11px', { lineHeight: '14px' }],
       },
       borderRadius: {
         lg: 'var(--radius)',

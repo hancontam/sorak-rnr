@@ -1,12 +1,51 @@
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
-import { Button } from '@/components/ui/button';
+import { MeasureField } from '@/components/shared/MeasureField';
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { ASSESSMENT_OPTIONS, ATTENDANCE_OPTIONS, decimal, isAbsent } from '../utils/daily-records';
+import { StudentHeader } from './StudentHeader';
+
+// Chọn một trạng thái dạng segmented (radio) như showcase.
+function StatusSegments({ options, value, disabled, onChange, t }) {
+  return (
+    <View
+      accessibilityRole="radiogroup"
+      className={cn('flex-row rounded-xl bg-muted p-1', disabled && 'opacity-60')}>
+      {options.map(([key, label]) => {
+        const selected = key === value;
+        return (
+          <Pressable
+            key={key}
+            accessibilityRole="radio"
+            accessibilityState={{ selected, disabled }}
+            disabled={disabled}
+            onPress={() => onChange(key)}
+            className={cn(
+              // Giữ sẵn lớp shadow từ lần render đầu như TabsTrigger; thêm shadow lúc chạy làm NativeWind lỗi.
+              'min-h-9 min-w-0 flex-1 items-center justify-center rounded-lg px-1 py-1 shadow-none shadow-black/5 active:opacity-70',
+              selected && 'bg-background shadow-sm'
+            )}>
+            <Text
+              // Màn hẹp (360 dp) hoặc chữ lớn: xuống tối đa 2 dòng thay vì cắt chữ.
+              numberOfLines={2}
+              className={cn(
+                'text-center text-2xs font-medium leading-4 text-muted-foreground',
+                selected && 'font-semibold text-foreground'
+              )}>
+              {t(label)}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
 
 export function DailyRecordCard({ kind, row, editable, onChange }) {
   const t = useTranslation();
@@ -17,13 +56,29 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
   const height = decimal(value.height ?? '');
   const weight = decimal(value.weight ?? '');
   const bmi = height > 0 && weight > 0 ? (weight / (height / 100) ** 2).toFixed(1) : '';
+  const unknownStatus =
+    (kind === 'attendance' || kind === 'assessment') &&
+    value.status &&
+    !options.some(([key]) => key === value.status);
 
   return (
-    <Card className="gap-3 p-4 shadow-none">
-      <View className="gap-1">
-        <Text className="text-sm font-semibold">{student.name || student.code}</Text>
-        <Text className="text-xs text-muted-foreground">{student.code}</Text>
-      </View>
+    <Card className="gap-3 px-4 py-3.5">
+      <StudentHeader
+        name={student.name}
+        code={student.code}
+        avatarUrl={row.avatarUrl}
+        right={
+          skipHealth ? (
+            <Badge variant="outline">
+              <Text>{t('Vắng')}</Text>
+            </Badge>
+          ) : canWrite && row.changed ? (
+            <Badge variant="code">
+              <Text>{t('Chưa lưu')}</Text>
+            </Badge>
+          ) : null
+        }
+      />
       {kind === 'health' ? (
         skipHealth ? (
           <View className="gap-1">
@@ -41,60 +96,48 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
           </View>
         ) : (
           <>
-            <View className="flex-row gap-2">
-              <View className="min-w-0 flex-1">
-                <Field
-                  label={t('Chiều cao (cm)')}
-                  value={value.height}
-                  onChangeText={(height) => onChange({ height })}
-                  editable={canWrite}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <View className="min-w-0 flex-1">
-                <Field
-                  label={t('Cân nặng (kg)')}
-                  value={value.weight}
-                  onChangeText={(weight) => onChange({ weight })}
-                  editable={canWrite}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-            </View>
-            {bmi ? <Text className="text-xs text-muted-foreground">BMI {bmi} kg/m²</Text> : null}
+            <MeasureField
+              label={t('Chiều cao')}
+              unit="cm"
+              value={value.height ?? ''}
+              onChange={(height) => onChange({ height })}
+              editable={canWrite}
+              steps={[0.5, 1]}
+            />
+            <MeasureField
+              label={t('Cân nặng')}
+              unit="kg"
+              value={value.weight ?? ''}
+              onChange={(weight) => onChange({ weight })}
+              editable={canWrite}
+              steps={[0.1, 0.5]}
+            />
+            {bmi ? (
+              <Text className="font-mono text-2xs text-muted-foreground">BMI {bmi} kg/m²</Text>
+            ) : null}
           </>
         )
       ) : (
-        <>
-          <View className="flex-row flex-wrap gap-2">
-            {options.map(([key, label]) => {
-              const selected = key === value.status;
-              return (
-                <Button
-                  key={key}
-                  size="sm"
-                  variant={selected ? 'default' : 'outline'}
-                  disabled={!canWrite}
-                  accessibilityState={{ selected, disabled: !canWrite }}
-                  onPress={() => onChange({ status: key })}>
-                  <Text className="text-xs">{t(label)}</Text>
-                </Button>
-              );
-            })}
-          </View>
-        </>
+        <StatusSegments
+          options={options}
+          value={value.status}
+          disabled={!canWrite}
+          onChange={(status) => onChange({ status })}
+          t={t}
+        />
       )}
       {!skipHealth ? (
-        <Field
-          label={t('Ghi chú')}
-          value={value.note}
-          onChangeText={(note) => onChange({ note })}
-          editable={canWrite}
-        />
+        <View className="gap-1.5">
+          <Text className="text-2xs font-medium text-muted-foreground">{t('Ghi chú')}</Text>
+          <Input
+            accessibilityLabel={t('Ghi chú')}
+            value={value.note}
+            onChangeText={(note) => onChange({ note })}
+            editable={canWrite}
+          />
+        </View>
       ) : null}
-      {(kind === 'attendance' || kind === 'assessment') &&
-      value.status &&
-      !options.some(([key]) => key === value.status) ? (
+      {unknownStatus ? (
         <Text className="text-xs text-destructive">
           {t('Trạng thái máy chủ chưa hỗ trợ: {status}. Cần kiểm tra lại trước khi lưu.', {
             status: value.status,
@@ -102,14 +145,5 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
         </Text>
       ) : null}
     </Card>
-  );
-}
-
-function Field({ label, ...props }) {
-  return (
-    <View className="gap-1.5">
-      <Text className="text-xs text-muted-foreground">{label}</Text>
-      <Input accessibilityLabel={label} className="text-sm" {...props} />
-    </View>
   );
 }

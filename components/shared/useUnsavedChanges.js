@@ -1,33 +1,37 @@
 import { useNavigation } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
-import { Alert, Platform } from 'react-native';
+import { useState } from 'react';
 
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
+/**
+ * Chặn rời màn khi còn thay đổi chưa lưu và hỏi bằng ConfirmDialog (AlertDialog của app),
+ * không dùng Alert hệ thống. Màn gọi hook phải hiển thị `<ConfirmDialog {...dialog} />`.
+ */
 export function useUnsavedChanges(dirty, saving) {
   const navigation = useNavigation();
   const t = useTranslation();
+  const [request, setRequest] = useState(null);
+
   function confirmDiscard(onDiscard) {
     if (saving) return;
     if (!dirty) {
       onDiscard();
       return;
     }
-    if (Platform.OS === 'web') {
-      if (globalThis.confirm(t('Bỏ thay đổi chưa lưu?'))) onDiscard();
-      return;
-    }
-    Alert.alert(t('Thay đổi chưa lưu'), t('Bạn muốn bỏ thay đổi và quay lại?'), [
-      { text: t('Ở lại'), style: 'cancel' },
-      {
-        text: t('Bỏ thay đổi'),
-        style: 'destructive',
-        onPress: onDiscard,
-      },
-    ]);
+    setRequest({
+      title: t('Thay đổi chưa lưu'),
+      description: t('Bạn muốn bỏ thay đổi và quay lại?'),
+      cancelLabel: t('Ở lại'),
+      confirmLabel: t('Bỏ thay đổi'),
+      destructive: true,
+      onConfirm: onDiscard,
+    });
   }
+
   usePreventRemove(dirty || saving, ({ data }) =>
     confirmDiscard(() => navigation.dispatch(data.action))
   );
-  return confirmDiscard;
+
+  return { confirmDiscard, dialog: { request, onClose: () => setRequest(null) } };
 }

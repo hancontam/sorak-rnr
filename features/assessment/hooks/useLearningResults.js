@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import { assignedClass } from '@/features/auth/utils/class-assignment';
+import { useClassStudents } from '@/features/report/hooks/useClassStudents';
 
 import { getChildResults, getClassResults, saveChildFeedback } from '../api/assessment.api';
 
@@ -41,6 +42,12 @@ export function useLearningResults({ kind, period, semester }) {
         ? getChildResults({ studentId, period: childPeriod, signal })
         : getClassResults({ classId: assignment.classId, kind, period, semester, signal }),
   });
+  // Kết quả học tập không trả avatar: GV ghép theo id từ danh sách lớp, PH dùng ảnh của bé trong /auth/me.
+  const roster = useClassStudents();
+  const avatars = new Map(
+    (roster.query.data?.students || []).map((student) => [String(student.id), student.avatarUrl])
+  );
+  const avatarOf = (id) => (parent ? user?.student?.avatarUrl : avatars.get(String(id))) || '';
   const [message, setMessage] = useState(null);
   const [saving, setSaving] = useState(false);
   const writing = useRef(false);
@@ -114,6 +121,7 @@ export function useLearningResults({ kind, period, semester }) {
     message,
     sendFeedback,
     clearMessage: () => setMessage(null),
+    avatarOf,
     error: !valid
       ? 'Mục kết quả không hợp lệ.'
       : parent

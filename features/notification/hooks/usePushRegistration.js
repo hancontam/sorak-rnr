@@ -1,4 +1,3 @@
-import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,14 +11,10 @@ import { notificationAccount } from '@/features/auth/utils/linked-accounts';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { registerPushDevice } from '../api/push.api';
-import { registerPushForSession } from '../push-registration';
+import { pushAccounts, pushProjectId, registerPushForSession } from '../push-registration';
+import { usePushPreferenceStore } from './usePushPreference';
 
-const projectId = Constants.easConfig?.projectId || Constants.expoConfig?.extra?.eas?.projectId;
-export const supportsPush =
-  (Platform.OS === 'android' || Device.isDevice) &&
-  Constants.executionEnvironment !== 'storeClient' &&
-  Boolean(projectId);
-
+// Chỉ dùng quyền đã có; việc hỏi quyền nằm ở sheet giới thiệu hoặc màn Cài đặt > Thông báo.
 async function getDeviceToken(channelName, isCurrent) {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
@@ -27,15 +22,12 @@ async function getDeviceToken(channelName, isCurrent) {
       importance: Notifications.AndroidImportance.HIGH,
     });
   }
-  let permission = await Notifications.getPermissionsAsync();
-  const allowed = () =>
+  const permission = await Notifications.getPermissionsAsync();
+  const allowed =
     permission.granted ||
     permission.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
-  if (!allowed() && permission.status === 'undetermined' && isCurrent()) {
-    permission = await Notifications.requestPermissionsAsync();
-  }
-  if (!allowed() || !isCurrent()) return null;
-  return (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+  if (!allowed || !isCurrent()) return null;
+  return (await Notifications.getExpoPushTokenAsync({ projectId: pushProjectId })).data;
 }
 
 export function usePushRegistration() {
@@ -45,9 +37,10 @@ export function usePushRegistration() {
   const linkedAccounts = useAuthStore((state) => state.linkedAccounts);
   const queryClient = useQueryClient();
   const channelName = t('Thông báo');
+  const preference = usePushPreferenceStore((state) => state.preference);
 
   useEffect(() => {
-    if (status !== 'signed-in' || !user?.id) return;
+    if (status !== 'signed-in' || !user?.id || preference !== 'on') return;
     let active = true;
     let pending = false;
     const isCurrent = () =>
@@ -66,13 +59,7 @@ export function usePushRegistration() {
           platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
           deviceName: Device.modelName || (Platform.OS === 'ios' ? 'iOS' : 'Android'),
         };
-        const pool =
-          user.role === AUTH_ROLES.parent
-            ? linkedAccounts.filter(
-                (account) => account.role === AUTH_ROLES.parent && !account.requiresLogin
-              )
-            : linkedAccounts.filter((account) => account.id === user.id);
-        for (const account of pool) {
+        for (const account of pushAccounts(user, linkedAccounts)) {
           const stillLinked = () =>
             isCurrent() &&
             useAuthStore
@@ -111,7 +98,7 @@ export function usePushRegistration() {
       appState.remove();
       received.remove();
     };
-  }, [channelName, linkedAccounts, queryClient, status, user]);
+  }, [channelName, linkedAccounts, preference, queryClient, status, user]);
 
   useEffect(() => {
     if (status === 'signed-out') void Notifications.dismissAllNotificationsAsync().catch(() => {});

@@ -13,7 +13,6 @@ import { useTranslation } from '@/shared/i18n/useLanguage';
 import { RoleSheet } from '../components/RoleSheet';
 import { SorakBrand } from '../components/SorakBrand';
 import { WelcomeCarousel } from '../components/WelcomeCarousel';
-import { useAuthTypography } from '../hooks/useAuthTypography';
 import { useSession } from '../hooks/useSession';
 import { useAuthStore } from '../store/auth.store';
 import { AUTH_ROLES } from '../utils/auth-roles';
@@ -26,7 +25,6 @@ export default function WelcomeScreen() {
   const hasAccounts = useAuthStore((state) =>
     state.linkedAccounts.some((account) => account.role === AUTH_ROLES.parent)
   );
-  const typography = useAuthTypography();
   const [roleSheetOpen, setRoleSheetOpen] = useState(false);
   const [lastRole, setLastRole] = useState(AUTH_ROLES.teacher);
 
@@ -41,40 +39,31 @@ export default function WelcomeScreen() {
       <ScrollView bounces={false} contentContainerClassName="grow">
         <View className="mx-auto w-full max-w-md grow gap-2 pb-4 pt-3">
           <WelcomeCarousel
-            branding={<SorakBrand typography={typography} />}
-            typography={typography}
+            branding={<SorakBrand />}
             paused={!focused || roleSheetOpen || Platform.OS === 'web'}
           />
           <View className="gap-3 px-5">
             {hasAccounts ? (
-              <Button size="sm" variant="outline" onPress={() => router.push('/accounts')}>
-                <Text className="text-xs">{t('Tài khoản đã lưu')}</Text>
+              <Button variant="outline" onPress={() => router.push('/accounts')}>
+                <Text>{t('Tài khoản đã lưu')}</Text>
               </Button>
             ) : null}
             {notice ? (
               <Alert icon={CircleAlert}>
-                <AlertTitle className="text-sm leading-5" style={typography.semiBold}>
-                  {t('Phiên đăng nhập')}
-                </AlertTitle>
-                <AlertDescription className="text-xs leading-4" style={typography.regular}>
-                  {t(notice)}
-                </AlertDescription>
+                <AlertTitle>{t('Phiên đăng nhập')}</AlertTitle>
+                <AlertDescription>{t(notice)}</AlertDescription>
               </Alert>
             ) : null}
             {Platform.OS === 'web' ? (
               <Alert icon={Smartphone}>
-                <AlertTitle className="text-sm leading-5" style={typography.semiBold}>
-                  {t('Đăng nhập trên điện thoại')}
-                </AlertTitle>
-                <AlertDescription className="text-xs leading-4" style={typography.regular}>
+                <AlertTitle>{t('Đăng nhập trên điện thoại')}</AlertTitle>
+                <AlertDescription>
                   {t('Mở ứng dụng Sorak trên iOS hoặc Android để tiếp tục.')}
                 </AlertDescription>
               </Alert>
             ) : (
-              <Button className="h-10 rounded-xl" onPress={() => setRoleSheetOpen(true)}>
-                <Text className="text-xs" style={typography.semiBold}>
-                  {t('Tiếp tục')}
-                </Text>
+              <Button size="lg" onPress={() => setRoleSheetOpen(true)}>
+                <Text>{t('Tiếp tục')}</Text>
               </Button>
             )}
           </View>
@@ -82,7 +71,6 @@ export default function WelcomeScreen() {
       </ScrollView>
       <RoleSheet
         visible={roleSheetOpen}
-        typography={typography}
         selectedRole={lastRole}
         onClose={() => setRoleSheetOpen(false)}
         onSelect={selectRole}

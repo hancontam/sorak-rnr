@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { AnimatedSplash } from '@/components/shared/AnimatedSplash';
 import { BottomSheetModalProvider } from '@/components/ui/bottom-sheet';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -30,13 +31,15 @@ export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
-// Giữ splash đến khi Inter/JetBrains Mono sẵn sàng để màn đầu không nháy font hệ thống.
+// Giữ splash native đến khi splash JS (logo động) đè lên đúng vị trí; web không có splash native.
 SplashScreen.preventAutoHideAsync().catch(() => {});
+const hideNativeSplash = () => SplashScreen.hideAsync().catch(() => {});
 
 export default function RootLayout() {
   const [queryClient] = useState(createQueryClient);
   const [fontsLoaded, fontError] = useFonts(FONT_ASSETS);
   const fontsReady = fontsLoaded || Boolean(fontError);
+  const sessionStatus = useAuthStore((state) => state.status);
   const { colorScheme } = useColorScheme();
   const locale = useLocale();
   useRestoreThemePreference();
@@ -62,25 +65,31 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    // Lỗi nạp font không chặn app; Text rơi về font hệ thống.
-    if (fontsReady) SplashScreen.hideAsync().catch(() => {});
+    // Web không có splash JS; ẩn ngay khi font sẵn sàng. Lỗi nạp font không chặn app.
+    if (Platform.OS === 'web' && fontsReady) hideNativeSplash();
   }, [fontsReady]);
 
-  if (!fontsReady) return null;
+  // App sẵn sàng khi font đã nạp và đã biết phiên (đã đăng nhập hay chưa).
+  const appReady = fontsReady && sessionStatus !== 'restoring';
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-          <BottomSheetModalProvider>
-            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-            <AuthStack />
-            <PushNotifications />
-            <Toaster />
-            <PortalHost />
-          </BottomSheetModalProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
+      {fontsReady ? (
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+            <BottomSheetModalProvider>
+              <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+              <AuthStack />
+              <PushNotifications />
+              <Toaster />
+              <PortalHost />
+            </BottomSheetModalProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      ) : null}
+      {Platform.OS !== 'web' ? (
+        <AnimatedSplash ready={appReady} onShown={hideNativeSplash} />
+      ) : null}
     </GestureHandlerRootView>
   );
 }

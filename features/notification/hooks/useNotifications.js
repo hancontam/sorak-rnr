@@ -9,8 +9,8 @@ import { getNotifications, markNotificationRead } from '../api/notification.api'
 export function useNotificationInbox() {
   const user = useAuthStore((state) => state.user);
   return useQuery({
-    queryKey: ['notification-inbox', user?.id],
-    queryFn: ({ signal }) => getNotifications(signal),
+    queryKey: ['notification-inbox', user?.id, user?.role],
+    queryFn: ({ signal }) => getNotifications(user.role, signal),
     enabled: Boolean(user?.id && isMobileRole(user.role)),
   });
 }
@@ -20,7 +20,7 @@ export function useNotificationReadActions(query) {
   const writing = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const mutation = useMutation({ mutationFn: markNotificationRead });
+  const mutation = useMutation({ mutationFn: (id) => markNotificationRead(user.role, id) });
 
   async function markRead(id) {
     if (writing.current || !user?.id || useAuthStore.getState().user !== user || !query.isSuccess)

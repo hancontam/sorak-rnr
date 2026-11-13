@@ -11,7 +11,7 @@ import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
-import { HeroCard } from '../components/HeroCard';
+import { HeroCard } from '@/components/shared/HeroCard';
 import { ReportState } from '../components/ReportState';
 import { useClassStudents } from '../hooks/useClassStudents';
 import {

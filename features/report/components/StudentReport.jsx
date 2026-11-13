@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
-import { FlatList, Pressable, ScrollView, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ChipTabs } from '@/components/shared/ChipTabs';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
-import { cn } from '@/lib/utils';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { reportError, schoolYearValue, semesterDateRange } from '../utils/report-format';
@@ -74,36 +74,11 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
               ? t('Năm học {year}', { year: schoolYearValue(report.classInfo.schoolYear) })
               : null}
         </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerClassName="gap-2"
-          accessibilityRole="tablist">
-          {sections.map(([value, label]) => {
-            const selected = value === section;
-            return (
-              <Pressable
-                key={value}
-                accessibilityRole="tab"
-                accessibilityState={{ selected }}
-                hitSlop={4}
-                onPress={() => switchSection(value)}
-                className={cn(
-                  'h-9 shrink-0 justify-center rounded-full border px-3.5 active:opacity-70',
-                  selected ? 'border-primary bg-primary' : 'border-border bg-background'
-                )}>
-                <Text
-                  numberOfLines={1}
-                  className={cn(
-                    'text-xs font-medium',
-                    selected ? 'text-primary-foreground' : 'text-foreground'
-                  )}>
-                  {t(label)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <ChipTabs
+          options={sections.map(([value, label]) => ({ value, label: t(label) }))}
+          value={section}
+          onChange={switchSection}
+        />
       </View>
       <FlatList
         ref={list}

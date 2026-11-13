@@ -46,6 +46,7 @@ export function SelectField({
                 label={option.label}
                 description={option.description}
                 selected={option.value === value}
+                disabled={option.disabled}
                 onPress={() => {
                   onChange(option.value);
                   setOpen(false);

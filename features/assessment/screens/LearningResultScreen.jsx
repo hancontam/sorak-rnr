@@ -1,16 +1,21 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { Search } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 
 import { ActionNotice } from '@/components/shared/ActionNotice';
+import { ChipTabs } from '@/components/shared/ChipTabs';
 import { useActionToast } from '@/components/shared/useActionToast';
 import { useUnsavedChanges } from '@/components/shared/useUnsavedChanges';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 import { Textarea } from '@/components/ui/textarea';
 import { schoolToday } from '@/features/daily/utils/schedule-date';
+import { cn } from '@/lib/utils';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { MonthlyResultCard, SemesterResultCard } from '../components/ResultCards';
@@ -24,24 +29,11 @@ const SEMESTERS = [
   ['SEMESTER_2', 'Học kỳ 2'],
 ];
 
-function Option({ label, selected, disabled, onPress }) {
-  return (
-    <Button
-      size="sm"
-      variant={selected ? 'default' : 'outline'}
-      disabled={disabled}
-      accessibilityState={{ selected, disabled }}
-      onPress={onPress}>
-      <Text className="text-xs">{label}</Text>
-    </Button>
-  );
-}
-
 function Empty({ text }) {
   return (
-    <Card className="p-4 shadow-none">
-      <Text className="text-sm">{text}</Text>
-    </Card>
+    <View className="items-center rounded-2xl border border-dashed border-border px-5 py-8">
+      <Text className="text-center text-xs leading-5 text-muted-foreground">{text}</Text>
+    </View>
   );
 }
 
@@ -137,9 +129,9 @@ export default function LearningResultScreen() {
         />
       ) : null}
       {semesterRange && !error ? (
-        <Card className="gap-1 p-3 shadow-none">
-          <Text className="text-xs font-medium">{semesterRange}</Text>
-          <Text className="text-xs text-muted-foreground">
+        <Card className="gap-1 px-4 py-3">
+          <Text className="font-mono text-xs font-medium">{semesterRange}</Text>
+          <Text className="text-2xs text-muted-foreground">
             {calculatedUntil
               ? Number.isInteger(schoolDays)
                 ? t('Tính đến {date} ({days} ngày)', { date: calculatedUntil, days: schoolDays })
@@ -149,53 +141,52 @@ export default function LearningResultScreen() {
         </Card>
       ) : null}
       {!monthly && !result.error ? (
-        <View className="flex-row gap-2">
-          {SEMESTERS.map(([value, label]) => (
-            <Option
-              key={value}
-              label={t(label)}
-              selected={semester === value}
-              onPress={() => setSemester(value)}
-            />
-          ))}
-        </View>
+        <Tabs value={semester} onValueChange={setSemester}>
+          <TabsList className="w-full">
+            {SEMESTERS.map(([value, label]) => (
+              <TabsTrigger key={value} value={value} className="flex-1">
+                <Text>{t(label)}</Text>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       ) : null}
       {monthly && data && !error && !monthNotEnded ? (
-        <View className="flex-row flex-wrap gap-2">
-          {Array.from(
-            { length: Number.isInteger(weeks) && weeks >= 1 && weeks <= 6 ? weeks : 0 },
-            (_, index) => index + 1
-          ).map((value) => (
-            <Option
-              key={value}
-              label={t('Tuần {week}', { week: value })}
-              selected={shownWeek === value}
-              onPress={() => setWeek(value)}
-            />
-          ))}
-          <Option
-            label={t('Tổng kết tháng')}
-            selected={shownWeek === 0}
-            onPress={() => setWeek(0)}
+        <View className="gap-2">
+          <ChipTabs
+            options={[
+              ...Array.from(
+                { length: Number.isInteger(weeks) && weeks >= 1 && weeks <= 6 ? weeks : 0 },
+                (_, index) => ({ value: index + 1, label: t('Tuần {week}', { week: index + 1 }) })
+              ),
+              { value: 0, label: t('Tổng kết tháng') },
+            ]}
+            value={shownWeek}
+            onChange={setWeek}
           />
           {rangeLabel ? (
-            <Text className="w-full text-xs text-muted-foreground">{rangeLabel}</Text>
+            <Text className="font-mono text-2xs text-muted-foreground">{rangeLabel}</Text>
           ) : null}
         </View>
       ) : null}
       {data?.classInfo?.name && !error ? (
-        <Text className="text-xs text-muted-foreground">
+        <Text className="text-2xs text-muted-foreground">
           {[data.classInfo.name, yearLabel].filter(Boolean).join(' · ')}
         </Text>
       ) : null}
       {!parent && data && !error ? (
-        <Input
-          value={search}
-          onChangeText={setSearch}
-          accessibilityLabel={t('Tìm học sinh')}
-          placeholder={t('Tìm theo tên hoặc mã học sinh')}
-          className="text-sm"
-        />
+        <View className="justify-center">
+          <Input
+            value={search}
+            onChangeText={setSearch}
+            accessibilityLabel={t('Tìm học sinh')}
+            placeholder={t('Tìm theo tên hoặc mã học sinh')}
+            className="pl-9"
+          />
+          <View pointerEvents="none" className="absolute left-3">
+            <Icon as={Search} size={16} className="text-muted-foreground" />
+          </View>
+        </View>
       ) : null}
       {result.message?.error ? (
         <ActionNotice message={{ ...result.message, text: t(result.message.text) }} />
@@ -216,7 +207,9 @@ export default function LearningResultScreen() {
         </View>
       );
     if (query.isPending)
-      return <ActivityIndicator accessibilityLabel={t('Đang tải kết quả học tập')} />;
+      return (
+        <ActivityIndicator className="py-10" accessibilityLabel={t('Đang tải kết quả học tập')} />
+      );
     if (monthNotEnded)
       return <Empty text={t('Kết quả tháng sẽ hiển thị sau khi tháng kết thúc.')} />;
     if (semesterNotStarted) return <Empty text={t('Học kỳ này chưa bắt đầu.')} />;
@@ -231,6 +224,7 @@ export default function LearningResultScreen() {
         <SemesterResultCard
           title={data.student.fullName}
           code={data.student.studentCode}
+          avatarUrl={result.avatarOf(data.student.id)}
           record={semesterResult}
           parent
         />
@@ -244,6 +238,7 @@ export default function LearningResultScreen() {
           <MonthlyResultCard
             title={data.student.fullName}
             code={data.student.studentCode}
+            avatarUrl={result.avatarOf(data.student.id)}
             record={{ ...data.record, weeklyStats: data.weeklyStats }}
             week={shownWeek}
             maxRoses={data.record?.maxRoses}
@@ -253,9 +248,13 @@ export default function LearningResultScreen() {
           <Empty text={t('Chưa có phiếu đánh giá tháng này.')} />
         )}
         {data.record?.id && (shownWeek === 0 || feedback) ? (
-          <Card className="gap-3 p-4 shadow-none">
-            <Text className="text-sm font-semibold">{t('Phản hồi cho giáo viên')}</Text>
-            <Text className="text-xs text-muted-foreground">{monthLabel(data.period, locale)}</Text>
+          <Card className="gap-3 px-4 py-3.5">
+            <View className="flex-row items-center justify-between gap-2">
+              <Text className="text-sm font-semibold">{t('Phản hồi cho giáo viên')}</Text>
+              <Text className="font-mono text-2xs text-muted-foreground">
+                {monthLabel(data.period, locale)}
+              </Text>
+            </View>
             {feedback ? (
               <>
                 <Textarea
@@ -263,28 +262,33 @@ export default function LearningResultScreen() {
                   editable={!saving}
                   accessibilityLabel={t('Nội dung phản hồi')}
                   placeholder={t('Nhập nội dung phản hồi')}
-                  className="text-sm"
                   onChangeText={(value) => setFeedback((current) => ({ ...current, value }))}
                 />
-                <View className="flex-row flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    disabled={saving || !dirty || !feedback.value.trim()}
-                    onPress={submitFeedback}>
-                    <Text>{t(saving ? 'Đang gửi…' : 'Gửi phản hồi')}</Text>
-                  </Button>
+                <View className="flex-row gap-2">
                   <Button
                     size="sm"
                     variant="outline"
+                    className="flex-1"
                     disabled={saving}
                     onPress={() => discard(() => setFeedback(null))}>
                     <Text>{t('Đóng')}</Text>
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    disabled={saving || !dirty || !feedback.value.trim()}
+                    onPress={submitFeedback}>
+                    <Text>{t(saving ? 'Đang gửi…' : 'Gửi phản hồi')}</Text>
                   </Button>
                 </View>
               </>
             ) : (
               <>
-                <Text className="text-xs leading-5">
+                <Text
+                  className={cn(
+                    'text-xs leading-5',
+                    !data.record.parentFeedback && 'text-muted-foreground'
+                  )}>
                   {data.record.parentFeedback || t('Chưa có phản hồi.')}
                 </Text>
                 <Button
@@ -324,12 +328,18 @@ export default function LearningResultScreen() {
             <MonthlyResultCard
               title={item.name}
               code={item.code}
+              avatarUrl={result.avatarOf(item.id)}
               record={item}
               week={shownWeek}
               maxRoses={weeks}
             />
           ) : (
-            <SemesterResultCard title={item.name} code={item.code} record={item} />
+            <SemesterResultCard
+              title={item.name}
+              code={item.code}
+              avatarUrl={result.avatarOf(item.id)}
+              record={item}
+            />
           )
         }
       />

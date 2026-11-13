@@ -1,8 +1,9 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { CircleAlert, Plus } from 'lucide-react-native';
 import { useState } from 'react';
-import { FlatList, Pressable, ScrollView, View } from 'react-native';
+import { FlatList, ScrollView, View } from 'react-native';
 
+import { ChipTabs } from '@/components/shared/ChipTabs';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useActionToast } from '@/components/shared/useActionToast';
 import { useUnsavedChanges } from '@/components/shared/useUnsavedChanges';
@@ -13,7 +14,6 @@ import { Text } from '@/components/ui/text';
 import { ScheduleState } from '@/features/daily/components/ScheduleState';
 import { schoolToday } from '@/features/daily/utils/schedule-date';
 import { timetableError } from '@/features/daily/utils/timetable-model';
-import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { PickupRequestCard } from '../components/PickupRequestCard';
@@ -28,49 +28,6 @@ const FILTERS = [
   ['REJECTED', 'Đã từ chối'],
   ['CANCELLED', 'Đã hủy'],
 ];
-
-function FilterChips({ value, counts, disabled, onChange, t }) {
-  return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerClassName="gap-2"
-      accessibilityRole="tablist">
-      {FILTERS.map(([key, label]) => {
-        const selected = key === value;
-        return (
-          <Pressable
-            key={key}
-            accessibilityRole="tab"
-            accessibilityState={{ selected, disabled }}
-            disabled={disabled}
-            onPress={() => onChange(key)}
-            className={cn(
-              'h-9 shrink-0 flex-row items-center gap-1.5 rounded-full border px-3 active:opacity-70',
-              selected ? 'border-primary bg-primary' : 'border-border bg-background',
-              disabled && 'opacity-50'
-            )}>
-            <Text
-              numberOfLines={1}
-              className={cn(
-                'text-xs font-medium',
-                selected ? 'text-primary-foreground' : 'text-foreground'
-              )}>
-              {t(label)}
-            </Text>
-            <Text
-              className={cn(
-                'font-mono text-2xs',
-                selected ? 'text-primary-foreground/70' : 'text-muted-foreground'
-              )}>
-              {counts[key]}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </ScrollView>
-  );
-}
 
 export default function PickupRequestsScreen() {
   const t = useTranslation();
@@ -247,12 +204,15 @@ export default function PickupRequestsScreen() {
               </Text>
             ) : null}
             {query.data ? (
-              <FilterChips
+              <ChipTabs
+                options={FILTERS.map(([key, label]) => ({
+                  value: key,
+                  label: t(label),
+                  count: counts[key],
+                }))}
                 value={filter}
-                counts={counts}
                 disabled={saving || Boolean(rejectingId)}
                 onChange={setFilter}
-                t={t}
               />
             ) : null}
           </View>

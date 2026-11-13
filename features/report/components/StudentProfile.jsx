@@ -8,7 +8,7 @@ import { Text } from '@/components/ui/text';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { formatDate, formatGender, schoolYearValue } from '../utils/report-format';
-import { HeroCard } from './HeroCard';
+import { HeroCard } from '@/components/shared/HeroCard';
 import { ReportFields } from './ReportFields';
 import { ReportState } from './ReportState';
 

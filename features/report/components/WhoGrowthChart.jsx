@@ -46,10 +46,10 @@ export function WhoGrowthChart({ student, history, metric }) {
   ];
 
   return (
-    <Card className="gap-3 rounded-2xl p-3.5 shadow-none">
+    <Card className="gap-3 px-4 py-4">
       <View className="gap-1">
         <Text className="text-sm font-semibold">{title}</Text>
-        <Text className="text-[11px] text-muted-foreground">
+        <Text className="text-2xs text-muted-foreground">
           {t(formatGender(student.gender))} · {unit} · {t('24–72 tháng')}
         </Text>
       </View>
@@ -136,7 +136,7 @@ export function WhoGrowthChart({ student, history, metric }) {
             {legend.map(([color, label]) => (
               <View key={label} className="flex-row items-center gap-1.5">
                 <View style={{ backgroundColor: color, width: 9, height: 9, borderRadius: 2 }} />
-                <Text className="text-[10px] text-muted-foreground">{t(label)}</Text>
+                <Text className="text-2xs text-muted-foreground">{t(label)}</Text>
               </View>
             ))}
           </View>
@@ -168,7 +168,7 @@ export function WhoGrowthChart({ student, history, metric }) {
                     size="sm"
                     onPress={() => setSelected(p.record.id)}
                     accessibilityLabel={t('Xem số đo ngày {date}', { date })}>
-                    <Text className="text-[11px]">{date}</Text>
+                    <Text className="text-2xs">{date}</Text>
                   </Button>
                 );
               })}
@@ -177,14 +177,14 @@ export function WhoGrowthChart({ student, history, metric }) {
         </>
       )}
       {chart.outside > 0 || chart.invalid > 0 ? (
-        <Text className="text-[11px] leading-4 text-muted-foreground">
+        <Text className="text-2xs leading-4 text-muted-foreground">
           {t(
             '{outside} đợt ngoài 24–72 tháng; {invalid} đợt thiếu ngày hoặc số đo hợp lệ. Xem đầy đủ trong lịch sử.',
             { outside: chart.outside, invalid: chart.invalid }
           )}
         </Text>
       ) : null}
-      <Text className="text-[10px] leading-4 text-muted-foreground">
+      <Text className="text-2xs leading-4 text-muted-foreground">
         {t(
           'Nguồn WHO 2006 (24–60 tháng) và WHO 2007 (61–72 tháng). Vùng màu là tham chiếu; số đo lấy từ hồ sơ trẻ.'
         )}
@@ -203,7 +203,7 @@ export function WhoGrowthChart({ student, history, metric }) {
               : 'https://www.who.int/tools/child-growth-standards/standards/weight-for-age'
           ).catch(() => {})
         }>
-        <Text className="text-[11px]">{t('Bảng tham chiếu WHO')}</Text>
+        <Text className="text-2xs">{t('Bảng tham chiếu WHO')}</Text>
       </Button>
     </Card>
   );

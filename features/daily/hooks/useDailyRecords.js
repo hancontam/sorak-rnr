@@ -5,6 +5,7 @@ import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import { assignedClass } from '@/features/auth/utils/class-assignment';
+import { useClassStudents } from '@/features/report/hooks/useClassStudents';
 
 import { cancelDismissal, getDailyRecords, saveDailyRecords } from '../api/daily-records.api';
 import {
@@ -18,6 +19,12 @@ import {
 import { calendarDate, schoolToday } from '../utils/schedule-date';
 import { dayActivities } from '../utils/timetable-model';
 import { useTimetable } from './useTimetable';
+
+const SAVED_MESSAGES = {
+  attendance: 'Đã lưu điểm danh cho {count} học sinh.',
+  health: 'Đã lưu số đo sức khỏe cho {count} học sinh.',
+  assessment: 'Đã lưu đánh giá cho {count} học sinh.',
+};
 
 const DISMISSAL_FIELDS = [
   'checkOutTime',
@@ -35,6 +42,11 @@ export function useDailyRecords({ kind, date, slotId }) {
   const client = useQueryClient();
   const assignment = assignedClass(user);
   const timetable = useTimetable(date);
+  // Lịch và đánh giá không trả avatar: ghép theo id từ danh sách lớp (đã kiểm chứng id khớp trên test2).
+  const roster = useClassStudents();
+  const avatars = new Map(
+    (roster.query.data?.students || []).map((student) => [String(student.id), student.avatarUrl])
+  );
   const [drafts, setDrafts] = useState({});
   const [baseline, setBaseline] = useState(null);
   const [message, setMessage] = useState(null);
@@ -87,7 +99,8 @@ export function useDailyRecords({ kind, date, slotId }) {
     const fields = Object.keys(initial);
     const changed = fields.some((field) => initial[field] !== value[field]);
     const edited = fields.some((field) => defaultDraft[field] !== value[field]);
-    return { id, student, value, changed, edited };
+    const avatarUrl = student.avatarUrl || avatars.get(id) || '';
+    return { id, student, value, changed, edited, avatarUrl };
   });
 
   const mutation = useMutation({
@@ -156,7 +169,8 @@ export function useDailyRecords({ kind, date, slotId }) {
           ? rows.filter((row) => !isAbsent(row.student))
           : rows;
     if (!selected.length || (kind === 'pickup' && !onlyId)) {
-      if (kind === 'health') setMessage({ text: 'Không có học sinh có mặt cần ghi số đo.' });
+      if (kind === 'health')
+        setMessage({ info: true, text: 'Không có học sinh có mặt cần ghi số đo.' });
       return;
     }
     let records;
@@ -233,7 +247,12 @@ export function useDailyRecords({ kind, date, slotId }) {
       if (confirmed) acceptSavedRows(result.data, new Set(selected.map(({ id }) => id)));
       setMessage(
         confirmed
-          ? { text: 'Đã lưu và kiểm tra lại {count} bản ghi.', values: { count: records.length } }
+          ? kind === 'pickup'
+            ? {
+                text: 'Đã ghi nhận đón {name}.',
+                values: { name: selected[0].student.name || selected[0].student.code },
+              }
+            : { text: SAVED_MESSAGES[kind], values: { count: records.length } }
           : {
               error: true,
               text: 'Máy chủ đã nhận yêu cầu nhưng dữ liệu đọc lại chưa khớp. Hãy tải lại để kiểm tra.',
@@ -336,6 +355,7 @@ export function useDailyRecords({ kind, date, slotId }) {
     canReload: Boolean(valid),
     isSaving,
     hasChangesToSave: rows.some((row) => row.changed),
+    changedCount: rows.filter((row) => row.changed).length,
     hasUserEdits: rows.some((row) => row.edited),
     loading: Boolean(
       valid &&

@@ -1,7 +1,24 @@
+import { fontStyle } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
 import * as LabelPrimitive from '@rn-primitives/label';
 import { Platform } from 'react-native';
-function Label({ className, onPress, onLongPress, onPressIn, onPressOut, disabled, ...props }) {
+function Label({
+  className,
+  style,
+  onPress,
+  onLongPress,
+  onPressIn,
+  onPressOut,
+  disabled,
+  ...props
+}) {
+  const merged = cn(
+    'text-xs font-medium text-foreground',
+    Platform.select({
+      web: 'leading-none',
+    }),
+    className
+  );
   return (
     <LabelPrimitive.Root
       className={cn(
@@ -16,16 +33,7 @@ function Label({ className, onPress, onLongPress, onPressIn, onPressOut, disable
       onPressIn={onPressIn}
       onPressOut={onPressOut}
       disabled={disabled}>
-      <LabelPrimitive.Text
-        className={cn(
-          'text-sm font-medium text-foreground',
-          Platform.select({
-            web: 'leading-none',
-          }),
-          className
-        )}
-        {...props}
-      />
+      <LabelPrimitive.Text className={merged} style={[fontStyle(merged), style]} {...props} />
     </LabelPrimitive.Root>
   );
 }

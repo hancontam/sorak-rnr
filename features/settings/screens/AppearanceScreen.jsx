@@ -1,13 +1,11 @@
 import { CircleAlert, Monitor, Moon, Sun } from 'lucide-react-native';
-import { Pressable, View } from 'react-native';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Icon } from '@/components/ui/icon';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Text } from '@/components/ui/text';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { SettingsContent } from '../components/SettingsContent';
+import { SettingsRow, SettingsSection } from '../components/SettingsRow';
 import { useThemePreference } from '../hooks/useThemePreference';
 
 const MODES = [
@@ -24,29 +22,25 @@ export default function AppearanceScreen() {
   return (
     <SettingsContent>
       <RadioGroup value={mode} onValueChange={chooseMode}>
-        {MODES.map(({ value, title, detail, icon }) => (
-          <View
-            key={value}
-            className="min-h-12 flex-row items-center rounded-xl border border-border px-3">
-            <Pressable
-              accessible={false}
+        <SettingsSection title={t('Chế độ hiển thị')}>
+          {MODES.map(({ value, title, detail, icon }) => (
+            <SettingsRow
+              key={value}
+              icon={icon}
+              label={t(title)}
+              detail={detail ? t(detail) : undefined}
               disabled={disabled}
               onPress={() => chooseMode(value)}
-              className="min-h-12 flex-1 flex-row items-center gap-3 py-2">
-              <Icon as={icon} size={17} className="text-muted-foreground" />
-              <View className="flex-1 gap-0.5">
-                <Text className="text-xs font-semibold">{t(title)}</Text>
-                {detail ? (
-                  <Text className="text-[11px] text-muted-foreground">{t(detail)}</Text>
-                ) : null}
-              </View>
-            </Pressable>
-            <RadioGroupItem value={value} accessibilityLabel={t(title)} disabled={disabled} />
-          </View>
-        ))}
+              accessibilityLabel={t(title)}
+              right={
+                <RadioGroupItem value={value} accessibilityLabel={t(title)} disabled={disabled} />
+              }
+            />
+          ))}
+        </SettingsSection>
       </RadioGroup>
       {error ? (
-        <Alert icon={CircleAlert}>
+        <Alert icon={CircleAlert} variant="destructive">
           <AlertDescription>{t(error)}</AlertDescription>
         </Alert>
       ) : null}

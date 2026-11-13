@@ -1,5 +1,6 @@
 import { Icon } from '@/components/ui/icon';
 import { NativeOnlyAnimatedView } from '@/components/ui/native-only-animated-view';
+import { fontStyle } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@rn-primitives/dialog';
 import { X } from 'lucide-react-native';
@@ -56,7 +57,7 @@ function DialogContent({ className, portalHost, children, ...props }) {
       <DialogOverlay>
         <DialogPrimitive.Content
           className={cn(
-            'z-50 mx-auto flex w-full max-w-[calc(100%-2rem)] flex-col gap-4 rounded-lg border border-border bg-background p-6 shadow-lg shadow-black/5 sm:max-w-lg',
+            'z-50 mx-auto flex w-full max-w-[calc(100%-2.5rem)] flex-col gap-4 rounded-2xl border border-border bg-popover p-5 shadow-xl shadow-black/20 sm:max-w-lg',
             Platform.select({
               web: 'duration-200 animate-in fade-in-0 zoom-in-95',
             }),
@@ -96,20 +97,14 @@ function DialogFooter({ className, ...props }) {
     />
   );
 }
-function DialogTitle({ className, ...props }) {
-  return (
-    <DialogPrimitive.Title
-      className={cn('text-lg font-semibold leading-none text-foreground', className)}
-      {...props}
-    />
-  );
+function DialogTitle({ className, style, ...props }) {
+  const merged = cn('text-sm font-semibold text-foreground', className);
+  return <DialogPrimitive.Title className={merged} style={[fontStyle(merged), style]} {...props} />;
 }
-function DialogDescription({ className, ...props }) {
+function DialogDescription({ className, style, ...props }) {
+  const merged = cn('text-xs leading-5 text-muted-foreground', className);
   return (
-    <DialogPrimitive.Description
-      className={cn('text-sm text-muted-foreground', className)}
-      {...props}
-    />
+    <DialogPrimitive.Description className={merged} style={[fontStyle(merged), style]} {...props} />
   );
 }
 export {

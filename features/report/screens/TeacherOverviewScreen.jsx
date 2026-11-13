@@ -1,23 +1,33 @@
-import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { ChevronRight, Search, School } from 'lucide-react-native';
+import { ChevronRight, Search } from 'lucide-react-native';
+import { useMemo, useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 
-import { Card } from '@/components/ui/card';
+import { AccountAvatar } from '@/components/shared/AccountAvatar';
+import { Badge } from '@/components/ui/badge';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { cn } from '@/lib/utils';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
+import { HeroCard } from '@/components/shared/HeroCard';
 import { ReportState } from '../components/ReportState';
-import { StudentSummary } from '../components/StudentSummary';
 import { useClassStudents } from '../hooks/useClassStudents';
-import { formatDate, formatGender, reportError, schoolYearValue } from '../utils/report-format';
+import {
+  formatDate,
+  formatGender,
+  reportError,
+  schoolYearValue,
+  studentStatus,
+} from '../utils/report-format';
+
+const CLASS_HERO = require('@/assets/images/hero-class.jpg');
 
 function searchText(value) {
   return String(value || '')
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'D')
     .toLowerCase();
@@ -46,6 +56,7 @@ export default function TeacherOverviewScreen() {
         />
       </View>
     );
+  const year = query.data?.class.academicYear;
   return (
     <View className="flex-1 bg-background">
       <FlatList
@@ -53,46 +64,38 @@ export default function TeacherOverviewScreen() {
         keyExtractor={(student) => String(student.id)}
         keyboardShouldPersistTaps="handled"
         className="flex-1"
-        contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8"
+        contentContainerClassName="mx-auto w-full max-w-xl px-4 pb-8 pt-4"
         refreshing={query.isRefetching}
         onRefresh={query.refetch}
         ListHeaderComponent={
-          <View className="gap-4 pb-1">
-            <View className="gap-1">
-              <Text className="text-xl font-semibold">{t('Tổng quan lớp')}</Text>
+          <View className="gap-4 pb-3">
+            <View className="gap-0.5">
+              <Text className="text-lg font-semibold tracking-tight">{t('Tổng quan lớp')}</Text>
               <Text className="text-xs text-muted-foreground">
                 {t('Theo dõi hồ sơ và quá trình học của trẻ')}
               </Text>
             </View>
             {query.data ? (
-              <Card className="gap-2 rounded-2xl bg-muted/40 p-3.5 shadow-none">
-                <View className="flex-row items-center gap-2">
-                  <Icon as={School} size={16} />
-                  <Text className="text-sm font-semibold">{query.data.class.name}</Text>
-                </View>
-                <Text className="text-xs text-muted-foreground">
-                  {t('{count} học sinh', { count: query.data.students.length })}
-                  {query.data.class.academicYear
-                    ? ` · ${t('Năm học {year}', {
-                        year: schoolYearValue(query.data.class.academicYear),
-                      })}`
-                    : ''}
-                </Text>
-              </Card>
+              <HeroCard
+                source={CLASS_HERO}
+                tag={year ? t('Năm học {year}', { year: schoolYearValue(year) }) : null}
+                title={query.data.class.name}
+                subtitle={t('{count} học sinh', { count: query.data.students.length })}
+              />
             ) : null}
             <View className="gap-2">
               <Text className="text-sm font-semibold">{t('Danh sách học sinh')}</Text>
-              <View className="relative justify-center">
+              <View className="justify-center">
                 <Input
                   value={search}
                   onChangeText={setSearch}
                   placeholder={t('Tìm tên hoặc mã học sinh…')}
                   accessibilityLabel={t('Tìm học sinh')}
                   autoCorrect={false}
-                  className="h-[34px] rounded-xl pl-9 text-xs"
+                  className="pl-9"
                 />
                 <View pointerEvents="none" className="absolute left-3">
-                  <Icon as={Search} size={14} className="text-muted-foreground" />
+                  <Icon as={Search} size={16} className="text-muted-foreground" />
                 </View>
               </View>
             </View>
@@ -114,28 +117,45 @@ export default function TeacherOverviewScreen() {
             />
           )
         }
-        renderItem={({ item }) => (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('Xem hồ sơ {name}', { name: item.fullName || t('Học sinh') })}
-            onPress={() =>
-              router.push({
-                pathname: '/(teacher)/student/[studentId]',
-                params: { studentId: item.id },
-              })
-            }>
-            <Card className="gap-2 rounded-2xl p-3 shadow-none">
-              <StudentSummary student={item} />
-              <View className="flex-row items-center gap-2">
-                <Text className="min-w-0 flex-1 text-[11px] leading-4 text-muted-foreground">
-                  {t(formatGender(item.gender))} ·{' '}
-                  {t('Sinh {date}', { date: t(formatDate(item.dateOfBirth, locale)) })}
+        renderItem={({ item, index }) => {
+          const first = index === 0;
+          const last = index === students.length - 1;
+          return (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('Xem hồ sơ {name}', { name: item.fullName || t('Học sinh') })}
+              onPress={() =>
+                router.push({
+                  pathname: '/(teacher)/student/[studentId]',
+                  params: { studentId: item.id },
+                })
+              }
+              // Danh sách trong một Card: bo góc ở dòng đầu/cuối, đường kẻ mảnh giữa các dòng.
+              className={cn(
+                'min-h-16 flex-row items-center gap-3 border-x border-border bg-card px-4 py-3 active:bg-muted/60',
+                first ? 'rounded-t-2xl border-t' : 'border-t',
+                last && 'rounded-b-2xl border-b'
+              )}>
+              <AccountAvatar user={item} className="size-10" />
+              <View className="min-w-0 flex-1 gap-0.5">
+                <Text numberOfLines={2} className="text-sm font-semibold">
+                  {item.fullName || t('Học sinh')}
                 </Text>
-                <Icon as={ChevronRight} size={14} className="text-muted-foreground" />
+                <Text numberOfLines={2} className="text-2xs text-muted-foreground">
+                  <Text className="font-mono text-2xs text-muted-foreground">
+                    {item.studentCode}
+                  </Text>
+                  {' · '}
+                  {t(formatGender(item.gender))} · {t(formatDate(item.dateOfBirth, locale))}
+                </Text>
               </View>
-            </Card>
-          </Pressable>
-        )}
+              <Badge variant="secondary">
+                <Text>{t(item.statusLabel || studentStatus(item.status))}</Text>
+              </Badge>
+              <Icon as={ChevronRight} size={16} className="text-muted-foreground" />
+            </Pressable>
+          );
+        }}
       />
     </View>
   );

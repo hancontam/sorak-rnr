@@ -1,7 +1,9 @@
 import { useRef, useState } from 'react';
-import { FlatList, ScrollView, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ChipTabs } from '@/components/shared/ChipTabs';
+import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
@@ -65,24 +67,18 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
           value={semester || report.semesterInfo.selectedSemester}
           onChange={onSemesterChange}
         />
-        <Text className="text-[10px] text-muted-foreground">
+        <Text className="font-mono text-2xs text-muted-foreground">
           {report.semesterInfo.activeDateRangeLabel
             ? semesterDateRange(report.semesterInfo.activeDateRangeLabel, locale)
             : report.classInfo.schoolYear
               ? t('Năm học {year}', { year: schoolYearValue(report.classInfo.schoolYear) })
               : null}
         </Text>
-        <Tabs value={section} onValueChange={switchSection}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <TabsList className="h-8 bg-transparent p-0">
-              {sections.map(([value, label]) => (
-                <TabsTrigger key={value} value={value} hitSlop={5} className="h-8 px-3">
-                  <Text className="text-xs">{t(label)}</Text>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </ScrollView>
-        </Tabs>
+        <ChipTabs
+          options={sections.map(([value, label]) => ({ value, label: t(label) }))}
+          value={section}
+          onChange={switchSection}
+        />
       </View>
       <FlatList
         ref={list}
@@ -107,17 +103,20 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
               </>
             ) : null}
             {section === 'attendance' ? (
-              <Text className="text-xs leading-5 text-muted-foreground">
-                {t('{count} ngày có bản ghi', { count: records.length })}
-                {records.length && typeof report.attendance.attendanceRate === 'number'
-                  ? ` · ${t('Chuyên cần {rate}', {
-                      rate: (report.attendance.attendanceRate / 100).toLocaleString(locale, {
-                        style: 'percent',
-                        maximumFractionDigits: 2,
-                      }),
-                    })}`
-                  : ''}
-              </Text>
+              <View className="flex-row gap-3">
+                <Stat label={t('Ngày có bản ghi')} value={String(records.length)} />
+                <Stat
+                  label={t('Chuyên cần')}
+                  value={
+                    records.length && typeof report.attendance.attendanceRate === 'number'
+                      ? (report.attendance.attendanceRate / 100).toLocaleString(locale, {
+                          style: 'percent',
+                          maximumFractionDigits: 2,
+                        })
+                      : '—'
+                  }
+                />
+              </View>
             ) : null}
             {section === 'assessments' ? (
               <Text className="text-xs text-muted-foreground">
@@ -149,14 +148,24 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
   );
 }
 
+// Số liệu tóm tắt từ báo cáo (mono), không tự suy ra khi máy chủ không trả.
+function Stat({ label, value }) {
+  return (
+    <Card className="min-w-0 flex-1 gap-1 px-4 py-3">
+      <Text className="text-2xs text-muted-foreground">{label}</Text>
+      <Text className="font-mono text-lg font-semibold">{value}</Text>
+    </Card>
+  );
+}
+
 function SemesterPicker({ value, onChange }) {
   const t = useTranslation();
   return (
     <Tabs value={value || ''} onValueChange={onChange}>
-      <TabsList className="h-8 w-full">
+      <TabsList className="w-full">
         {semesters.map(([key, label]) => (
-          <TabsTrigger key={key} value={key} hitSlop={5} className="h-7 flex-1">
-            <Text className="text-[11px]">{t(label)}</Text>
+          <TabsTrigger key={key} value={key} hitSlop={5} className="flex-1">
+            <Text>{t(label)}</Text>
           </TabsTrigger>
         ))}
       </TabsList>

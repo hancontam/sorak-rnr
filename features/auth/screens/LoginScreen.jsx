@@ -12,7 +12,10 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useRef, useState } from 'react';
 import { Keyboard, Platform, ScrollView, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
+
+import { SorakLogo } from '@/components/shared/SorakLogo';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -25,12 +28,10 @@ import { Text } from '@/components/ui/text';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { AuthSubmitButton } from '../components/AuthSubmitButton';
-import { AuthSuccessToast } from '../components/AuthSuccessToast';
 import { LoginError } from '../components/LoginError';
 import { LoginOtpForm } from '../components/LoginOtpForm';
 import { RoleSheet } from '../components/RoleSheet';
 import { TurnstileChallenge } from '../components/TurnstileChallenge';
-import { useAuthTypography } from '../hooks/useAuthTypography';
 import { useLogin } from '../hooks/useLogin';
 import { useAuthStore } from '../store/auth.store';
 import { AUTH_ROLES, isMobileRole, roleLabel } from '../utils/auth-roles';
@@ -73,8 +74,6 @@ export default function LoginScreen({ adding = false }) {
 function LoginFlow({ role, adding, accountId }) {
   const t = useTranslation();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const typography = useAuthTypography();
   const parent = role === AUTH_ROLES.parent;
   const accountLabel = parent ? t('Mã học sinh') : t('Mã cán bộ');
   const [username, setUsername] = useState(
@@ -88,8 +87,6 @@ function LoginFlow({ role, adding, accountId }) {
   const [showChallenge, setShowChallenge] = useState(false);
   const [roleSheetOpen, setRoleSheetOpen] = useState(false);
   const [recovering, setRecovering] = useState(false);
-  const [passwordReset, setPasswordReset] = useState(false);
-  const dismissResetToast = useCallback(() => setPasswordReset(false), []);
   const closeRecovery = useCallback(() => setRecovering(false), []);
   const challengeOpen = useRef(false);
   const passwordField = useRef(null);
@@ -136,7 +133,6 @@ function LoginFlow({ role, adding, accountId }) {
     Keyboard.dismiss();
     setPassword('');
     setShowPassword(false);
-    setPasswordReset(false);
     clearError();
     setRecovering(true);
   }
@@ -145,12 +141,13 @@ function LoginFlow({ role, adding, accountId }) {
     return (
       <PasswordRecoveryScreen
         initialIdentifier={username.trim()}
-        typography={typography}
         onBack={closeRecovery}
         onComplete={(identifier) => {
           setUsername(identifier);
           setRecovering(false);
-          setPasswordReset(true);
+          toast.success(t('Đã đặt lại mật khẩu'), {
+            description: t('Đăng nhập bằng mật khẩu mới để tiếp tục.'),
+          });
         }}
       />
     );
@@ -167,15 +164,15 @@ function LoginFlow({ role, adding, accountId }) {
           <Button
             variant="outline"
             size="icon"
-            className="size-8 rounded-lg"
-            hitSlop={6}
+            className="size-10 rounded-xl"
+            hitSlop={4}
             onPress={() =>
               router.canGoBack()
                 ? router.back()
                 : router.replace(adding ? '/(parent)/(tabs)/child-profile' : '/')
             }
             accessibilityLabel={t('Quay lại')}>
-            <Icon as={ArrowLeft} size={16} />
+            <Icon as={ArrowLeft} size={18} />
           </Button>
           {adding || accountId ? (
             <Text className="text-sm font-semibold">
@@ -185,8 +182,8 @@ function LoginFlow({ role, adding, accountId }) {
           <Button
             variant="outline"
             size="sm"
-            className="h-7 gap-1.5 rounded-lg px-2.5"
-            hitSlop={8}
+            className="h-9 gap-1.5 rounded-full px-3"
+            hitSlop={4}
             disabled={adding || Boolean(accountId) || isPending || needsOtp}
             accessibilityLabel={t('Đổi vai trò đăng nhập, đang chọn {role}', {
               role: t(roleLabel(role)),
@@ -196,19 +193,14 @@ function LoginFlow({ role, adding, accountId }) {
               setRoleSheetOpen(true);
             }}>
             <Icon as={parent ? UsersRound : GraduationCap} size={14} className="text-brand-link" />
-            <Text className="text-xs" style={typography.semiBold}>
-              {t(roleLabel(role))}
-            </Text>
-            <Text className="text-[10px] text-muted-foreground" style={typography.mono}>
-              {t('Đổi vai trò')}
-            </Text>
-            <Icon as={ChevronDown} size={13} className="text-muted-foreground" />
+            <Text className="text-xs font-semibold">{t(roleLabel(role))}</Text>
+            <Text className="font-mono text-2xs text-muted-foreground">{t('Đổi vai trò')}</Text>
+            <Icon as={ChevronDown} size={14} className="text-muted-foreground" />
           </Button>
         </View>
-        <RoleBanner role={role} typography={typography} />
+        <RoleBanner role={role} />
         {needsOtp ? (
           <LoginOtpForm
-            typography={typography}
             emailMasked={emailMasked}
             pending={isPending}
             error={error}
@@ -221,26 +213,17 @@ function LoginFlow({ role, adding, accountId }) {
           />
         ) : (
           <>
-            <Card className="gap-3.5 rounded-2xl py-4">
-              <CardHeader className="gap-0.5 px-4">
-                <CardTitle className="text-sm leading-5" style={typography.semiBold}>
-                  {t('Đăng nhập tài khoản')}
-                </CardTitle>
-                <CardDescription className="text-xs leading-[19px]" style={typography.regular}>
+            <Card>
+              <CardHeader className="gap-1">
+                <CardTitle>{t('Đăng nhập tài khoản')}</CardTitle>
+                <CardDescription className="leading-5">
                   {t('Nhập thông tin tài khoản để xác minh bảo mật qua WebView.')}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="gap-3.5 px-4">
+              <CardContent className="gap-4">
                 <View className="gap-1.5">
-                  <Label
-                    nativeID="account-label"
-                    className="text-xs leading-4"
-                    style={typography.medium}>
-                    {accountLabel}
-                  </Label>
+                  <Label nativeID="account-label">{accountLabel}</Label>
                   <Input
-                    className="h-auto min-h-[34px] rounded-lg py-1.5 text-xs leading-4 sm:h-auto"
-                    style={typography.regular}
                     aria-labelledby="account-label"
                     accessibilityLabel={accountLabel}
                     placeholder={parent ? t('Nhập mã học sinh') : t('Nhập mã cán bộ')}
@@ -261,12 +244,7 @@ function LoginFlow({ role, adding, accountId }) {
                 </View>
                 <View className="gap-1.5">
                   <View className="flex-row flex-wrap items-center justify-between gap-x-2">
-                    <Label
-                      nativeID="password-label"
-                      className="text-xs leading-4"
-                      style={typography.medium}>
-                      {t('Mật khẩu')}
-                    </Label>
+                    <Label nativeID="password-label">{t('Mật khẩu')}</Label>
                     {!parent ? (
                       <Button
                         variant="link"
@@ -275,17 +253,14 @@ function LoginFlow({ role, adding, accountId }) {
                         hitSlop={8}
                         disabled={isPending}
                         onPress={openRecovery}>
-                        <Text className="text-xs leading-4 underline" style={typography.medium}>
-                          {t('Quên mật khẩu?')}
-                        </Text>
+                        <Text className="text-xs font-medium">{t('Quên mật khẩu?')}</Text>
                       </Button>
                     ) : null}
                   </View>
-                  <View className="min-h-[34px] flex-row items-center overflow-hidden rounded-lg border border-input bg-background shadow-sm shadow-black/5 dark:bg-input/30">
+                  <View className="justify-center">
                     <Input
                       ref={passwordField}
-                      className="h-auto min-h-8 w-auto flex-1 rounded-none border-0 bg-transparent py-1.5 pr-1 text-xs leading-4 shadow-none dark:bg-transparent sm:h-auto"
-                      style={typography.regular}
+                      className="pr-11"
                       aria-labelledby="password-label"
                       accessibilityLabel={t('Mật khẩu')}
                       placeholder={t('Nhập mật khẩu')}
@@ -306,14 +281,14 @@ function LoginFlow({ role, adding, accountId }) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="mr-0.5 size-8 shrink-0"
-                      hitSlop={5}
+                      className="absolute right-1 size-8"
+                      hitSlop={6}
                       onPress={() => setShowPassword((value) => !value)}
                       accessibilityLabel={showPassword ? t('Ẩn mật khẩu') : t('Hiện mật khẩu')}
                       disabled={isPending}>
                       <Icon
                         as={showPassword ? EyeOff : Eye}
-                        size={14}
+                        size={16}
                         className="text-muted-foreground"
                       />
                     </Button>
@@ -332,15 +307,11 @@ function LoginFlow({ role, adding, accountId }) {
                   <View className="flex-1 gap-0.5">
                     <Label
                       nativeID="remember-label"
-                      className="text-xs leading-4"
-                      style={typography.medium}
                       disabled={adding || Boolean(accountId) || isPending}
                       onPress={() => !adding && !accountId && setRemember((value) => !value)}>
                       {t('Ghi nhớ phiên đăng nhập')}
                     </Label>
-                    <Text
-                      className="text-[11px] leading-4 text-muted-foreground"
-                      style={typography.regular}>
+                    <Text className="text-2xs leading-4 text-muted-foreground">
                       {t(
                         adding
                           ? 'Các tài khoản được ghi nhớ bảo mật trên thiết bị này.'
@@ -349,10 +320,9 @@ function LoginFlow({ role, adding, accountId }) {
                     </Text>
                   </View>
                 </View>
-                <LoginError message={error} typography={typography} />
+                <LoginError message={error} />
                 <AuthSubmitButton
                   label={t('Đăng nhập (WebView)')}
-                  labelStyle={typography.semiBold}
                   icon={ExternalLink}
                   pending={isPending}
                   disabled={!canSubmit}
@@ -362,19 +332,15 @@ function LoginFlow({ role, adding, accountId }) {
             </Card>
             {parent ? (
               <Alert icon={School}>
-                <AlertTitle className="text-xs" style={typography.semiBold}>
-                  {t('Quên mật khẩu?')}
-                </AlertTitle>
-                <AlertDescription className="text-[11px] leading-[15px]" style={typography.regular}>
+                <AlertTitle>{t('Quên mật khẩu?')}</AlertTitle>
+                <AlertDescription className="text-xs leading-5">
                   {t('Phụ huynh vui lòng liên hệ giáo viên chủ nhiệm để được hỗ trợ.')}
                 </AlertDescription>
               </Alert>
             ) : (
               <Alert icon={KeyRound}>
-                <AlertTitle className="text-xs" style={typography.semiBold}>
-                  {t('Giáo viên tìm lại mật khẩu')}
-                </AlertTitle>
-                <AlertDescription className="text-[11px] leading-[15px]" style={typography.regular}>
+                <AlertTitle>{t('Giáo viên tìm lại mật khẩu')}</AlertTitle>
+                <AlertDescription className="text-xs leading-5">
                   {t('Nhận mã OTP qua email đã liên kết với tài khoản cán bộ.')}
                 </AlertDescription>
                 <Button
@@ -383,7 +349,7 @@ function LoginFlow({ role, adding, accountId }) {
                   className="ml-6 h-auto self-start px-0 py-1"
                   disabled={isPending}
                   onPress={openRecovery}>
-                  <Text className="text-xs text-brand-link" style={typography.semiBold}>
+                  <Text className="text-xs font-semibold text-brand-link">
                     {t('Tìm lại mật khẩu ngay')}
                   </Text>
                 </Button>
@@ -392,22 +358,8 @@ function LoginFlow({ role, adding, accountId }) {
           </>
         )}
       </ScrollView>
-      {passwordReset ? (
-        <View
-          className="absolute inset-x-0 z-10 items-center px-4"
-          style={{ top: insets.top + 12, elevation: 12 }}
-          pointerEvents="box-none">
-          <AuthSuccessToast
-            title={t('Đã đặt lại mật khẩu')}
-            description={t('Đăng nhập bằng mật khẩu mới để tiếp tục.')}
-            typography={typography}
-            onDismiss={dismissResetToast}
-          />
-        </View>
-      ) : null}
       <RoleSheet
         visible={roleSheetOpen}
-        typography={typography}
         selectedRole={role}
         onClose={() => setRoleSheetOpen(false)}
         onSelect={(nextRole) => {
@@ -420,7 +372,6 @@ function LoginFlow({ role, adding, accountId }) {
           url={challengeUrl}
           role={role}
           account={username.trim()}
-          typography={typography}
           onVerified={handleVerified}
           onClose={closeChallenge}
         />
@@ -429,20 +380,16 @@ function LoginFlow({ role, adding, accountId }) {
   );
 }
 
-function RoleBanner({ role, typography }) {
+function RoleBanner({ role }) {
   const t = useTranslation();
   return (
-    <View className="flex-row items-center gap-2.5 rounded-2xl border border-border bg-muted/50 p-3">
-      <View className="size-8 items-center justify-center rounded-lg border border-dashed border-input bg-background">
-        <Text className="text-xs" style={typography.monoSemiBold}>
-          S×H
-        </Text>
+    <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-muted/50 px-4 py-3">
+      <View className="size-10 items-center justify-center rounded-xl border border-border bg-background">
+        <SorakLogo size={26} />
       </View>
       <View className="min-w-0 flex-1 gap-0.5">
-        <Text className="text-xs leading-4" style={typography.semiBold}>
-          {t('Sorak × Mầm Non Hòn Tre')}
-        </Text>
-        <Text className="text-[11px] leading-4 text-muted-foreground" style={typography.regular}>
+        <Text className="text-sm font-semibold">{t('Sorak × Mầm Non Hòn Tre')}</Text>
+        <Text className="text-2xs text-muted-foreground">
           {t('Cổng đăng nhập dành cho {role}', { role: t(roleLabel(role)) })}
         </Text>
       </View>

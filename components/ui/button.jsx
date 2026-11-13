@@ -4,7 +4,7 @@ import { cva } from 'class-variance-authority';
 import { Platform, Pressable } from 'react-native';
 const buttonVariants = cva(
   cn(
-    'group shrink-0 flex-row items-center justify-center gap-2 rounded-md shadow-none',
+    'group shrink-0 flex-row items-center justify-center gap-2 rounded-lg shadow-none',
     Platform.select({
       web: "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive whitespace-nowrap outline-none transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
     })
@@ -13,7 +13,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: cn(
-          'bg-primary shadow-sm shadow-black/5 active:bg-primary/90',
+          'bg-primary shadow-sm shadow-black/10 active:bg-primary/90',
           Platform.select({
             web: 'hover:bg-primary/90',
           })
@@ -42,28 +42,36 @@ const buttonVariants = cva(
             web: 'hover:bg-accent dark:hover:bg-accent/50',
           })
         ),
+        // Nút nguy hiểm dạng nhẹ như ô Đăng xuất trong showcase.
+        'destructive-soft': cn(
+          'border border-destructive/30 bg-destructive/5 active:bg-destructive/10 dark:bg-destructive/10',
+          Platform.select({
+            web: 'hover:bg-destructive/10',
+          })
+        ),
         link: '',
       },
       size: {
         default: cn(
-          'h-10 px-4 py-2 sm:h-9',
+          'h-10 px-4',
           Platform.select({
             web: 'has-[>svg]:px-3',
           })
         ),
         sm: cn(
-          'h-9 gap-1.5 rounded-md px-3 sm:h-8',
+          'h-9 gap-1.5 px-3',
           Platform.select({
             web: 'has-[>svg]:px-2.5',
           })
         ),
         lg: cn(
-          'h-11 rounded-md px-6 sm:h-10',
+          'h-11 rounded-xl px-6',
           Platform.select({
             web: 'has-[>svg]:px-4',
           })
         ),
-        icon: 'h-10 w-10 sm:h-9 sm:w-9',
+        icon: 'size-10',
+        'icon-sm': 'size-8 rounded-lg',
       },
     },
     defaultVariants: {
@@ -74,7 +82,7 @@ const buttonVariants = cva(
 );
 const buttonTextVariants = cva(
   cn(
-    'text-sm font-medium text-foreground',
+    'text-xs font-semibold text-foreground',
     Platform.select({
       web: 'pointer-events-none transition-colors',
     })
@@ -91,9 +99,10 @@ const buttonTextVariants = cva(
           })
         ),
         secondary: 'text-secondary-foreground',
+        'destructive-soft': 'text-destructive',
         ghost: 'group-active:text-accent-foreground',
         link: cn(
-          'text-primary group-active:underline',
+          'text-brand-link group-active:underline',
           Platform.select({
             web: 'underline-offset-4 hover:underline group-hover:underline',
           })
@@ -102,8 +111,9 @@ const buttonTextVariants = cva(
       size: {
         default: '',
         sm: '',
-        lg: '',
+        lg: 'text-sm',
         icon: '',
+        'icon-sm': '',
       },
     },
     defaultVariants: {

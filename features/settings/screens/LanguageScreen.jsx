@@ -1,12 +1,11 @@
-import { CircleAlert } from 'lucide-react-native';
-import { Pressable, View } from 'react-native';
+import { CircleAlert, Languages } from 'lucide-react-native';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Text } from '@/components/ui/text';
 import { useLanguagePreference, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { SettingsContent } from '../components/SettingsContent';
+import { SettingsRow, SettingsSection } from '../components/SettingsRow';
 
 const LANGUAGES = [
   { value: 'vi', label: 'Tiếng Việt' },
@@ -21,23 +20,26 @@ export default function LanguageScreen() {
   return (
     <SettingsContent>
       <RadioGroup value={language} onValueChange={chooseLanguage}>
-        {LANGUAGES.map(({ value, label }) => (
-          <View
-            key={value}
-            className="min-h-12 flex-row items-center rounded-xl border border-border px-3">
-            <Pressable
-              accessible={false}
+        <SettingsSection
+          title={t('Ngôn ngữ')}
+          footer={t('Tên riêng, nhận xét và nội dung từ nhà trường giữ nguyên ngôn ngữ gốc.')}>
+          {LANGUAGES.map(({ value, label }) => (
+            <SettingsRow
+              key={value}
+              icon={Languages}
+              label={label}
               disabled={disabled}
               onPress={() => chooseLanguage(value)}
-              className="min-h-12 flex-1 justify-center">
-              <Text className="text-xs font-semibold">{label}</Text>
-            </Pressable>
-            <RadioGroupItem value={value} accessibilityLabel={label} disabled={disabled} />
-          </View>
-        ))}
+              accessibilityLabel={label}
+              right={
+                <RadioGroupItem value={value} accessibilityLabel={label} disabled={disabled} />
+              }
+            />
+          ))}
+        </SettingsSection>
       </RadioGroup>
       {error ? (
-        <Alert icon={CircleAlert}>
+        <Alert icon={CircleAlert} variant="destructive">
           <AlertDescription>{t(error)}</AlertDescription>
         </Alert>
       ) : null}

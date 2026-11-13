@@ -1,8 +1,10 @@
 import { View } from 'react-native';
 
+import { AccountAvatar } from '@/components/shared/AccountAvatar';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 const DOMAINS = [
@@ -13,12 +15,38 @@ const DOMAINS = [
   ['aesthetic', 'Thẩm mỹ'],
 ];
 
-function Metric({ label, value }) {
+function Header({ title, code, avatarUrl, badge }) {
+  return (
+    <View className="flex-row items-center gap-3 px-4 pb-3 pt-3.5">
+      <AccountAvatar user={{ fullName: title, avatarUrl }} className="size-9" />
+      <View className="min-w-0 flex-1 gap-0.5">
+        <Text numberOfLines={1} className="text-sm font-semibold">
+          {title}
+        </Text>
+        {code ? <Text className="font-mono text-2xs text-muted-foreground">{code}</Text> : null}
+      </View>
+      {badge ? (
+        <Badge variant="secondary">
+          <Text>{badge}</Text>
+        </Badge>
+      ) : null}
+    </View>
+  );
+}
+
+// Một dòng chỉ số: nhãn bên trái, giá trị mono bên phải; thiếu dữ liệu thì ghi rõ.
+function Metric({ label, value, mono = true }) {
   const t = useTranslation();
   return (
-    <View className="flex-row justify-between gap-3 border-b border-border/60 pb-2">
+    <View className="flex-row items-center justify-between gap-3 border-t border-border px-4 py-2.5">
       <Text className="min-w-0 flex-1 text-xs text-muted-foreground">{t(label)}</Text>
-      <Text className="shrink text-right text-xs font-medium">{value || t('Chưa có dữ liệu')}</Text>
+      <Text
+        className={cn(
+          'shrink text-right text-xs font-medium',
+          value ? mono && 'font-mono' : 'text-muted-foreground'
+        )}>
+        {value || t('Chưa có dữ liệu')}
+      </Text>
     </View>
   );
 }
@@ -31,14 +59,18 @@ function percent(rate, count, total) {
 function Notes({ label, value, fallback }) {
   const t = useTranslation();
   return (
-    <View className="gap-1">
-      <Text className="text-xs font-medium">{t(label)}</Text>
-      <Text className="text-xs leading-5 text-muted-foreground">{value || t(fallback)}</Text>
+    <View className="gap-1 border-t border-border px-4 py-3">
+      <Text className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {t(label)}
+      </Text>
+      <Text className={cn('text-xs leading-5', !value && 'text-muted-foreground')}>
+        {value || t(fallback)}
+      </Text>
     </View>
   );
 }
 
-export function MonthlyResultCard({ title, code, record, week, maxRoses, parent }) {
+export function MonthlyResultCard({ title, code, avatarUrl, record, week, maxRoses, parent }) {
   const t = useTranslation();
   const stats = week && record?.weeklyStats?.[`week${week}`];
   const rose = week
@@ -49,19 +81,10 @@ export function MonthlyResultCard({ title, code, record, week, maxRoses, parent 
       : record?.[`week${week}Rose`]
     : null;
   const roseLabel = rose === true ? 'Được tặng hoa' : rose === false ? 'Chưa được tặng hoa' : null;
+  const badge = week ? roseLabel && t(roseLabel) : record?.isLotus === true ? t('Hoa sen') : null;
   return (
-    <Card className="gap-3 p-4 shadow-none">
-      <View className="flex-row items-start justify-between gap-2">
-        <View className="min-w-0 flex-1 gap-1">
-          <Text className="text-sm font-semibold">{title}</Text>
-          {code ? <Text className="text-xs text-muted-foreground">{code}</Text> : null}
-        </View>
-        {(week ? roseLabel : record?.isLotus === true) ? (
-          <Badge variant="secondary">
-            <Text className="text-[11px]">{t(week ? roseLabel : 'Hoa sen')}</Text>
-          </Badge>
-        ) : null}
-      </View>
+    <Card className="gap-0 py-0">
+      <Header title={title} code={code} avatarUrl={avatarUrl} badge={badge} />
       {week ? (
         <>
           <Metric
@@ -72,7 +95,11 @@ export function MonthlyResultCard({ title, code, record, week, maxRoses, parent 
             label="Mục tiêu"
             value={percent(stats?.goalsRate, stats?.goalsAchieved, stats?.goalsTotal)}
           />
-          <Metric label="Sức khỏe" value={stats?.healthStatus ? t(stats.healthStatus) : ''} />
+          <Metric
+            label="Sức khỏe"
+            value={stats?.healthStatus ? t(stats.healthStatus) : ''}
+            mono={false}
+          />
         </>
       ) : (
         <>
@@ -102,7 +129,7 @@ export function MonthlyResultCard({ title, code, record, week, maxRoses, parent 
   );
 }
 
-export function SemesterResultCard({ title, code, record, parent }) {
+export function SemesterResultCard({ title, code, avatarUrl, record, parent }) {
   const t = useTranslation();
   const domains = parent
     ? Array.isArray(record.domains)
@@ -118,11 +145,8 @@ export function SemesterResultCard({ title, code, record, parent }) {
         return [label, percent(data?.rate, data?.achieved, data?.total)];
       });
   return (
-    <Card className="gap-3 p-4 shadow-none">
-      <View className="gap-1">
-        <Text className="text-sm font-semibold">{title}</Text>
-        {code ? <Text className="text-xs text-muted-foreground">{code}</Text> : null}
-      </View>
+    <Card className="gap-0 py-0">
+      <Header title={title} code={code} avatarUrl={avatarUrl} />
       {!parent ? (
         <Metric
           label="Chuyên cần"

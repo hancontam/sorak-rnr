@@ -14,15 +14,17 @@ export function useAccounts() {
   const pending = useRef(false);
 
   async function run(action) {
-    if (pending.current) return;
+    if (pending.current) return false;
     pending.current = true;
     setBusy(true);
     setError('');
     try {
       await action();
+      return true;
     } catch (failure) {
       if (failure.code !== 'ERR_CANCELED')
         setError('Chưa thực hiện được thao tác. Kiểm tra kết nối rồi thử lại.');
+      return false;
     } finally {
       pending.current = false;
       setBusy(false);

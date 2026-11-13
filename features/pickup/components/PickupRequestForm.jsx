@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Image, View } from 'react-native';
 import { Camera, ImagePlus } from 'lucide-react-native';
 
+import { AccountAvatar } from '@/components/shared/AccountAvatar';
 import { DateRangeField } from '@/components/shared/DateRangeField';
 import { SelectField } from '@/components/shared/SelectField';
 import { Button } from '@/components/ui/button';
@@ -128,6 +129,8 @@ export function PickupRequestForm({
               value: String(item.id),
               label: item.name,
               description: item.code,
+              // Danh sách đón trẻ (dismissal) trả avatarUrl: dicebear khi chưa có ảnh thật.
+              leading: <AccountAvatar user={item} className="size-8" />,
             }))}
             onChange={(value) => {
               setStudentId(value);

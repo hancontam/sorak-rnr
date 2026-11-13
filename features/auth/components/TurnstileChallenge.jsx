@@ -147,7 +147,7 @@ function ChallengeAttempt({ url, role, account, onVerified, onClose, onRetry }) 
                 {t('Xác nhận quyền truy cập')}
               </CardTitle>
               <Badge>
-                <Text className="font-mono text-[10px] font-semibold">{t(roleLabel(role))}</Text>
+                <Text className="font-mono text-2xs font-semibold">{t(roleLabel(role))}</Text>
               </Badge>
             </CardHeader>
             <CardContent className="gap-3 px-4">
@@ -221,7 +221,7 @@ function ChallengeAttempt({ url, role, account, onVerified, onClose, onRetry }) 
       </ScrollView>
       <View className="mx-4 flex-row items-center justify-center gap-2 border-t border-border py-2.5">
         {waiting ? <ActivityIndicator size="small" /> : null}
-        <Text className="font-mono text-[10px] text-muted-foreground">Cloudflare Turnstile</Text>
+        <Text className="font-mono text-2xs text-muted-foreground">Cloudflare Turnstile</Text>
       </View>
     </>
   );
@@ -243,7 +243,7 @@ function BrowserBar({ host, onClose, onReload }) {
       <View className="min-w-0 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-2 py-1.5">
         <Icon as={LockKeyhole} size={13} className="text-muted-foreground" />
         <Text
-          className="shrink font-mono text-[10px]"
+          className="shrink font-mono text-2xs"
           numberOfLines={1}
           accessibilityLabel={t('Địa chỉ xác minh {host}', { host })}>
           {host}
@@ -279,7 +279,7 @@ function SchoolBanner() {
       </Svg>
       <View className="flex-1 items-start justify-end gap-1 p-3">
         <Badge variant="secondary">
-          <Text className="font-mono text-[10px] font-semibold">{t('Xác minh bảo mật')}</Text>
+          <Text className="font-mono text-2xs font-semibold">{t('Xác minh bảo mật')}</Text>
         </Badge>
         <Text className="text-xs font-semibold text-white">
           {t('Cổng xác thực Trường Mầm Non Hòn Tre')}

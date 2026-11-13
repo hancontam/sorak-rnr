@@ -44,30 +44,26 @@ export default function WelcomeScreen() {
           />
           <View className="gap-3 px-5">
             {hasAccounts ? (
-              <Button size="sm" variant="outline" onPress={() => router.push('/accounts')}>
-                <Text className="text-xs">{t('Tài khoản đã lưu')}</Text>
+              <Button variant="outline" onPress={() => router.push('/accounts')}>
+                <Text>{t('Tài khoản đã lưu')}</Text>
               </Button>
             ) : null}
             {notice ? (
               <Alert icon={CircleAlert}>
-                <AlertTitle className="text-sm font-semibold leading-5">
-                  {t('Phiên đăng nhập')}
-                </AlertTitle>
-                <AlertDescription className="text-xs leading-4">{t(notice)}</AlertDescription>
+                <AlertTitle>{t('Phiên đăng nhập')}</AlertTitle>
+                <AlertDescription>{t(notice)}</AlertDescription>
               </Alert>
             ) : null}
             {Platform.OS === 'web' ? (
               <Alert icon={Smartphone}>
-                <AlertTitle className="text-sm font-semibold leading-5">
-                  {t('Đăng nhập trên điện thoại')}
-                </AlertTitle>
-                <AlertDescription className="text-xs leading-4">
+                <AlertTitle>{t('Đăng nhập trên điện thoại')}</AlertTitle>
+                <AlertDescription>
                   {t('Mở ứng dụng Sorak trên iOS hoặc Android để tiếp tục.')}
                 </AlertDescription>
               </Alert>
             ) : (
-              <Button className="h-10 rounded-xl" onPress={() => setRoleSheetOpen(true)}>
-                <Text className="text-xs font-semibold">{t('Tiếp tục')}</Text>
+              <Button size="lg" onPress={() => setRoleSheetOpen(true)}>
+                <Text>{t('Tiếp tục')}</Text>
               </Button>
             )}
           </View>

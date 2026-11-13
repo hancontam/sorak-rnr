@@ -18,18 +18,16 @@ export function LoginOtpForm({ emailMasked, error, pending, onSubmit, onBack, on
   }
 
   return (
-    <Card className="gap-3.5 rounded-2xl py-4">
-      <CardHeader className="gap-0.5 px-4">
-        <CardTitle className="text-sm font-semibold leading-5">
-          {t('Nhập mã xác thực OTP')}
-        </CardTitle>
-        <CardDescription className="text-xs leading-[19px]">
+    <Card>
+      <CardHeader className="gap-1">
+        <CardTitle>{t('Nhập mã xác thực OTP')}</CardTitle>
+        <CardDescription className="leading-5">
           {emailMasked
             ? t('Nhập mã 6 số đã gửi đến {email}.', { email: emailMasked })
             : t('Nhập mã 6 số đã gửi đến email liên kết với tài khoản.')}
         </CardDescription>
       </CardHeader>
-      <CardContent className="gap-3.5 px-4">
+      <CardContent className="gap-4">
         <OtpCodeInput
           otp={otp}
           pending={pending}
@@ -46,8 +44,8 @@ export function LoginOtpForm({ emailMasked, error, pending, onSubmit, onBack, on
           disabled={otp.length !== 6}
           onPress={submit}
         />
-        <Button variant="ghost" size="sm" disabled={pending} onPress={onBack}>
-          <Text className="text-xs font-medium">{t('Quay lại đăng nhập')}</Text>
+        <Button variant="ghost" disabled={pending} onPress={onBack}>
+          <Text>{t('Quay lại đăng nhập')}</Text>
         </Button>
       </CardContent>
     </Card>

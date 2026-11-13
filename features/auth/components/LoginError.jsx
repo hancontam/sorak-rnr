@@ -8,8 +8,8 @@ export function LoginError({ message }) {
   if (!message) return null;
   return (
     <Alert icon={CircleAlert} variant="destructive" accessibilityLiveRegion="polite">
-      <AlertTitle className="text-sm font-semibold leading-5">{t('Không thể tiếp tục')}</AlertTitle>
-      <AlertDescription className="text-xs leading-4">
+      <AlertTitle>{t('Không thể tiếp tục')}</AlertTitle>
+      <AlertDescription className="text-xs leading-5">
         {typeof message === 'string' ? t(message) : t(message.text, message.values)}
       </AlertDescription>
     </Alert>

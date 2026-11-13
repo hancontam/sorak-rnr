@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 export function FieldTrigger({
   label,
   icon,
+  leading,
   value,
   placeholder,
   mono = false,
@@ -31,7 +32,7 @@ export function FieldTrigger({
           'h-10 flex-row items-center gap-2 rounded-lg border border-input bg-background px-3 active:bg-accent dark:bg-input/30',
           disabled && 'opacity-50'
         )}>
-        {icon ? <Icon as={icon} size={16} className="text-muted-foreground" /> : null}
+        {leading ?? (icon ? <Icon as={icon} size={16} className="text-muted-foreground" /> : null)}
         <Text
           numberOfLines={1}
           className={cn(

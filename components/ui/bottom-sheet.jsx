@@ -123,7 +123,16 @@ function BottomSheet({
 }
 
 // Một lựa chọn trong sheet chọn (select trên mobile): dòng bo 12, dấu tích bên phải.
-function BottomSheetOption({ label, description, icon, selected = false, onPress, disabled }) {
+// `leading` (ví dụ avatar) thay cho icon khi lựa chọn có hình đại diện.
+function BottomSheetOption({
+  label,
+  description,
+  icon,
+  leading,
+  selected = false,
+  onPress,
+  disabled,
+}) {
   return (
     <Pressable
       accessibilityRole="radio"
@@ -135,7 +144,7 @@ function BottomSheetOption({ label, description, icon, selected = false, onPress
         selected && 'bg-muted/60',
         disabled && 'opacity-50'
       )}>
-      {icon ? <Icon as={icon} size={16} className="text-muted-foreground" /> : null}
+      {leading ?? (icon ? <Icon as={icon} size={16} className="text-muted-foreground" /> : null)}
       <View className="min-w-0 flex-1 gap-0.5">
         <Text className="text-xs font-medium">{label}</Text>
         {description ? <Text className="text-2xs text-muted-foreground">{description}</Text> : null}

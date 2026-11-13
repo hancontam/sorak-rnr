@@ -132,7 +132,7 @@ export function WelcomeCarousel({ paused, branding }) {
                   <Badge
                     variant="outline"
                     className="min-w-0 shrink rounded-md border-white/15 bg-black/45">
-                    <Text className="shrink font-mono text-[10px] font-semibold uppercase leading-[13px] tracking-wider text-white">
+                    <Text className="shrink font-mono text-2xs font-semibold uppercase leading-[14px] tracking-wider text-white">
                       {String(index + 1).padStart(2, '0')} / 0{count} • {t(slide.label)}
                     </Text>
                   </Badge>

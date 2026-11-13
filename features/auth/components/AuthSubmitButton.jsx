@@ -6,17 +6,13 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { THEME } from '@/lib/theme';
 
+// Nút gửi của các form đăng nhập: cao 40 như Button chuẩn, hiện vòng chờ khi đang gửi.
 export function AuthSubmitButton({ label, icon, pending, disabled, onPress }) {
   const { colorScheme } = useColorScheme();
   const theme = THEME[colorScheme ?? 'light'];
-  const unavailable = disabled && !pending;
-  const labelColor = unavailable ? 'text-muted-foreground' : 'text-primary-foreground';
 
   return (
     <Button
-      size="sm"
-      variant={unavailable ? 'secondary' : 'default'}
-      className="h-auto min-h-9 rounded-lg py-2 opacity-100"
       disabled={pending || disabled}
       onPress={onPress}
       accessibilityLabel={label}
@@ -25,8 +21,8 @@ export function AuthSubmitButton({ label, icon, pending, disabled, onPress }) {
         <ActivityIndicator size="small" color={theme.primaryForeground} />
       ) : (
         <>
-          <Text className={`text-xs font-semibold ${labelColor}`}>{label}</Text>
-          {icon ? <Icon as={icon} size={14} className={labelColor} /> : null}
+          <Text>{label}</Text>
+          {icon ? <Icon as={icon} size={14} className="text-primary-foreground" /> : null}
         </>
       )}
     </Button>

@@ -27,6 +27,7 @@ export function SelectField({
       <FieldTrigger
         label={label}
         icon={icon}
+        leading={selected?.leading}
         value={selected?.label}
         placeholder={placeholder}
         disabled={disabled}
@@ -45,6 +46,7 @@ export function SelectField({
                 key={option.value}
                 label={option.label}
                 description={option.description}
+                leading={option.leading}
                 selected={option.value === value}
                 disabled={option.disabled}
                 onPress={() => {

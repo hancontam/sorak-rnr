@@ -16,18 +16,16 @@ export function SorakBrand() {
         </View>
         <Text className="text-xs font-semibold tracking-tight">Sorak</Text>
       </View>
-      <Text className="font-mono text-[11px] text-muted-foreground">×</Text>
+      <Text className="font-mono text-2xs text-muted-foreground">×</Text>
       <View className="min-w-0 shrink flex-row items-center gap-1.5">
         <View className="size-6 items-center justify-center rounded-md border border-dashed border-border bg-background">
           <Icon as={ImageIcon} size={14} className="text-muted-foreground" />
         </View>
         <View className="min-w-0 shrink">
-          <Text className="font-mono text-[10px] font-semibold leading-[13px] text-foreground/85">
+          <Text className="font-mono text-2xs font-semibold leading-[14px] text-foreground/85">
             {t('Trường Mầm Non')}
           </Text>
-          <Text className="font-mono text-[10px] leading-[13px] text-muted-foreground">
-            Hòn Tre
-          </Text>
+          <Text className="font-mono text-2xs leading-[14px] text-muted-foreground">Hòn Tre</Text>
         </View>
       </View>
     </View>

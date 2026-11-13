@@ -966,4 +966,5 @@ export const english = {
   'Đã duyệt đơn ủy quyền.': 'Authorization approved.',
   'Đã từ chối đơn ủy quyền.': 'Authorization rejected.',
   Vắng: 'Absent',
+  'Ngày có bản ghi': 'Days recorded',
 };

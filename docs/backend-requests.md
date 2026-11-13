@@ -58,6 +58,16 @@ Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: resp
 
 **Nghiệm thu BE:** xác nhận cách biểu diễn dòng vắng trong payload full danh sách; dòng vắng không tạo/cập nhật số đo, thiếu số đo ở bé có mặt trả lỗi rõ, `savedCount` phản ánh số bản ghi thực lưu. Cần kiểm tra bé vắng có và chưa có số đo cũ. Sau khi BE sửa, xác minh lại trước khi bỏ xử lý tạm trên mobile.
 
+## BE-05 — Trả avatar học sinh ở lịch và kết quả đánh giá (ưu tiên thấp)
+
+**Trạng thái:** đề xuất; mobile đã có cách xử lý tạm.
+
+**Cần gì/vì sao:** `GET /attendance/classes/{id}/timetable` (`students[]`) và các endpoint kết quả `assessment` tháng/học kỳ chưa có `avatarUrl`, trong khi danh sách lớp và danh sách đón trẻ đã có. Mobile phải gọi thêm `GET /classes/{id}/students` rồi ghép theo `id` để hiện avatar ở Ghi nhận ngày và Kết quả học tập.
+
+**Đề xuất:** thêm `avatarUrl` (cùng quy tắc dicebear khi chưa có ảnh thật) vào từng học sinh của các response trên. Không đổi trường khác.
+
+**Nghiệm thu:** `avatarUrl` của cùng học sinh giống nhau ở mọi endpoint; khi có, mobile bỏ bước ghép từ danh sách lớp.
+
 ## Mẫu yêu cầu mới
 
 Vai trò/flow bị chặn; cần gì/vì sao; bằng chứng ngày/môi trường; endpoint hiện có và phần thiếu; request/response đề xuất; quyền/empty/error; dữ liệu test; nghiệm thu; ảnh hưởng thời hạn; phản hồi BE. Không ghi bug client, nghiệp vụ đã bỏ (xin nghỉ/ghi học kỳ GV) hoặc điều chưa điều tra thành lỗi BE chắc chắn.

@@ -104,6 +104,12 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 - Không có API đọc danh sách thiết bị đã đăng ký, nên chưa đọc lại được tác động của POST/DELETE; chưa gửi/nhận push thật trên thiết bị. Không gọi `test-push`.
 - Mã nguồn `sorak-api` chỉ gửi email OTP (`sendOtpEmail`); không có email theo loại thông báo, không có bảng/API tùy chọn thông báo. Màn "Cài đặt thông báo" của web lưu công tắc email/push/âm thanh vào `localStorage`, không gọi API, nên các công tắc email trên web hiện không điều khiển email nào. Mobile chỉ làm công tắc push theo thiết bị (đăng ký/gỡ token thật) và âm thanh khi app đang mở (cài đặt cục bộ).
 
+### Avatar học sinh theo endpoint (test2, 12–13/11/2026)
+
+- Chỉ GET, tài khoản GV (lớp Nhà Trẻ 1 và Lá 1). `GET /classes/{id}/students` và `GET /attendance/classes/{id}/dismissal` trả `avatarUrl` (dicebear SVG, tải được 200 `image/svg+xml`); `GET /attendance/classes/{id}/authorizations` trả `student.avatarUrl`.
+- `GET /attendance/classes/{id}/timetable` (`students`) và các endpoint kết quả `assessment` tháng/học kỳ không có trường avatar. `id` học sinh của lịch và kết quả khớp `id` trong danh sách lớp (4/4 và 8/8 bé), nên mobile ghép avatar theo `id` trong hook.
+- Không có ảnh thật nào trên test2 để kiểm tra trường hợp ảnh tải lên.
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

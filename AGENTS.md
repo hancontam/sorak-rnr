@@ -55,6 +55,10 @@
 | Shadow | Card `shadow-sm` rất mảnh; lớp nổi (toast, sheet, dialog) `shadow-xl` |
 
 - Chọn trên mobile dùng bottom sheet (`components/ui/bottom-sheet.jsx`), xác nhận thao tác dùng `AlertDialog`, kết quả tức thời dùng toast sonner; lỗi cần đọc lại vẫn dùng `Alert` trong màn. Không tự dựng lại badge/nút bằng màu và viền riêng.
+- Dùng lại component chung trước khi viết mới: `SelectField` (danh sách, có thể kèm avatar qua `leading`), `DateRangeField`/`MonthCalendar` (ngày, Flash Calendar), `TimeField`, `MeasureField`, `ChipTabs` (chip lọc/chuyển mục, tự cuộn tới chip đang chọn), `HeroCard` (card ảnh 16:9), `ConfirmDialog` (mọi hộp xác nhận, kể cả `useUnsavedChanges`). Không dùng `Alert.alert`/`confirm` của hệ thống.
+- Thao tác máy chủ đã ghi nhận (lưu, duyệt, gửi, hủy, chuyển/đăng xuất tài khoản…) báo bằng toast qua `useActionToast` hoặc `toast` sau khi đọc lại xác nhận; hook đặt câu thông báo theo từng thao tác. Không toast cho đổi giao diện/ngôn ngữ/ngày xem.
+- Avatar học sinh lấy `avatarUrl` backend trả (dicebear khi chưa có ảnh thật). Endpoint nào thiếu avatar thì hook ghép theo `id` từ `GET /classes/{id}/students`; screen/component chỉ nhận `avatarUrl` qua props. Giáo viên dùng avatar chữ cái backend trả.
+- Lưu ý NativeWind/RN: không thêm lớp `shadow-*` chỉ khi đổi trạng thái (bản dev crash "Couldn't find a navigation context"); giữ `shadow-none shadow-black/5` từ đầu và đổi `shadow-sm` như `TabsTrigger`. Ảnh `require()` đặt `width/height: '100%'`, không chỉ `absoluteFill`.
 - Ảnh minh họa dạng card AspectRatio (ảnh đen trắng, không người/không chữ) đặt ở `assets/images/`; nội dung ảnh không được gợi ý dữ liệu thật.
 - Giữ font đã duyệt, hỗ trợ cuộn và xuống dòng khi người dùng tăng cỡ chữ hệ thống. Giữ tỷ lệ ảnh và biểu đồ theo thiết kế.
 

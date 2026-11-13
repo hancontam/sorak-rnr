@@ -96,11 +96,17 @@ function JournalEntry({ item, last }) {
 
   return (
     <View className="flex-row items-stretch gap-3">
-      <View className="w-11 items-end gap-0.5 pt-3.5">
-        <Text className={cn('font-mono text-xs', current ? 'font-semibold' : 'font-medium')}>
+      <View className="min-w-11 items-end gap-0.5 pt-3.5">
+        <Text
+          numberOfLines={1}
+          className={cn('font-mono text-xs', current ? 'font-semibold' : 'font-medium')}>
           {start || '—'}
         </Text>
-        {end ? <Text className="font-mono text-2xs text-muted-foreground">{end}</Text> : null}
+        {end ? (
+          <Text numberOfLines={1} className="font-mono text-2xs text-muted-foreground">
+            {end}
+          </Text>
+        ) : null}
       </View>
       <View className="w-5 items-center pt-3.5">
         <View

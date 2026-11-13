@@ -28,13 +28,14 @@ function StatusSegments({ options, value, disabled, onChange, t }) {
             onPress={() => onChange(key)}
             className={cn(
               // Giữ sẵn lớp shadow từ lần render đầu như TabsTrigger; thêm shadow lúc chạy làm NativeWind lỗi.
-              'min-h-9 min-w-0 flex-1 items-center justify-center rounded-lg px-1 shadow-none shadow-black/5 active:opacity-70',
+              'min-h-9 min-w-0 flex-1 items-center justify-center rounded-lg px-1 py-1 shadow-none shadow-black/5 active:opacity-70',
               selected && 'bg-background shadow-sm'
             )}>
             <Text
-              numberOfLines={1}
+              // Màn hẹp (360 dp) hoặc chữ lớn: xuống tối đa 2 dòng thay vì cắt chữ.
+              numberOfLines={2}
               className={cn(
-                'text-2xs font-medium text-muted-foreground',
+                'text-center text-2xs font-medium leading-4 text-muted-foreground',
                 selected && 'font-semibold text-foreground'
               )}>
               {t(label)}

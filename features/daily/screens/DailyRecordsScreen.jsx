@@ -49,7 +49,8 @@ function DailyRecordsForm({ kind, date, slotId }) {
   const form = useDailyRecords({ kind, date, slotId });
   const [search, setSearch] = useState('');
   const [confirm, setConfirm] = useState(null);
-  const confirmDiscard = useUnsavedChanges(form.hasUserEdits, form.isSaving);
+  const unsaved = useUnsavedChanges(form.hasUserEdits, form.isSaving);
+  const confirmDiscard = unsaved.confirmDiscard;
   useActionToast(form.message, t);
   const reload = () => confirmDiscard(form.reload);
   const text = search.trim().toLocaleLowerCase('vi');
@@ -265,6 +266,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
         </SafeAreaView>
       ) : null}
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
+      <ConfirmDialog {...unsaved.dialog} />
     </View>
   );
 }

@@ -40,7 +40,8 @@ export default function PickupRequestsScreen() {
   const [rejectingId, setRejectingId] = useState(null);
   const [filter, setFilter] = useState('all');
   const [confirmRequest, setConfirmRequest] = useState(null);
-  const confirmDiscard = useUnsavedChanges(dirty, requests.saving || photo.busy);
+  const unsaved = useUnsavedChanges(dirty, requests.saving || photo.busy);
+  const confirmDiscard = unsaved.confirmDiscard;
   const { query, allowed, isParent, message, saving, needsReload } = requests;
   useActionToast(message, t);
 
@@ -123,7 +124,12 @@ export default function PickupRequestsScreen() {
       </Alert>
     ) : null;
 
-  const dialog = <ConfirmDialog request={confirmRequest} onClose={() => setConfirmRequest(null)} />;
+  const dialog = (
+    <>
+      <ConfirmDialog request={confirmRequest} onClose={() => setConfirmRequest(null)} />
+      <ConfirmDialog {...unsaved.dialog} />
+    </>
+  );
 
   if (creating)
     return (

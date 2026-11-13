@@ -14,11 +14,17 @@ import { isCurrentFrame, routineTitle } from '../utils/timetable-model';
 
 function TimeColumn({ start, end, current }) {
   return (
-    <View className="w-11 items-end gap-0.5 pt-3.5">
-      <Text className={cn('font-mono text-xs', current ? 'font-semibold' : 'font-medium')}>
+    <View className="min-w-11 items-end gap-0.5 pt-3.5">
+      <Text
+        numberOfLines={1}
+        className={cn('font-mono text-xs', current ? 'font-semibold' : 'font-medium')}>
         {start || '—'}
       </Text>
-      {end ? <Text className="font-mono text-2xs text-muted-foreground">{end}</Text> : null}
+      {end ? (
+        <Text numberOfLines={1} className="font-mono text-2xs text-muted-foreground">
+          {end}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -123,7 +129,9 @@ export function EmptyFrames({ frames, isParent, now, defaultOpen }) {
                 <View
                   key={frame.key}
                   className="min-h-10 flex-row items-center gap-3 border-t border-dashed border-border px-4 py-2">
-                  <Text className="w-20 font-mono text-2xs text-muted-foreground">
+                  <Text
+                    numberOfLines={1}
+                    className="min-w-20 font-mono text-2xs text-muted-foreground">
                     {[frame.start, frame.end].filter(Boolean).join('–') || '—'}
                   </Text>
                   <Text numberOfLines={2} className="min-w-0 flex-1 text-xs text-muted-foreground">

@@ -138,10 +138,10 @@ export default function TeacherOverviewScreen() {
               )}>
               <AccountAvatar user={item} className="size-10" />
               <View className="min-w-0 flex-1 gap-0.5">
-                <Text numberOfLines={1} className="text-sm font-semibold">
+                <Text numberOfLines={2} className="text-sm font-semibold">
                   {item.fullName || t('Học sinh')}
                 </Text>
-                <Text numberOfLines={1} className="text-2xs text-muted-foreground">
+                <Text numberOfLines={2} className="text-2xs text-muted-foreground">
                   <Text className="font-mono text-2xs text-muted-foreground">
                     {item.studentCode}
                   </Text>

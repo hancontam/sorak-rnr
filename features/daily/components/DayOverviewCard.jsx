@@ -28,7 +28,7 @@ function Row({ icon, title, meta, right, onPress, label, first }) {
       <View className="min-w-0 flex-1 gap-0.5">
         <Text className="text-xs font-semibold">{title}</Text>
         {meta ? (
-          <Text numberOfLines={1} className="text-2xs text-muted-foreground">
+          <Text numberOfLines={2} className="text-2xs text-muted-foreground">
             {meta}
           </Text>
         ) : null}

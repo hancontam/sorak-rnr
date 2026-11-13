@@ -5,6 +5,7 @@ import { ActivityIndicator, FlatList, View } from 'react-native';
 
 import { ActionNotice } from '@/components/shared/ActionNotice';
 import { ChipTabs } from '@/components/shared/ChipTabs';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useActionToast } from '@/components/shared/useActionToast';
 import { useUnsavedChanges } from '@/components/shared/useUnsavedChanges';
 import { Button } from '@/components/ui/button';
@@ -90,7 +91,8 @@ export default function LearningResultScreen() {
   const rangeLabel = Array.isArray(weekRanges)
     ? weekRanges.find((item) => Number(item?.week) === shownWeek)?.rangeText
     : null;
-  const discard = useUnsavedChanges(dirty, saving);
+  const unsaved = useUnsavedChanges(dirty, saving);
+  const discard = unsaved.confirmDiscard;
   const selectMonth = (next) =>
     discard(() => {
       setFeedback(null);
@@ -343,6 +345,7 @@ export default function LearningResultScreen() {
           )
         }
       />
+      <ConfirmDialog {...unsaved.dialog} />
     </View>
   );
 }

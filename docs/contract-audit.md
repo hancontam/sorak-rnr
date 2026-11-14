@@ -104,6 +104,13 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 - Không có API đọc danh sách thiết bị đã đăng ký, nên chưa đọc lại được tác động của POST/DELETE; chưa gửi/nhận push thật trên thiết bị. Không gọi `test-push`.
 - Mã nguồn `sorak-api` chỉ gửi email OTP (`sendOtpEmail`); không có email theo loại thông báo, không có bảng/API tùy chọn thông báo. Màn "Cài đặt thông báo" của web lưu công tắc email/push/âm thanh vào `localStorage`, không gọi API, nên các công tắc email trên web hiện không điều khiển email nào. Mobile chỉ làm công tắc push theo thiết bị (đăng ký/gỡ token thật) và âm thanh khi app đang mở (cài đặt cục bộ).
 
+### Refresh token: cookie được ưu tiên hơn body (test2, 14/11/2026)
+
+- Tài khoản GV CB26003, header `X-Client-Platform: android`. `POST /auth/login` và `POST /auth/refresh` đều trả `Set-Cookie: sorak_refresh=…; Max-Age=604800; HttpOnly; Secure; SameSite=Lax`; access token sống 900 giây; refresh xoay vòng (dùng lại refresh token cũ trả 401).
+- Gửi `/auth/refresh` với body là refresh token mới nhưng cookie `sorak_refresh` là token đã xoay: 401 `UNAUTHORIZED`; cùng body không kèm cookie: 200. Server dùng cookie trước body.
+- Mobile trước đây không đặt `withCredentials`, nên XHR của React Native (mặc định `true`) bật cookie jar hệ thống và gửi cookie cũ, làm phiên bị đăng xuất sau khoảng 15 phút (đăng xuất rồi đăng nhập lại, nhiều tài khoản PH trên máy). Đã đặt `withCredentials: false` cho API client; `/auth/sessions` vẫn tự gắn cookie của phiên hiện tại.
+- Đăng nhập/đăng xuất phiên khác (android hoặc web) không thu hồi refresh của phiên đang dùng.
+
 ### Avatar học sinh theo endpoint (test2, 12–13/11/2026)
 
 - Chỉ GET, tài khoản GV (lớp Nhà Trẻ 1 và Lá 1). `GET /classes/{id}/students` và `GET /attendance/classes/{id}/dismissal` trả `avatarUrl` (dicebear SVG, tải được 200 `image/svg+xml`); `GET /attendance/classes/{id}/authorizations` trả `student.avatarUrl`.

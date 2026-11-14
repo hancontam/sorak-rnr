@@ -631,12 +631,6 @@ export const english = {
   'Chưa có kết quả được ghi nhận cho ngày này.': 'No results have been recorded for this day.',
   'Xác nhận đón {name}?': 'Confirm pickup for {name}?',
   'Xác nhận': 'Confirm',
-  'Hủy ghi nhận đón trẻ?': 'Undo pickup record?',
-  'Bé sẽ về trạng thái Chưa đón. Điểm danh và đơn ủy quyền vẫn được giữ.':
-    'Pickup status will return to Not picked up. Attendance and authorizations will stay on record.',
-  'Các chỉnh sửa chưa lưu trên thẻ này sẽ bị bỏ.': 'Unsaved edits on this card will be discarded.',
-  'Giữ ghi nhận': 'Keep record',
-  'Hủy ghi nhận': 'Undo record',
   'Ghi nhận': 'Daily records',
   'Đã đón {pickedUp}/{total} học sinh': '{pickedUp}/{total} students picked up',
   '{awaiting} chưa đón · {absent} vắng · {unrecorded} chưa điểm danh':
@@ -676,8 +670,6 @@ export const english = {
   'Dặn dò phụ huynh': 'Notes for parents',
   'Cập nhật ghi nhận đón trẻ': 'Update pickup record',
   'Xác nhận đã đón trẻ': 'Confirm pickup',
-  'Hủy ghi nhận đón trẻ của {name}': 'Undo pickup for {name}',
-  'Hủy ghi nhận đón trẻ': 'Undo pickup record',
   'Thay đổi chưa lưu. Trạng thái Đã đón chỉ cập nhật sau khi máy chủ xác nhận.':
     'Unsaved changes. Pickup status updates after the server confirms.',
   'Tạo ủy quyền cho học sinh này': 'Create authorization for this student',
@@ -799,11 +791,6 @@ export const english = {
     'The server received the request, but the saved data did not match. Reload and check.',
   'Chưa xác nhận được kết quả lưu. Hãy tải lại để kiểm tra trước khi thử lại.':
     'The save could not be confirmed. Reload and check before trying again.',
-  'Ghi nhận đón trẻ đã thay đổi. Hãy tải lại trước khi hủy.':
-    'The pickup record has changed. Reload it before undoing.',
-  'Chưa xác nhận được kết quả hủy. Hãy tải lại để kiểm tra.':
-    'The undo action could not be confirmed. Reload and check.',
-  'Đã hủy ghi nhận đón trẻ của {name}.': 'Undid the pickup record for {name}.',
   'Tài khoản, ngày hoặc tác vụ không hợp lệ.': 'The account, date or action is invalid.',
   'Hoạt động này không còn trong lịch hoặc chưa có mã đánh giá.':
     'The activity is no longer scheduled or has no assessment ID.',

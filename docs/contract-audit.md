@@ -73,7 +73,7 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 
 - Swagger công khai khai báo DELETE với hai tham số path `classId` và `studentId` nhưng thiếu query `date`. Bundle web đang deploy trên test2 dùng cùng đường dẫn và truyền query qua `params`. Gọi DELETE test2 không có phiên với ID giả trả `401 UNAUTHORIZED`; phép thử này chỉ xác nhận nhánh thiếu phiên.
 
-- Network web test2 do người dùng cung cấp ghi nhận HTTP 200 cho `DELETE /attendance/classes/{classId}/dismissal/{studentId}?date=YYYY-MM-DD`. Web gửi ID học sinh từ danh sách đón trẻ. Backend tham chiếu xóa các trường giờ đón, người đón, ảnh và dặn dò trong bản ghi của đúng học sinh/ngày, giữ điểm danh và đơn ủy quyền.
+- Network web test2 do người dùng cung cấp ghi nhận HTTP 200 cho `DELETE /attendance/classes/{classId}/dismissal/{studentId}?date=YYYY-MM-DD`. Web gửi ID học sinh từ danh sách đón trẻ. Backend tham chiếu xóa các trường giờ đón, người đón, ảnh và dặn dò trong bản ghi của đúng học sinh/ngày, giữ điểm danh và đơn ủy quyền. Ngày 14/11/2026 người dùng chốt mobile không có nghiệp vụ hủy ghi nhận đón trẻ; mobile đã gỡ nút và lời gọi endpoint này.
 - Mobile đọc lại danh sách sau DELETE, kiểm tra đã bỏ trạng thái và thông tin đón của đúng học sinh, rồi làm mới lịch và báo cáo. Trên Android test2 ngày 02/11, đã quan sát hộp xác nhận đúng học sinh/ngày và kết quả sau xác nhận trên thiết bị: bé về Chưa đón, người/giờ đón được xóa, tổng đã đón giảm từ 3/5 xuống 2/5. Bằng chứng HTTP 200 trong ảnh Network là từ web.
 
 ## Kết quả học tập và thông báo 6A trên test2 — 11/11/2026

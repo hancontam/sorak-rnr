@@ -7,7 +7,7 @@ import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import { assignedClass } from '@/features/auth/utils/class-assignment';
 import { useClassStudents } from '@/features/report/hooks/useClassStudents';
 
-import { cancelDismissal, getDailyRecords, saveDailyRecords } from '../api/daily-records.api';
+import { getDailyRecords, saveDailyRecords } from '../api/daily-records.api';
 import {
   DAILY_ACTIONS,
   draftRecord,
@@ -25,16 +25,6 @@ const SAVED_MESSAGES = {
   health: 'Đã lưu số đo sức khỏe cho {count} học sinh.',
   assessment: 'Đã lưu đánh giá cho {count} học sinh.',
 };
-
-const DISMISSAL_FIELDS = [
-  'checkOutTime',
-  'pickupPersonName',
-  'pickupRelationship',
-  'pickupPersonPhone',
-  'pickupCitizenId',
-  'pickupPhotoUrl',
-  'pickupNote',
-];
 
 export function useDailyRecords({ kind, date, slotId }) {
   const t = useTranslation();
@@ -105,9 +95,6 @@ export function useDailyRecords({ kind, date, slotId }) {
 
   const mutation = useMutation({
     mutationFn: (records) => saveDailyRecords({ ...params, records }),
-  });
-  const cancelMutation = useMutation({
-    mutationFn: (studentId) => cancelDismissal({ classId: assignment.classId, studentId, date }),
   });
 
   function refreshRelatedRecords() {
@@ -275,80 +262,12 @@ export function useDailyRecords({ kind, date, slotId }) {
     }
   }
 
-  async function undoPickup(studentId) {
-    if (
-      kind !== 'pickup' ||
-      !canEdit ||
-      !isCurrent() ||
-      running.current ||
-      needsReload ||
-      !query.isSuccess ||
-      !baseline
-    )
-      return;
-    const before = rows.find(({ id }) => id === studentId)?.student;
-    if (!before?.isPresent || !before.isDismissed) return;
-
-    running.current = true;
-    setIsSaving(true);
-    setMessage(null);
-    try {
-      const fresh = await query.refetch();
-      if (!isCurrent()) return;
-      if (fresh.isError) throw fresh.error;
-      const latest = fresh.data.find((student) => String(student.id) === studentId);
-      if (
-        !latest?.isPresent ||
-        !latest.isDismissed ||
-        DISMISSAL_FIELDS.some((field) => latest[field] !== before[field])
-      ) {
-        throw new Error('Ghi nhận đón trẻ đã thay đổi. Hãy tải lại trước khi hủy.');
-      }
-
-      await cancelMutation.mutateAsync(studentId);
-      if (!isCurrent()) return;
-      const result = await query.refetch();
-      await refreshRelatedRecords();
-      if (!isCurrent()) return;
-      const after = result.data?.find((student) => String(student.id) === studentId);
-      if (
-        result.isError ||
-        !after ||
-        after.isDismissed ||
-        DISMISSAL_FIELDS.some((field) => after[field])
-      ) {
-        throw new Error('Chưa xác nhận được kết quả hủy. Hãy tải lại để kiểm tra.');
-      }
-
-      acceptSavedRows([after], new Set([studentId]));
-      setMessage({
-        text: 'Đã hủy ghi nhận đón trẻ của {name}.',
-        values: { name: before.name || before.code },
-      });
-    } catch (error) {
-      if (!isCurrent()) return;
-      setNeedsReload(true);
-      setMessage({
-        error: true,
-        text:
-          error.response?.data?.message ||
-          (error.isAxiosError
-            ? 'Chưa xác nhận được kết quả hủy. Hãy tải lại để kiểm tra.'
-            : error.message),
-      });
-    } finally {
-      running.current = false;
-      setIsSaving(false);
-    }
-  }
-
   return {
     rows,
     slot,
     canEdit,
     update,
     save,
-    undoPickup,
     message,
     needsReload,
     reload,

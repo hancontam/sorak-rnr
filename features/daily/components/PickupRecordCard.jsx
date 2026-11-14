@@ -1,6 +1,7 @@
-import { Plus, RotateCcw } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { View } from 'react-native';
 
+import { AccountAvatar } from '@/components/shared/AccountAvatar';
 import { SelectField } from '@/components/shared/SelectField';
 import { TimeField } from '@/components/shared/TimeField';
 import { Badge } from '@/components/ui/badge';
@@ -15,14 +16,7 @@ import { isAbsent, pickupOptions } from '../utils/daily-records';
 import { schoolClock } from '../utils/schedule-date';
 import { StudentHeader } from './StudentHeader';
 
-export function PickupRecordCard({
-  row,
-  editable,
-  onChange,
-  onPickup,
-  onUndoPickup,
-  onCreateAuthorization,
-}) {
+export function PickupRecordCard({ row, editable, onChange, onPickup, onCreateAuthorization }) {
   const t = useTranslation();
   const { student, value } = row;
   const people = pickupOptions(student);
@@ -77,6 +71,13 @@ export function PickupRecordCard({
                 value: person.key,
                 label: personLabel(person),
                 description: person.phone,
+                // Phụ huynh có avatarUrl (dicebear); người được ủy quyền có ảnh chụp lúc tạo đơn.
+                leading: (
+                  <AccountAvatar
+                    user={{ fullName: person.name, avatarUrl: person.avatarUrl || person.photoUrl }}
+                    className="size-8"
+                  />
+                ),
               }))}
               onChange={(personKey) => onChange({ personKey })}
             />
@@ -127,27 +128,12 @@ export function PickupRecordCard({
           </Button>
         </>
       ) : null}
-      {editable ? (
-        <View className="flex-row flex-wrap gap-2">
-          {student.isDismissed && student.isPresent ? (
-            <Button
-              size="sm"
-              variant="destructive-soft"
-              className="flex-1"
-              disabled={!canWrite}
-              accessibilityLabel={t('Hủy ghi nhận đón trẻ của {name}', {
-                name: student.name || student.code,
-              })}
-              onPress={onUndoPickup}>
-              <Icon as={RotateCcw} size={14} className="text-destructive" />
-              <Text>{t('Hủy ghi nhận')}</Text>
-            </Button>
-          ) : null}
-          <Button size="sm" variant="outline" className="flex-1" onPress={onCreateAuthorization}>
-            <Icon as={Plus} size={14} />
-            <Text>{t('Tạo ủy quyền')}</Text>
-          </Button>
-        </View>
+      {/* Lối tắt tạo ủy quyền cho bé chưa được đón; đã đón thì không cần. */}
+      {editable && !student.isDismissed ? (
+        <Button size="sm" variant="outline" onPress={onCreateAuthorization}>
+          <Icon as={Plus} size={14} />
+          <Text>{t('Tạo ủy quyền')}</Text>
+        </Button>
       ) : null}
     </Card>
   );

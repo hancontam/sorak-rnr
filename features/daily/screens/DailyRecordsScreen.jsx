@@ -81,24 +81,6 @@ function DailyRecordsForm({ kind, date, slotId }) {
     });
   }
 
-  function confirmUndoPickup(row) {
-    const name = row.student.name || row.student.code;
-    setConfirm({
-      title: t('Hủy ghi nhận đón trẻ?'),
-      description: [
-        `${name} · ${dayTitle(date, locale)}`,
-        t('Bé sẽ về trạng thái Chưa đón. Điểm danh và đơn ủy quyền vẫn được giữ.'),
-        row.changed && t('Các chỉnh sửa chưa lưu trên thẻ này sẽ bị bỏ.'),
-      ]
-        .filter(Boolean)
-        .join('\n'),
-      cancelLabel: t('Giữ ghi nhận'),
-      confirmLabel: t('Hủy ghi nhận'),
-      destructive: true,
-      onConfirm: () => form.undoPickup(row.id),
-    });
-  }
-
   const header = (
     <View className="gap-3 pb-1">
       <View className="gap-1">
@@ -232,7 +214,6 @@ function DailyRecordsForm({ kind, date, slotId }) {
               editable={canChange}
               onChange={(patch) => form.update(item.id, patch)}
               onPickup={() => confirmPickup(item)}
-              onUndoPickup={() => confirmUndoPickup(item)}
               onCreateAuthorization={() =>
                 router.push({
                   pathname: '/(teacher)/pickup-requests',

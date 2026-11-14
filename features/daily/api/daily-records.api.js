@@ -107,11 +107,6 @@ export async function getDailyRecords({ kind, classId, date, slot, signal }) {
   return students.map((student) => ({ ...student, assessment: results.get(String(student.id)) }));
 }
 
-export async function cancelDismissal({ classId, studentId, date }) {
-  const path = classPath('attendance', classId, `dismissal/${encodeURIComponent(studentId)}`);
-  readData(await apiClient.delete(path, { params: { date } }));
-}
-
 export async function saveDailyRecords({ kind, classId, date, slot, records }) {
   const [module, action, countKey] = {
     attendance: ['attendance', 'records', 'updatedCount'],

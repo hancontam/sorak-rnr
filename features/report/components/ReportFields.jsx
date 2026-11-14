@@ -1,3 +1,4 @@
+import { isValidElement } from 'react';
 import { View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
@@ -9,7 +10,8 @@ import { displayValue } from '../utils/report-format';
 
 /**
  * Danh sách nhãn–giá trị trong một Card, mỗi dòng cách nhau bằng đường kẻ mảnh.
- * fields: [label, value, { mono }?]; `badge` nằm cạnh tiêu đề, `children` (thao tác) ở cuối.
+ * fields: [label, value, { mono }?]; value có thể là phần tử React (Badge).
+ * `badge` nằm cạnh tiêu đề, `children` (thao tác) ở cuối.
  */
 export function ReportFields({ title, badge, fields, children }) {
   const t = useTranslation();
@@ -22,7 +24,8 @@ export function ReportFields({ title, badge, fields, children }) {
         </View>
       ) : null}
       {fields.map(([label, value, options], index) => {
-        const shown = displayValue(value);
+        const element = isValidElement(value);
+        const shown = element ? null : displayValue(value);
         return (
           <View
             key={label}
@@ -31,14 +34,18 @@ export function ReportFields({ title, badge, fields, children }) {
               (index > 0 || title || badge) && 'border-t border-border'
             )}>
             <Text className="w-[38%] text-xs leading-5 text-muted-foreground">{t(label)}</Text>
-            <Text
-              className={cn(
-                'min-w-0 flex-1 text-xs leading-5',
-                shown === null && 'text-muted-foreground',
-                options?.mono && shown !== null && 'font-mono'
-              )}>
-              {shown ?? t('Chưa có thông tin')}
-            </Text>
+            {element ? (
+              <View className="min-w-0 flex-1 flex-row">{value}</View>
+            ) : (
+              <Text
+                className={cn(
+                  'min-w-0 flex-1 text-xs leading-5',
+                  shown === null && 'text-muted-foreground',
+                  options?.mono && shown !== null && 'font-mono'
+                )}>
+                {shown ?? t('Chưa có thông tin')}
+              </Text>
+            )}
           </View>
         );
       })}

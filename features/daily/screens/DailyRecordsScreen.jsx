@@ -2,7 +2,8 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { CircleAlert, Search, ShieldCheck } from 'lucide-react-native';
 import { useState } from 'react';
 import { FlatList, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useActionToast } from '@/components/shared/useActionToast';
@@ -47,6 +48,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
   const router = useRouter();
   const locale = useLocale();
   const form = useDailyRecords({ kind, date, slotId });
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [confirm, setConfirm] = useState(null);
   const unsaved = useUnsavedChanges(form.hasUserEdits, form.isSaving);
@@ -188,7 +190,10 @@ function DailyRecordsForm({ kind, date, slotId }) {
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8"
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        // Cuộn ô đang gõ lên trên bàn phím và trên thanh Lưu (~76 dp).
+        renderScrollComponent={(props) => (
+          <KeyboardAwareScrollView {...props} bottomOffset={showSaveBar ? 88 : 16} />
+        )}
         data={form.error ? [] : rows}
         keyExtractor={(row) => row.id}
         ListHeaderComponent={header}
@@ -232,19 +237,21 @@ function DailyRecordsForm({ kind, date, slotId }) {
         }
       />
       {showSaveBar ? (
-        <SafeAreaView edges={['bottom']} className="border-t border-border bg-background">
-          <View className="mx-auto w-full max-w-xl px-4 py-3">
-            <Button disabled={!canChange || !form.hasChangesToSave} onPress={() => form.save()}>
-              <Text>
-                {form.isSaving
-                  ? t('Đang lưu và kiểm tra…')
-                  : form.changedCount
-                    ? t('Lưu ghi nhận · {count} thay đổi', { count: form.changedCount })
-                    : t('Lưu ghi nhận')}
-              </Text>
-            </Button>
-          </View>
-        </SafeAreaView>
+        <KeyboardStickyView offset={{ opened: insets.bottom }}>
+          <SafeAreaView edges={['bottom']} className="border-t border-border bg-background">
+            <View className="mx-auto w-full max-w-xl px-4 py-3">
+              <Button disabled={!canChange || !form.hasChangesToSave} onPress={() => form.save()}>
+                <Text>
+                  {form.isSaving
+                    ? t('Đang lưu và kiểm tra…')
+                    : form.changedCount
+                      ? t('Lưu ghi nhận · {count} thay đổi', { count: form.changedCount })
+                      : t('Lưu ghi nhận')}
+                </Text>
+              </Button>
+            </View>
+          </SafeAreaView>
+        </KeyboardStickyView>
       ) : null}
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
       <ConfirmDialog {...unsaved.dialog} />

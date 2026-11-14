@@ -2,6 +2,7 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import { ActionNotice } from '@/components/shared/ActionNotice';
 import { ChipTabs } from '@/components/shared/ChipTabs';
@@ -320,7 +321,7 @@ export default function LearningResultScreen() {
         data={error ? [] : students}
         keyExtractor={(student) => String(student.id)}
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        renderScrollComponent={(props) => <KeyboardAwareScrollView {...props} bottomOffset={16} />}
         ListHeaderComponent={header}
         ListEmptyComponent={renderEmpty()}
         refreshing={query.isRefetching && !saving}

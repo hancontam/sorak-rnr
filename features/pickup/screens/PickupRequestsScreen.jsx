@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
+import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { ChipTabs } from '@/components/shared/ChipTabs';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useActionToast } from '@/components/shared/useActionToast';
@@ -45,6 +46,7 @@ export default function PickupRequestsScreen() {
   const confirmDiscard = unsaved.confirmDiscard;
   const { query, allowed, isParent, message, saving, needsReload } = requests;
   useActionToast(message, t);
+  const pull = usePullToRefresh(allowed && !saving ? reload : undefined);
 
   const disabled = !query.isSuccess || saving || needsReload || photo.busy;
   const all = query.data?.requests || [];
@@ -198,8 +200,8 @@ export default function PickupRequestsScreen() {
         contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8"
         data={rows}
         keyExtractor={(item) => String(item.id)}
-        refreshing={query.isRefetching}
-        onRefresh={allowed && !saving ? reload : undefined}
+        refreshing={pull.refreshing}
+        onRefresh={pull.onRefresh}
         keyboardShouldPersistTaps="handled"
         renderScrollComponent={(props) => <KeyboardAwareScrollView {...props} bottomOffset={16} />}
         ListHeaderComponent={

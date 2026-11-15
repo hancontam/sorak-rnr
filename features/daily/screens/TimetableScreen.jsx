@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { FlatList, View } from 'react-native';
+import { ActivityIndicator, FlatList, View } from 'react-native';
 
+import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { Badge } from '@/components/ui/badge';
 import { Text } from '@/components/ui/text';
 import { usePickupRequests } from '@/features/pickup/hooks/usePickupRequests';
@@ -12,6 +13,7 @@ import { DayOverviewCard } from '../components/DayOverviewCard';
 import { EmptyFrames, ScheduleFrame } from '../components/ScheduleFrame';
 import { ScheduleCalendar } from '../components/ScheduleCalendar';
 import { ScheduleState } from '../components/ScheduleState';
+import { useSchoolToday } from '../hooks/useSchoolToday';
 import { useTimetable } from '../hooks/useTimetable';
 import { dayTitle, schoolClock, schoolToday } from '../utils/schedule-date';
 import {
@@ -32,23 +34,29 @@ function useSchoolClock() {
   return now;
 }
 
+const PLACEHOLDER_STYLE = { opacity: 0.45 };
+
 export default function TimetableScreen() {
   const t = useTranslation();
   const router = useRouter();
   const locale = useLocale();
-  const today = schoolToday();
+  const today = useSchoolToday();
   const clock = useSchoolClock();
   const [date, setDate] = useState(schoolToday);
-  const { query, error, isParent, noClass } = useTimetable(date);
+  const { query, error, isParent, noClass } = useTimetable(date, { prefetchWeek: true });
   const pickup = usePickupRequests({ date });
   const pendingCount = pickup.query.data?.stats?.pendingCount;
   const data = query.data;
+  const pull = usePullToRefresh(query.refetch);
   const noParentClass = isParent && data && (!data.student || !data.classInfo);
   const ready = Boolean(data && !error && !query.isError && !noClass && !noParentClass);
   const frames = ready ? dayFrames(data, date, isParent) : [];
   const items = timelineItems(frames);
   const activityCount = frames.reduce((sum, frame) => sum + frame.activities.length, 0);
   const now = date === today ? clock : '';
+  // Đang hiện lịch của ngày trước trong cùng tuần trong lúc tải ngày mới: slot đúng nhưng số liệu
+  // trong ngày (điểm danh, sức khỏe, đón trẻ) chưa phải của ngày này nên ẩn card và làm mờ lịch.
+  const placeholder = query.isPlaceholderData;
 
   if (error || noClass)
     return (
@@ -64,17 +72,24 @@ export default function TimetableScreen() {
   return (
     <View className="flex-1 bg-background">
       <FlatList
-        key={date}
         data={items}
         keyExtractor={(item) => item.key}
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-xl gap-3 px-4 pb-8 pt-3"
-        refreshing={query.isRefetching}
-        onRefresh={query.refetch}
+        refreshing={pull.refreshing}
+        onRefresh={pull.onRefresh}
         ListHeaderComponent={
           <View className="gap-4 pb-1">
             <ScheduleCalendar date={date} today={today} onChange={setDate} />
-            {ready ? (
+            {ready && placeholder ? (
+              <View className="flex-row items-center gap-2 px-1 py-2">
+                <ActivityIndicator size="small" />
+                <Text className="text-xs text-muted-foreground">
+                  {t('Đang tải số liệu trong ngày…')}
+                </Text>
+              </View>
+            ) : null}
+            {ready && !placeholder ? (
               <DayOverviewCard
                 overview={dayOverview(data, date, isParent)}
                 isParent={isParent}
@@ -130,30 +145,35 @@ export default function TimetableScreen() {
             description="Bạn có thể chọn ngày khác hoặc kéo xuống để tải lại."
           />
         }
-        renderItem={({ item }) =>
-          item.type === 'empty' ? (
-            <EmptyFrames
-              frames={item.frames}
-              isParent={isParent}
-              now={now}
-              defaultOpen={items.length === 1}
-            />
-          ) : (
-            <ScheduleFrame
-              frame={item.frame}
-              isParent={isParent}
-              now={now}
-              onOpenActivity={(slotId) =>
-                router.push({
-                  pathname: isParent
-                    ? '/(parent)/schedule-activity'
-                    : '/(teacher)/schedule-activity',
-                  params: { date, slotId },
-                })
-              }
-            />
-          )
-        }
+        renderItem={({ item }) => (
+          // Lịch tạm của ngày trước: làm mờ và chưa cho chạm tới khi có dữ liệu ngày mới.
+          <View
+            style={placeholder ? PLACEHOLDER_STYLE : undefined}
+            pointerEvents={placeholder ? 'none' : 'auto'}>
+            {item.type === 'empty' ? (
+              <EmptyFrames
+                frames={item.frames}
+                isParent={isParent}
+                now={now}
+                defaultOpen={items.length === 1}
+              />
+            ) : (
+              <ScheduleFrame
+                frame={item.frame}
+                isParent={isParent}
+                now={now}
+                onOpenActivity={(slotId) =>
+                  router.push({
+                    pathname: isParent
+                      ? '/(parent)/schedule-activity'
+                      : '/(teacher)/schedule-activity',
+                    params: { date, slotId },
+                  })
+                }
+              />
+            )}
+          </View>
+        )}
         ListFooterComponent={
           ready && isParent ? <ChildDayResults results={childDayResults(data, date)} /> : null
         }

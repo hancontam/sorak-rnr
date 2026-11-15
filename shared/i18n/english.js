@@ -980,4 +980,5 @@ export const english = {
   'Cập nhật ghi nhận · {count} thay đổi': 'Update records · {count} changes',
   'Đã qua ngày ghi nhận. Dữ liệu ngày này chỉ còn xem.':
     'The recording day has passed. This day is view only.',
+  'Đang tải số liệu trong ngày…': 'Loading this day’s figures…',
 };

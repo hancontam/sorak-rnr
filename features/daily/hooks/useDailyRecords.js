@@ -19,7 +19,7 @@ import {
 import { calendarDate, schoolToday } from '../utils/schedule-date';
 import { dayActivities } from '../utils/timetable-model';
 import { useSchoolToday } from './useSchoolToday';
-import { useTimetable } from './useTimetable';
+import { timetableQuery, useTimetable } from './useTimetable';
 
 const SAVED_MESSAGES = {
   attendance: 'Đã lưu điểm danh cho {count} học sinh.',
@@ -84,7 +84,14 @@ export function useDailyRecords({ kind, date, slotId }) {
   ];
   const query = useQuery({
     queryKey: key,
-    queryFn: ({ signal }) => getDailyRecords({ ...params, signal }),
+    queryFn: ({ signal }) =>
+      getDailyRecords({
+        ...params,
+        signal,
+        // Dùng chung request/cache lịch với Thời khóa biểu; staleTime 0 để lần đọc lại sau khi lưu
+        // luôn lấy dữ liệu mới, còn lúc mở màn thì gộp với request lịch đang chạy.
+        loadTimetable: () => client.fetchQuery({ ...timetableQuery(user, date), staleTime: 0 }),
+      }),
     enabled: Boolean(valid && (!isAssessment || slot?.activityId)),
     refetchOnWindowFocus: false,
   });

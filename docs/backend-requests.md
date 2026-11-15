@@ -68,6 +68,20 @@ Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: resp
 
 **Nghiệm thu:** `avatarUrl` của cùng học sinh giống nhau ở mọi endpoint; khi có, mobile bỏ bước ghép từ danh sách lớp.
 
+## BE-06 — Chặn ghi nhận ngày nghỉ/ngoài ngày và trả ngày nghỉ cho PH
+
+**Trạng thái:** đề xuất ngày 15/11; mobile đã chặn phía app, chờ BE báo xong để kiểm chứng lại.
+
+**Nghiệp vụ đã chốt:** điểm danh, sức khỏe, đón trẻ và đánh giá HĐGD không có xóa, chỉ tạo/cập nhật trong đúng ngày (đến 23:59 giờ trường). Ngày thuộc `SchoolHoliday` có `is_teaching_allowed = false` và `target_grades` rỗng hoặc chứa khối của lớp thì không ghi nhận gì, kể cả khi GV đã sắp slot; lịch vẫn hiện slot. T7/CN không thuộc ngày nghỉ và có slot (học bù) thì ghi nhận bình thường.
+
+**Bằng chứng (test2, 15/11, chỉ GET):** `GET /attendance/classes/{classId}/timetable` của lớp Lá 1 trả `holidays[]` (`id, name, startDate, endDate, isTeachingAllowed, type, targetGrades`) và `classInfo.ageGroup`; T2 16/11 "Ngày Nghỉ" (`isTeachingAllowed: false`) vẫn có 5 slot. Đọc code `sorak-api`: `updateAttendance`, `POST /student-health/classes/{id}/records`, `POST /attendance/classes/{id}/dismissal`, `POST /assessment/classes/{id}/records` không kiểm tra ngày nghỉ hay ngày hiện tại. `GET /parent/schedule` không trả `holidays`.
+
+**Cần gì:**
+1. Bốn endpoint lưu trên từ chối ngày nghỉ áp dụng cho khối của lớp và ngày khác hôm nay (giờ trường), trả 4xx với `code` riêng (ví dụ `DAY_LOCKED_HOLIDAY`, `DAY_LOCKED_DATE`) để mobile hiện đúng lý do.
+2. `GET /parent/schedule` trả `holidays[]` cùng shape với lịch GV (đã lọc theo khối của con) để PH thấy nhãn ngày nghỉ.
+
+**Nghiệm thu:** lưu vào 16/11 (Lá 1) bị từ chối, đọc lại không đổi dữ liệu; ngày nghỉ chỉ áp cho khối khác thì lớp Lá vẫn lưu được; T7 học bù có slot lưu được; ngày hôm qua bị từ chối. Lịch PH của bé lớp Lá có mục 16/11.
+
 ## Mẫu yêu cầu mới
 
 Vai trò/flow bị chặn; cần gì/vì sao; bằng chứng ngày/môi trường; endpoint hiện có và phần thiếu; request/response đề xuất; quyền/empty/error; dữ liệu test; nghiệm thu; ảnh hưởng thời hạn; phản hồi BE. Không ghi bug client, nghiệp vụ đã bỏ (xin nghỉ/ghi học kỳ GV) hoặc điều chưa điều tra thành lỗi BE chắc chắn.

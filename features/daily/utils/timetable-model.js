@@ -70,6 +70,36 @@ export function dayFrames(data, date, isParent) {
   return frames;
 }
 
+// Lịch năm học của ngày: ngày nghỉ khóa ghi nhận, sự kiện vẫn cho dạy chỉ để hiện nhãn.
+// Ngày nghỉ (isTeachingAllowed = false) áp cho cả trường khi targetGrades rỗng, hoặc cho mọi lớp
+// thuộc khối có trong targetGrades; slot đã sắp vẫn hiện nhưng không ghi nhận/đánh giá.
+// T7/CN không có hoạt động là ngày nghỉ cuối tuần; có hoạt động (học bù) thì như ngày thường.
+// Lịch PH chưa trả holidays (BE-06) nên PH chỉ thấy khóa cuối tuần.
+export function dayCalendar(data, date, isParent) {
+  const grade = data?.classInfo?.ageGroup;
+  const entries = (Array.isArray(data?.holidays) ? data.holidays : []).filter(
+    (item) =>
+      typeof item?.startDate === 'string' &&
+      typeof item?.endDate === 'string' &&
+      item.startDate <= date &&
+      date <= item.endDate &&
+      (!item.targetGrades?.length || !grade || item.targetGrades.includes(grade))
+  );
+  const holiday = entries.find((item) => item.isTeachingAllowed === false);
+  const events = entries
+    .filter((item) => item.isTeachingAllowed === true)
+    .map((item) => plainText(item.name))
+    .filter(Boolean);
+  if (holiday) {
+    return { lock: { kind: 'holiday', name: plainText(holiday.name) }, events };
+  }
+  const weekday = calendarDate(date)?.getUTCDay();
+  if ((weekday === 0 || weekday === 6) && dayActivities(data, date, isParent).length === 0) {
+    return { lock: { kind: 'weekend', name: '' }, events };
+  }
+  return { lock: null, events };
+}
+
 export function routineTitle(frame, isParent, t) {
   return isParent && !frame.key.startsWith('extra:') ? frame.title : t(frame.title);
 }

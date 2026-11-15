@@ -1,6 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { CalendarOff } from 'lucide-react-native';
 import { ScrollView, View } from 'react-native';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -15,6 +17,7 @@ import { dayTitle, schoolToday } from '../utils/schedule-date';
 import {
   childDayResults,
   dayActivities,
+  dayCalendar,
   dayFrames,
   routineTitle,
   timetableError,
@@ -38,6 +41,9 @@ export default function ScheduleActivityScreen() {
         item.activities.some((slot) => slot.id === activity.id)
       )
     : null;
+  // Slot đã sắp vẫn xem được trong ngày nghỉ nhưng không đánh giá.
+  const holiday = activity ? dayCalendar(data, date, isParent).lock : null;
+  const canAssess = date === schoolToday() && !holiday;
   return (
     <ScrollView
       className="flex-1 bg-background"
@@ -75,6 +81,15 @@ export default function ScheduleActivityScreen() {
               ) : null}
             </View>
           </View>
+          {holiday ? (
+            <Alert icon={CalendarOff}>
+              <AlertDescription className="text-xs">
+                {t('Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.', {
+                  name: holiday.name || t('Ngày nghỉ'),
+                })}
+              </AlertDescription>
+            </Alert>
+          ) : null}
           <Card className="gap-0 py-0">
             {[
               [t('Mục tiêu giáo dục'), activity.goal],
@@ -110,8 +125,8 @@ export default function ScheduleActivityScreen() {
                 })
               }>
               <Text>
-                {/* Đánh giá chỉ làm trong ngày của slot; ngày khác chỉ xem. */}
-                {date === schoolToday() ? t('Đánh giá học sinh') : t('Xem đánh giá học sinh')}
+                {/* Đánh giá chỉ làm trong ngày của slot và không làm trong ngày nghỉ; còn lại chỉ xem. */}
+                {canAssess ? t('Đánh giá học sinh') : t('Xem đánh giá học sinh')}
               </Text>
             </Button>
           ) : null}

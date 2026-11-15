@@ -88,17 +88,23 @@ function DailyRecordsForm({ kind, date, slotId }) {
       <View className="gap-1">
         <View className="flex-row flex-wrap items-center gap-2">
           <Text className="text-sm font-semibold">{dayTitle(date, locale)}</Text>
-          {!form.canEdit && !form.error ? (
+          {!form.canEdit && !form.error && !form.loading ? (
             <Badge variant="outline">
-              <Text>{t('Chỉ xem')}</Text>
+              <Text>{t(form.lock ? 'Ngày nghỉ' : 'Chỉ xem')}</Text>
             </Badge>
           ) : null}
         </View>
-        {!form.canEdit && !form.error ? (
+        {!form.canEdit && !form.error && !form.loading ? (
           <Text className="text-2xs leading-4 text-muted-foreground">
-            {form.isFuture
-              ? t('Chưa tới ngày ghi nhận. Bạn ghi nhận vào đúng ngày này.')
-              : t('Ghi nhận chỉ làm và cập nhật trong ngày (đến 23:59). Ngày này chỉ xem lại.')}
+            {form.lock?.kind === 'holiday'
+              ? t('Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.', {
+                  name: form.lock.name || t('Ngày nghỉ'),
+                })
+              : form.lock
+                ? t('Cuối tuần không có lịch học nên không ghi nhận trong ngày này.')
+                : form.isFuture
+                  ? t('Chưa tới ngày ghi nhận. Bạn ghi nhận vào đúng ngày này.')
+                  : t('Ghi nhận chỉ làm và cập nhật trong ngày (đến 23:59). Ngày này chỉ xem lại.')}
           </Text>
         ) : null}
         {form.slot ? (

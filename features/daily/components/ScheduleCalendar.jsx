@@ -26,7 +26,9 @@ const monthYearFormatter = new Intl.DateTimeFormat('en-US', {
 const weekdayFormatter = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'UTC' });
 
 // Tiêu đề tháng mở lịch tháng (sheet), hai nút chuyển tuần, nút Hôm nay và dải tuần dạng segmented.
-export function ScheduleCalendar({ date, today, onChange }) {
+// dayLocks: { 'YYYY-MM-DD': 'holiday' | 'weekend' } của tuần đang xem; ngày nghỉ có băng "Nghỉ"
+// ở đáy ô, ngày nghỉ và cuối tuần không có lịch hiện số xám.
+export function ScheduleCalendar({ date, today, onChange, dayLocks = {} }) {
   const t = useTranslation();
   const locale = useLocale();
   const english = locale === 'en-US';
@@ -92,11 +94,16 @@ export function ScheduleCalendar({ date, today, onChange }) {
         className="flex-row rounded-2xl border border-border/60 bg-muted p-1 dark:bg-card">
         {days.map((day, index) => {
           const selected = day === date;
+          const lock = dayLocks[day];
           return (
             <Pressable
               key={day}
               accessibilityRole="radio"
-              accessibilityLabel={dayTitle(day, locale)}
+              accessibilityLabel={
+                lock === 'holiday'
+                  ? `${dayTitle(day, locale)}, ${t('Ngày nghỉ')}`
+                  : dayTitle(day, locale)
+              }
               accessibilityState={{ selected }}
               onPress={() => onChange(day)}
               className={cn(
@@ -110,7 +117,12 @@ export function ScheduleCalendar({ date, today, onChange }) {
                 )}>
                 {english ? weekdayFormatter.format(calendarDate(day)) : WEEKDAY_LABELS[index]}
               </Text>
-              <Text className={cn('font-mono text-sm', selected && 'font-semibold')}>
+              <Text
+                className={cn(
+                  'font-mono text-sm',
+                  lock && 'text-muted-foreground',
+                  selected && 'font-semibold'
+                )}>
                 {Number(day.slice(8))}
               </Text>
               <View
@@ -119,6 +131,16 @@ export function ScheduleCalendar({ date, today, onChange }) {
                   day === today ? 'bg-foreground' : 'bg-transparent'
                 )}
               />
+              {lock === 'holiday' ? (
+                // Băng ngang ở đáy ô (đè chỗ chấm hôm nay); lớp bọc cắt theo bo góc của ô.
+                <View pointerEvents="none" className="absolute inset-0 overflow-hidden rounded-xl">
+                  <View className="absolute bottom-0 left-0 right-0 items-center bg-destructive">
+                    <Text className="text-[9px] font-semibold leading-3 text-white">
+                      {t('Nghỉ')}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
             </Pressable>
           );
         })}

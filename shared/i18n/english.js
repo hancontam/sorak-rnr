@@ -981,4 +981,17 @@ export const english = {
   'Đã qua ngày ghi nhận. Dữ liệu ngày này chỉ còn xem.':
     'The recording day has passed. This day is view only.',
   'Đang tải số liệu trong ngày…': 'Loading this day’s figures…',
+  'Ngày nghỉ': 'Day off',
+  'Nghỉ cuối tuần': 'Weekend',
+  'Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.':
+    'Day off: {name}. Nothing is recorded on days off.',
+  'Cuối tuần không có lịch học nên không ghi nhận trong ngày này.':
+    'There are no classes this weekend day, so nothing is recorded.',
+  'Trường nghỉ trong ngày này.': 'School is closed on this day.',
+  'Không điểm danh, ghi sức khỏe, đón trẻ hay đánh giá trong ngày nghỉ. Lịch đã sắp chỉ để xem lại.':
+    'No attendance, health, pickup or assessment on days off. The planned schedule is view only.',
+  'Cuối tuần không có lịch học.': 'No classes on this weekend day.',
+  'Cuối tuần không có lịch học. Ngày có lịch học bù được ghi nhận như ngày thường.':
+    'No classes on this weekend day. Make-up days with a schedule are recorded as usual.',
+  Nghỉ: 'Off',
 };

@@ -17,7 +17,7 @@ import {
   toDailyRecord,
 } from '../utils/daily-records';
 import { calendarDate, schoolToday } from '../utils/schedule-date';
-import { dayActivities } from '../utils/timetable-model';
+import { dayActivities, dayCalendar } from '../utils/timetable-model';
 import { useSchoolToday } from './useSchoolToday';
 import { timetableQuery, useTimetable } from './useTimetable';
 
@@ -69,9 +69,12 @@ export function useDailyRecords({ kind, date, slotId }) {
     valid && isAssessment && timetable.query.data
       ? dayActivities(timetable.query.data, date, false).find((item) => item.id === slotId)
       : null;
-  // Ghi nhận chỉ làm và cập nhật trong ngày (tới 23:59 giờ trường); ngày khác chỉ xem.
+  // Ghi nhận chỉ làm và cập nhật trong ngày (tới 23:59 giờ trường) và không làm trong ngày nghỉ
+  // (lịch năm học hoặc cuối tuần không có lịch); cần lịch để biết ngày nghỉ trước khi cho sửa.
   const today = useSchoolToday();
-  const canEdit = Boolean(valid && date === today);
+  const lock =
+    valid && timetable.query.data ? dayCalendar(timetable.query.data, date, false).lock : null;
+  const canEdit = Boolean(valid && date === today && timetable.query.data && !lock);
   const params = { kind, classId: assignment.classId, date, slot };
   const key = [
     'daily-records',
@@ -298,6 +301,7 @@ export function useDailyRecords({ kind, date, slotId }) {
     slot,
     canEdit,
     isFuture: Boolean(valid && date > today),
+    lock,
     update,
     save,
     message,
@@ -312,16 +316,17 @@ export function useDailyRecords({ kind, date, slotId }) {
     loading: Boolean(
       valid &&
       ((query.isSuccess && baseline === null) ||
-        (isAssessment && timetable.query.isPending) ||
+        timetable.query.isPending ||
         (query.isPending && (!isAssessment || slot?.activityId)))
     ),
     error: !valid
       ? 'Tài khoản, ngày hoặc tác vụ không hợp lệ.'
-      : (isAssessment &&
-          (timetable.query.error ||
-            (!timetable.query.isPending &&
-              !slot?.activityId &&
-              'Hoạt động này không còn trong lịch hoặc chưa có mã đánh giá.'))) ||
+      : // Mọi loại ghi nhận cần lịch để biết ngày nghỉ, kể cả đón trẻ.
+        timetable.query.error ||
+        (isAssessment &&
+          !timetable.query.isPending &&
+          !slot?.activityId &&
+          'Hoạt động này không còn trong lịch hoặc chưa có mã đánh giá.') ||
         query.error,
   };
 }

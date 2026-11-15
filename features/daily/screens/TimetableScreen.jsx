@@ -9,15 +9,17 @@ import { usePickupRequests } from '@/features/pickup/hooks/usePickupRequests';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { ChildDayResults } from '../components/ChildDayResults';
+import { DayLockCard } from '../components/DayLockCard';
 import { DayOverviewCard } from '../components/DayOverviewCard';
 import { EmptyFrames, ScheduleFrame } from '../components/ScheduleFrame';
 import { ScheduleCalendar } from '../components/ScheduleCalendar';
 import { ScheduleState } from '../components/ScheduleState';
 import { useSchoolToday } from '../hooks/useSchoolToday';
 import { useTimetable } from '../hooks/useTimetable';
-import { dayTitle, schoolClock, schoolToday } from '../utils/schedule-date';
+import { dayTitle, schoolClock, schoolToday, weekDates } from '../utils/schedule-date';
 import {
   childDayResults,
+  dayCalendar,
   dayFrames,
   dayOverview,
   timelineItems,
@@ -35,6 +37,7 @@ function useSchoolClock() {
 }
 
 const PLACEHOLDER_STYLE = { opacity: 0.45 };
+const HOLIDAY_STYLE = { opacity: 0.55 };
 
 export default function TimetableScreen() {
   const t = useTranslation();
@@ -57,6 +60,16 @@ export default function TimetableScreen() {
   // Đang hiện lịch của ngày trước trong cùng tuần trong lúc tải ngày mới: slot đúng nhưng số liệu
   // trong ngày (điểm danh, sức khỏe, đón trẻ) chưa phải của ngày này nên ẩn card và làm mờ lịch.
   const placeholder = query.isPlaceholderData;
+  // Ngày nghỉ/cuối tuần chỉ phụ thuộc lịch năm học và slot của tuần nên vẫn đúng với lịch tạm.
+  const calendar = ready ? dayCalendar(data, date, isParent) : null;
+  const lock = calendar?.lock;
+  const dayLocks = ready
+    ? Object.fromEntries(
+        weekDates(date)
+          .map((day) => [day, dayCalendar(data, day, isParent).lock?.kind])
+          .filter(([, kind]) => kind)
+      )
+    : undefined;
 
   if (error || noClass)
     return (
@@ -80,8 +93,9 @@ export default function TimetableScreen() {
         onRefresh={pull.onRefresh}
         ListHeaderComponent={
           <View className="gap-4 pb-1">
-            <ScheduleCalendar date={date} today={today} onChange={setDate} />
-            {ready && placeholder ? (
+            <ScheduleCalendar date={date} today={today} onChange={setDate} dayLocks={dayLocks} />
+            {lock ? <DayLockCard lock={lock} isParent={isParent} /> : null}
+            {ready && placeholder && !lock ? (
               <View className="flex-row items-center gap-2 px-1 py-2">
                 <ActivityIndicator size="small" />
                 <Text className="text-xs text-muted-foreground">
@@ -89,7 +103,7 @@ export default function TimetableScreen() {
                 </Text>
               </View>
             ) : null}
-            {ready && !placeholder ? (
+            {ready && !placeholder && !lock ? (
               <DayOverviewCard
                 overview={dayOverview(data, date, isParent)}
                 isParent={isParent}
@@ -128,6 +142,11 @@ export default function TimetableScreen() {
                   <Text>{t('Lịch sắp tới')}</Text>
                 </Badge>
               ) : null}
+              {calendar?.events.map((name) => (
+                <Badge key={name} variant="outline">
+                  <Text>{name}</Text>
+                </Badge>
+              ))}
               {ready && activityCount ? (
                 <Text className="ml-auto font-mono text-2xs text-muted-foreground">
                   {t('{count} hoạt động', { count: activityCount })}
@@ -137,18 +156,24 @@ export default function TimetableScreen() {
           </View>
         }
         ListEmptyComponent={
-          <ScheduleState
-            loading={query.isPending}
-            error={query.isError ? timetableError(query.error) : ''}
-            onRetry={query.isError ? query.refetch : undefined}
-            title={noParentClass ? 'Chưa có lớp học của con' : 'Chưa có lịch cho ngày này'}
-            description="Bạn có thể chọn ngày khác hoặc kéo xuống để tải lại."
-          />
+          // Cuối tuần không có lịch: card ngày nghỉ đã nói rõ, không thêm khối trống.
+          lock?.kind === 'weekend' ? null : (
+            <ScheduleState
+              loading={query.isPending}
+              error={query.isError ? timetableError(query.error) : ''}
+              onRetry={query.isError ? query.refetch : undefined}
+              title={noParentClass ? 'Chưa có lớp học của con' : 'Chưa có lịch cho ngày này'}
+              description="Bạn có thể chọn ngày khác hoặc kéo xuống để tải lại."
+            />
+          )
         }
         renderItem={({ item }) => (
           // Lịch tạm của ngày trước: làm mờ và chưa cho chạm tới khi có dữ liệu ngày mới.
+          // Ngày nghỉ: slot đã sắp làm xám, vẫn mở được để xem nội dung (không đánh giá).
           <View
-            style={placeholder ? PLACEHOLDER_STYLE : undefined}
+            style={
+              placeholder ? PLACEHOLDER_STYLE : lock?.kind === 'holiday' ? HOLIDAY_STYLE : undefined
+            }
             pointerEvents={placeholder ? 'none' : 'auto'}>
             {item.type === 'empty' ? (
               <EmptyFrames

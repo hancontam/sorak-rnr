@@ -28,4 +28,8 @@ export const apiClient = axios.create({
   baseURL: apiUrl.replace(/\/+$/, ''),
   timeout: 15000,
   headers,
+  // App tự giữ token (SecureStore/RAM) và gửi refresh token trong body. Nếu để mặc định, XHR của
+  // React Native bật cookie jar hệ thống và gửi kèm cookie `sorak_refresh` cũ; server ưu tiên cookie
+  // nên /auth/refresh trả 401 và phiên bị đăng xuất. `/auth/sessions` tự gắn cookie riêng.
+  withCredentials: false,
 });

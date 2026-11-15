@@ -55,12 +55,19 @@ export async function getDismissalStudents({ classId, date, signal }) {
   return students;
 }
 
-export async function getDailyRecords({ kind, classId, date, slot, signal }) {
+export async function getDailyRecords({
+  kind,
+  classId,
+  date,
+  slot,
+  signal,
+  loadTimetable = () => getTeacherTimetable({ classId, date, signal }),
+}) {
   if (kind === 'pickup') {
     return getDismissalStudents({ classId, date, signal });
   }
 
-  const timetable = await getTeacherTimetable({ classId, date, signal });
+  const timetable = await loadTimetable();
   if (!Array.isArray(timetable.students)) throw new Error('Lịch chưa có danh sách học sinh.');
   const students = validateStudents(timetable.students.filter((student) => !student.isTransferred));
   if (kind !== 'assessment') {
@@ -105,11 +112,6 @@ export async function getDailyRecords({ kind, classId, date, slot, signal }) {
   }
   const results = new Map(data.records.map((record) => [String(record.studentId), record]));
   return students.map((student) => ({ ...student, assessment: results.get(String(student.id)) }));
-}
-
-export async function cancelDismissal({ classId, studentId, date }) {
-  const path = classPath('attendance', classId, `dismissal/${encodeURIComponent(studentId)}`);
-  readData(await apiClient.delete(path, { params: { date } }));
 }
 
 export async function saveDailyRecords({ kind, classId, date, slot, records }) {

@@ -2,7 +2,8 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { CircleAlert, Search, ShieldCheck } from 'lucide-react-native';
 import { useState } from 'react';
 import { FlatList, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useActionToast } from '@/components/shared/useActionToast';
@@ -47,6 +48,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
   const router = useRouter();
   const locale = useLocale();
   const form = useDailyRecords({ kind, date, slotId });
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [confirm, setConfirm] = useState(null);
   const unsaved = useUnsavedChanges(form.hasUserEdits, form.isSaving);
@@ -81,35 +83,30 @@ function DailyRecordsForm({ kind, date, slotId }) {
     });
   }
 
-  function confirmUndoPickup(row) {
-    const name = row.student.name || row.student.code;
-    setConfirm({
-      title: t('Hủy ghi nhận đón trẻ?'),
-      description: [
-        `${name} · ${dayTitle(date, locale)}`,
-        t('Bé sẽ về trạng thái Chưa đón. Điểm danh và đơn ủy quyền vẫn được giữ.'),
-        row.changed && t('Các chỉnh sửa chưa lưu trên thẻ này sẽ bị bỏ.'),
-      ]
-        .filter(Boolean)
-        .join('\n'),
-      cancelLabel: t('Giữ ghi nhận'),
-      confirmLabel: t('Hủy ghi nhận'),
-      destructive: true,
-      onConfirm: () => form.undoPickup(row.id),
-    });
-  }
-
   const header = (
     <View className="gap-3 pb-1">
       <View className="gap-1">
         <View className="flex-row flex-wrap items-center gap-2">
           <Text className="text-sm font-semibold">{dayTitle(date, locale)}</Text>
-          {!form.canEdit && !form.error ? (
+          {!form.canEdit && !form.error && !form.loading ? (
             <Badge variant="outline">
-              <Text>{t('Chỉ xem')}</Text>
+              <Text>{t(form.lock ? 'Ngày nghỉ' : 'Chỉ xem')}</Text>
             </Badge>
           ) : null}
         </View>
+        {!form.canEdit && !form.error && !form.loading ? (
+          <Text className="text-2xs leading-4 text-muted-foreground">
+            {form.lock?.kind === 'holiday'
+              ? t('Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.', {
+                  name: form.lock.name || t('Ngày nghỉ'),
+                })
+              : form.lock
+                ? t('Cuối tuần không có lịch học nên không ghi nhận trong ngày này.')
+                : form.isFuture
+                  ? t('Chưa tới ngày ghi nhận. Bạn ghi nhận vào đúng ngày này.')
+                  : t('Ghi nhận chỉ làm và cập nhật trong ngày (đến 23:59). Ngày này chỉ xem lại.')}
+          </Text>
+        ) : null}
         {form.slot ? (
           <Text className="text-xs text-muted-foreground">
             {form.slot.title || t('Hoạt động chưa có tên')}
@@ -206,7 +203,10 @@ function DailyRecordsForm({ kind, date, slotId }) {
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8"
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        // Cuộn ô đang gõ lên trên bàn phím và trên thanh Lưu (~76 dp).
+        renderScrollComponent={(props) => (
+          <KeyboardAwareScrollView {...props} bottomOffset={showSaveBar ? 88 : 16} />
+        )}
         data={form.error ? [] : rows}
         keyExtractor={(row) => row.id}
         ListHeaderComponent={header}
@@ -230,9 +230,9 @@ function DailyRecordsForm({ kind, date, slotId }) {
             <PickupRecordCard
               row={item}
               editable={canChange}
+              locked={!form.canEdit}
               onChange={(patch) => form.update(item.id, patch)}
               onPickup={() => confirmPickup(item)}
-              onUndoPickup={() => confirmUndoPickup(item)}
               onCreateAuthorization={() =>
                 router.push({
                   pathname: '/(teacher)/pickup-requests',
@@ -245,25 +245,32 @@ function DailyRecordsForm({ kind, date, slotId }) {
               kind={kind}
               row={item}
               editable={canChange}
+              locked={!form.canEdit}
               onChange={(patch) => form.update(item.id, patch)}
             />
           )
         }
       />
       {showSaveBar ? (
-        <SafeAreaView edges={['bottom']} className="border-t border-border bg-background">
-          <View className="mx-auto w-full max-w-xl px-4 py-3">
-            <Button disabled={!canChange || !form.hasChangesToSave} onPress={() => form.save()}>
-              <Text>
-                {form.isSaving
-                  ? t('Đang lưu và kiểm tra…')
-                  : form.changedCount
-                    ? t('Lưu ghi nhận · {count} thay đổi', { count: form.changedCount })
-                    : t('Lưu ghi nhận')}
-              </Text>
-            </Button>
-          </View>
-        </SafeAreaView>
+        <KeyboardStickyView offset={{ opened: insets.bottom }}>
+          <SafeAreaView edges={['bottom']} className="border-t border-border bg-background">
+            <View className="mx-auto w-full max-w-xl px-4 py-3">
+              <Button disabled={!canChange || !form.hasChangesToSave} onPress={() => form.save()}>
+                <Text>
+                  {form.isSaving
+                    ? t('Đang lưu và kiểm tra…')
+                    : form.hasRecorded
+                      ? form.changedCount
+                        ? t('Cập nhật ghi nhận · {count} thay đổi', { count: form.changedCount })
+                        : t('Cập nhật ghi nhận')
+                      : form.changedCount
+                        ? t('Lưu ghi nhận · {count} thay đổi', { count: form.changedCount })
+                        : t('Lưu ghi nhận')}
+                </Text>
+              </Button>
+            </View>
+          </SafeAreaView>
+        </KeyboardStickyView>
       ) : null}
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
       <ConfirmDialog {...unsaved.dialog} />

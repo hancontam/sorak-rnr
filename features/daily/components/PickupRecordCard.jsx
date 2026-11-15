@@ -16,7 +16,14 @@ import { isAbsent, pickupOptions } from '../utils/daily-records';
 import { schoolClock } from '../utils/schedule-date';
 import { StudentHeader } from './StudentHeader';
 
-export function PickupRecordCard({ row, editable, onChange, onPickup, onCreateAuthorization }) {
+export function PickupRecordCard({
+  row,
+  editable,
+  locked,
+  onChange,
+  onPickup,
+  onCreateAuthorization,
+}) {
   const t = useTranslation();
   const { student, value } = row;
   const people = pickupOptions(student);
@@ -59,7 +66,12 @@ export function PickupRecordCard({ row, editable, onChange, onPickup, onCreateAu
             : t('Chưa có điểm danh Có mặt. Hoàn tất điểm danh rồi quay lại ghi nhận đón trẻ.')}
         </Text>
       ) : null}
-      {student.isPresent ? (
+      {locked && student.isPresent && !student.isDismissed ? (
+        <Text className="text-xs text-muted-foreground">
+          {t('Không có ghi nhận đón trẻ trong ngày này.')}
+        </Text>
+      ) : null}
+      {student.isPresent && !locked ? (
         <>
           <View className="gap-1.5">
             <SelectField

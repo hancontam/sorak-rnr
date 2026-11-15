@@ -47,11 +47,12 @@ function StatusSegments({ options, value, disabled, onChange, t }) {
   );
 }
 
-export function DailyRecordCard({ kind, row, editable, onChange }) {
+export function DailyRecordCard({ kind, row, editable, locked, onChange }) {
   const t = useTranslation();
   const { student, value } = row;
   const options = kind === 'attendance' ? ATTENDANCE_OPTIONS : ASSESSMENT_OPTIONS;
   const skipHealth = kind === 'health' && isAbsent(student);
+  if (locked) return <LockedRecord kind={kind} row={row} options={options} absent={skipHealth} />;
   const canWrite = editable && !skipHealth;
   const height = decimal(value.height ?? '');
   const weight = decimal(value.weight ?? '');
@@ -75,6 +76,10 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
           ) : canWrite && row.changed ? (
             <Badge variant="code">
               <Text>{t('Chưa lưu')}</Text>
+            </Badge>
+          ) : row.recorded ? (
+            <Badge variant="secondary">
+              <Text>{t('Đã ghi')}</Text>
             </Badge>
           ) : null
         }
@@ -143,6 +148,49 @@ export function DailyRecordCard({ kind, row, editable, onChange }) {
             status: value.status,
           })}
         </Text>
+      ) : null}
+    </Card>
+  );
+}
+
+// Ngày đã qua hoặc chưa tới: chỉ hiện giá trị đã ghi trên máy chủ, không còn ô nhập.
+function LockedRecord({ kind, row, options, absent }) {
+  const t = useTranslation();
+  const { student, value } = row;
+  const statusLabel = options.find(([key]) => key === value.status)?.[1];
+  const height = decimal(value.height ?? '');
+  const weight = decimal(value.weight ?? '');
+  const bmi = height > 0 && weight > 0 ? (weight / (height / 100) ** 2).toFixed(1) : '';
+  const badge = absent ? (
+    <Badge variant="outline">
+      <Text>{t('Vắng')}</Text>
+    </Badge>
+  ) : !row.recorded ? (
+    <Badge variant="outline">
+      <Text>{t('Chưa ghi nhận')}</Text>
+    </Badge>
+  ) : kind !== 'health' ? (
+    <Badge variant="secondary">
+      <Text>{statusLabel ? t(statusLabel) : value.status}</Text>
+    </Badge>
+  ) : null;
+  return (
+    <Card className="gap-2.5 px-4 py-3.5">
+      <StudentHeader
+        name={student.name}
+        code={student.code}
+        avatarUrl={row.avatarUrl}
+        right={badge}
+      />
+      {kind === 'health' && row.recorded && !absent ? (
+        <Text className="font-mono text-xs">
+          {[`${value.height} cm`, `${value.weight} kg`, bmi && `BMI ${bmi}`]
+            .filter(Boolean)
+            .join(' · ')}
+        </Text>
+      ) : null}
+      {row.recorded && value.note ? (
+        <Text className="text-xs leading-5 text-muted-foreground">{value.note}</Text>
       ) : null}
     </Card>
   );

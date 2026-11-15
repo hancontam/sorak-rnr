@@ -970,4 +970,14 @@ export const english = {
   'Suy dinh dưỡng nặng': 'Severely underweight',
   'Nhẹ cân': 'Underweight',
   'Cân nặng cao hơn tuổi': 'Heavy for age',
+  'Đã ghi': 'Recorded',
+  'Không có ghi nhận đón trẻ trong ngày này.': 'No pickup was recorded on this day.',
+  'Chưa tới ngày ghi nhận. Bạn ghi nhận vào đúng ngày này.':
+    'This day has not come yet. Record it on the day itself.',
+  'Ghi nhận chỉ làm và cập nhật trong ngày (đến 23:59). Ngày này chỉ xem lại.':
+    'Records can only be made and updated on the day (until 23:59). This day is view only.',
+  'Cập nhật ghi nhận': 'Update records',
+  'Cập nhật ghi nhận · {count} thay đổi': 'Update records · {count} changes',
+  'Đã qua ngày ghi nhận. Dữ liệu ngày này chỉ còn xem.':
+    'The recording day has passed. This day is view only.',
 };

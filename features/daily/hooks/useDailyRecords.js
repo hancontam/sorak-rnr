@@ -18,6 +18,7 @@ import {
 } from '../utils/daily-records';
 import { calendarDate, schoolToday } from '../utils/schedule-date';
 import { dayActivities } from '../utils/timetable-model';
+import { useSchoolToday } from './useSchoolToday';
 import { useTimetable } from './useTimetable';
 
 const SAVED_MESSAGES = {
@@ -25,6 +26,14 @@ const SAVED_MESSAGES = {
   health: 'Đã lưu số đo sức khỏe cho {count} học sinh.',
   assessment: 'Đã lưu đánh giá cho {count} học sinh.',
 };
+
+// Bản ghi đã có trên máy chủ (để hiện "Đã ghi" và đổi nút thành Cập nhật).
+function isRecorded(kind, initial, student) {
+  if (kind === 'pickup') return student.isDismissed === true;
+  if (kind === 'attendance') return student.isAttendanceRecorded === true;
+  if (kind === 'health') return Boolean(initial.height && initial.weight);
+  return Boolean(initial.status);
+}
 
 export function useDailyRecords({ kind, date, slotId }) {
   const t = useTranslation();
@@ -60,7 +69,9 @@ export function useDailyRecords({ kind, date, slotId }) {
     valid && isAssessment && timetable.query.data
       ? dayActivities(timetable.query.data, date, false).find((item) => item.id === slotId)
       : null;
-  const canEdit = Boolean(valid && date <= schoolToday());
+  // Ghi nhận chỉ làm và cập nhật trong ngày (tới 23:59 giờ trường); ngày khác chỉ xem.
+  const today = useSchoolToday();
+  const canEdit = Boolean(valid && date === today);
   const params = { kind, classId: assignment.classId, date, slot };
   const key = [
     'daily-records',
@@ -90,7 +101,15 @@ export function useDailyRecords({ kind, date, slotId }) {
     const changed = fields.some((field) => initial[field] !== value[field]);
     const edited = fields.some((field) => defaultDraft[field] !== value[field]);
     const avatarUrl = student.avatarUrl || avatars.get(id) || '';
-    return { id, student, value, changed, edited, avatarUrl };
+    return {
+      id,
+      student,
+      value,
+      changed,
+      edited,
+      avatarUrl,
+      recorded: isRecorded(kind, initial, student),
+    };
   });
 
   const mutation = useMutation({
@@ -146,6 +165,11 @@ export function useDailyRecords({ kind, date, slotId }) {
   const [isSaving, setIsSaving] = useState(false);
   async function save(onlyId) {
     if (!canEdit || running.current || needsReload || !query.isSuccess || !baseline) return;
+    // Màn có thể mở từ trước 0:00: kiểm tra lại ngày ngay lúc bấm lưu.
+    if (date !== schoolToday()) {
+      setMessage({ error: true, text: 'Đã qua ngày ghi nhận. Dữ liệu ngày này chỉ còn xem.' });
+      return;
+    }
     // Validate the whole relevant roster, never the filtered list visible on screen.
     // Test2 currently substitutes 85/12 for absent rows with null/omitted values.
     // Keep absent children visible, but exclude their measurements until BE fixes this.
@@ -266,6 +290,7 @@ export function useDailyRecords({ kind, date, slotId }) {
     rows,
     slot,
     canEdit,
+    isFuture: Boolean(valid && date > today),
     update,
     save,
     message,
@@ -274,6 +299,7 @@ export function useDailyRecords({ kind, date, slotId }) {
     canReload: Boolean(valid),
     isSaving,
     hasChangesToSave: rows.some((row) => row.changed),
+    hasRecorded: rows.some((row) => row.recorded),
     changedCount: rows.filter((row) => row.changed).length,
     hasUserEdits: rows.some((row) => row.edited),
     loading: Boolean(

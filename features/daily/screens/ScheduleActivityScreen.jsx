@@ -110,7 +110,8 @@ export default function ScheduleActivityScreen() {
                 })
               }>
               <Text>
-                {date > schoolToday() ? t('Xem đánh giá học sinh') : t('Đánh giá học sinh')}
+                {/* Đánh giá chỉ làm trong ngày của slot; ngày khác chỉ xem. */}
+                {date === schoolToday() ? t('Đánh giá học sinh') : t('Xem đánh giá học sinh')}
               </Text>
             </Button>
           ) : null}

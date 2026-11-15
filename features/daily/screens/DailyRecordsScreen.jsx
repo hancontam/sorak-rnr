@@ -94,6 +94,13 @@ function DailyRecordsForm({ kind, date, slotId }) {
             </Badge>
           ) : null}
         </View>
+        {!form.canEdit && !form.error ? (
+          <Text className="text-2xs leading-4 text-muted-foreground">
+            {form.isFuture
+              ? t('Chưa tới ngày ghi nhận. Bạn ghi nhận vào đúng ngày này.')
+              : t('Ghi nhận chỉ làm và cập nhật trong ngày (đến 23:59). Ngày này chỉ xem lại.')}
+          </Text>
+        ) : null}
         {form.slot ? (
           <Text className="text-xs text-muted-foreground">
             {form.slot.title || t('Hoạt động chưa có tên')}
@@ -217,6 +224,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
             <PickupRecordCard
               row={item}
               editable={canChange}
+              locked={!form.canEdit}
               onChange={(patch) => form.update(item.id, patch)}
               onPickup={() => confirmPickup(item)}
               onCreateAuthorization={() =>
@@ -231,6 +239,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
               kind={kind}
               row={item}
               editable={canChange}
+              locked={!form.canEdit}
               onChange={(patch) => form.update(item.id, patch)}
             />
           )
@@ -244,9 +253,13 @@ function DailyRecordsForm({ kind, date, slotId }) {
                 <Text>
                   {form.isSaving
                     ? t('Đang lưu và kiểm tra…')
-                    : form.changedCount
-                      ? t('Lưu ghi nhận · {count} thay đổi', { count: form.changedCount })
-                      : t('Lưu ghi nhận')}
+                    : form.hasRecorded
+                      ? form.changedCount
+                        ? t('Cập nhật ghi nhận · {count} thay đổi', { count: form.changedCount })
+                        : t('Cập nhật ghi nhận')
+                      : form.changedCount
+                        ? t('Lưu ghi nhận · {count} thay đổi', { count: form.changedCount })
+                        : t('Lưu ghi nhận')}
                 </Text>
               </Button>
             </View>

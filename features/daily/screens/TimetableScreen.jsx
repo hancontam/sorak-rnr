@@ -143,7 +143,6 @@ export default function TimetableScreen() {
               error={query.isError ? timetableError(query.error) : ''}
               onRetry={query.isError ? query.refetch : undefined}
               title={noParentClass ? 'Chưa có lớp học của con' : 'Chưa có lịch cho ngày này'}
-              description="Bạn có thể chọn ngày khác hoặc kéo xuống để tải lại."
             />
           )
         }

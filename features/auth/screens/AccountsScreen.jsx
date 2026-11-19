@@ -66,9 +66,6 @@ export default function AccountsScreen() {
     <ScrollView
       className="flex-1 bg-background"
       contentContainerClassName="mx-auto w-full max-w-md gap-4 p-4 pb-8">
-      <Text className="text-xs leading-5 text-muted-foreground">
-        {t('Chọn bé để xem hồ sơ, thời khóa biểu và thông báo của bé đó.')}
-      </Text>
       <ActionNotice message={error || notice ? { error: true, text: t(error || notice) } : null} />
       <Card className="gap-0 overflow-hidden py-0">
         {accounts.map((account, index) => (

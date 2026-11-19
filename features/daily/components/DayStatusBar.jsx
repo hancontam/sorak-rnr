@@ -7,25 +7,27 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 function Tile({ icon, label, value, done, alert, onPress, accessibilityLabel }) {
+  // Chủ thể là thao tác: icon + tên ở trên, trạng thái (tỉ lệ / Chưa ghi) nhỏ hơn ở dưới.
   const content = (
     <>
       <View className="flex-row items-center gap-1">
-        <Icon
-          as={icon}
-          size={14}
-          className={done ? 'text-primary' : alert ? 'text-destructive' : 'text-muted-foreground'}
-        />
-        <Text
-          numberOfLines={1}
-          className={cn(
-            'font-mono text-xs font-semibold',
-            done ? 'text-primary' : alert ? 'text-destructive' : 'text-foreground'
-          )}>
-          {value}
+        {/* Icon cùng màu tên thao tác; chỉ dòng trạng thái bên dưới mang màu. */}
+        <Icon as={icon} size={14} className="text-foreground" />
+        <Text numberOfLines={1} className="text-xs font-medium">
+          {label}
         </Text>
       </View>
-      <Text numberOfLines={1} className="text-2xs text-muted-foreground">
-        {label}
+      <Text
+        numberOfLines={1}
+        className={cn(
+          'font-mono text-2xs',
+          done
+            ? 'font-semibold text-primary'
+            : alert
+              ? 'font-semibold text-destructive'
+              : 'text-muted-foreground'
+        )}>
+        {value}
       </Text>
     </>
   );

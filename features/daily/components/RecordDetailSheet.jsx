@@ -178,11 +178,6 @@ function PickupDetail({ row, canWrite, onChange, onPickup, onCreateAuthorization
           accessibilityLabel={t('Dặn dò phụ huynh')}
         />
       </View>
-      {row.changed ? (
-        <Text className="text-2xs text-muted-foreground">
-          {t('Thay đổi chưa lưu. Trạng thái Đã đón chỉ cập nhật sau khi máy chủ xác nhận.')}
-        </Text>
-      ) : null}
       <Button
         disabled={!canWrite || !row.changed || !selected || !TIME_PATTERN.test(value.time)}
         onPress={onPickup}>

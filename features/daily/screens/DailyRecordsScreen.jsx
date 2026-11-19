@@ -103,9 +103,9 @@ function DailyRecordsForm({ kind, date, slotId }) {
           }
           subtitle={form.slot ? form.slot.title || t('Hoạt động chưa có tên') : undefined}
         />
-        {readOnly ? (
+        {readOnly && form.lock ? (
           <Text className="text-2xs leading-4 text-muted-foreground">
-            {form.lock?.kind === 'holiday'
+            {form.lock.kind === 'holiday'
               ? `${t('Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.', {
                   name: form.lock.name || t('Ngày nghỉ'),
                 })}${
@@ -113,11 +113,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
                     ? ` ${t('Lịch dạy được bù vào Thứ Bảy {date}.', { date: shortDate(form.lock.makeupDate, locale) })}`
                     : ''
                 }`
-              : form.lock
-                ? t('Cuối tuần không có lịch học nên không ghi nhận trong ngày này.')
-                : form.isFuture
-                  ? t('Chưa tới ngày ghi nhận. Bạn ghi nhận vào đúng ngày này.')
-                  : t('Ghi nhận chỉ làm và cập nhật trong ngày (đến 23:59). Ngày này chỉ xem lại.')}
+              : t('Cuối tuần không có lịch học nên không ghi nhận trong ngày này.')}
           </Text>
         ) : null}
       </View>
@@ -143,25 +139,6 @@ function DailyRecordsForm({ kind, date, slotId }) {
             <Text>{t('Tải lại dữ liệu')}</Text>
           </Button>
         </Alert>
-      ) : null}
-      {canChange && kind !== 'pickup' ? (
-        <Text className="text-2xs leading-4 text-muted-foreground">
-          {kind === 'health'
-            ? t(
-                'Nhập đủ chiều cao và cân nặng cho tất cả học sinh có mặt. Học sinh vắng không được gửi số đo mới.'
-              )
-            : t(
-                '{status} được chọn sẵn cho dòng chưa ghi. Kiểm tra đủ {count} học sinh rồi bấm Lưu; tìm kiếm không giới hạn danh sách gửi.',
-                { status: t(kind === 'attendance' ? 'Có mặt' : 'Đạt'), count: form.rows.length }
-              )}
-        </Text>
-      ) : null}
-      {kind === 'pickup' && canChange ? (
-        <Text className="text-2xs leading-4 text-muted-foreground">
-          {t(
-            'Chọn người đón và xác nhận từng bé. Tạo ủy quyền chỉ bổ sung người vào danh sách, chưa ghi nhận đã đón.'
-          )}
-        </Text>
       ) : null}
       {form.rows.length > 0 ? (
         <View className="justify-center">

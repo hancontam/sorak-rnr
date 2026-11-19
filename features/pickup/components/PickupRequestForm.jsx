@@ -137,9 +137,6 @@ export function PickupRequestForm({
               setError('');
             }}
           />
-          <Text className="text-xs text-muted-foreground">
-            {t('Đơn do giáo viên tạo được duyệt ngay. Người đón xuất hiện theo thời hạn hiệu lực.')}
-          </Text>
         </View>
       ) : null}
       {FIELDS.filter((field) => !field.date && field.name !== 'note').map(renderField)}

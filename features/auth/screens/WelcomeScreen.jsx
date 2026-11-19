@@ -26,10 +26,8 @@ export default function WelcomeScreen() {
     state.linkedAccounts.some((account) => account.role === AUTH_ROLES.parent)
   );
   const [roleSheetOpen, setRoleSheetOpen] = useState(false);
-  const [lastRole, setLastRole] = useState(AUTH_ROLES.teacher);
 
   function selectRole(role) {
-    setLastRole(role);
     setRoleSheetOpen(false);
     router.push({ pathname: '/auth/login', params: { role } });
   }
@@ -71,7 +69,6 @@ export default function WelcomeScreen() {
       </ScrollView>
       <RoleSheet
         visible={roleSheetOpen}
-        selectedRole={lastRole}
         onClose={() => setRoleSheetOpen(false)}
         onSelect={selectRole}
       />

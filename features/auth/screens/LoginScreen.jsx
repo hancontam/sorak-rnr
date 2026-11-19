@@ -314,7 +314,6 @@ function LoginFlow({ role, adding, accountId }) {
       </KeyboardAwareScrollView>
       <RoleSheet
         visible={roleSheetOpen}
-        selectedRole={role}
         onClose={() => setRoleSheetOpen(false)}
         onSelect={(nextRole) => {
           setRoleSheetOpen(false);

@@ -1,4 +1,4 @@
-import { Check, GraduationCap, UsersRound } from 'lucide-react-native';
+import { GraduationCap, UsersRound } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { BottomSheet } from '@/components/ui/bottom-sheet';
@@ -10,8 +10,8 @@ import { useTranslation } from '@/shared/i18n/useLanguage';
 import { AUTH_ROLES, WEB_ACCOUNT_NOTICE } from '../utils/auth-roles';
 
 // Chọn loại tài khoản như Figma (Welcome/login flow): hai nút "Tiếp tục với tài khoản …" và dòng
-// điều khoản. Vai trò đang chọn (khi mở lại từ màn đăng nhập) có dấu tích.
-export function RoleSheet({ visible, selectedRole, onClose, onSelect }) {
+// điều khoản. Đây chỉ là lối vào nên không đánh dấu vai trò đang chọn (dấu tích dễ hiểu nhầm).
+export function RoleSheet({ visible, onClose, onSelect }) {
   const t = useTranslation();
   return (
     <BottomSheet
@@ -25,13 +25,11 @@ export function RoleSheet({ visible, selectedRole, onClose, onSelect }) {
         <RoleButton
           label={t('Tiếp tục với tài khoản Phụ huynh')}
           icon={UsersRound}
-          selected={selectedRole === AUTH_ROLES.parent}
           onPress={() => onSelect(AUTH_ROLES.parent)}
         />
         <RoleButton
           label={t('Tiếp tục với tài khoản Nhà trường')}
           icon={GraduationCap}
-          selected={selectedRole === AUTH_ROLES.teacher}
           onPress={() => onSelect(AUTH_ROLES.teacher)}
         />
         <Text className="pt-1 text-center text-2xs leading-4 text-muted-foreground">
@@ -44,17 +42,15 @@ export function RoleSheet({ visible, selectedRole, onClose, onSelect }) {
   );
 }
 
-function RoleButton({ label, icon, selected, onPress }) {
+function RoleButton({ label, icon, onPress }) {
   return (
     <Button
       variant="outline"
       accessibilityLabel={label}
-      accessibilityState={{ selected }}
       onPress={onPress}
       className="h-12 justify-start gap-3 px-4">
       <Icon as={icon} size={18} className="text-primary" />
       <Text className="min-w-0 flex-1 text-sm font-semibold">{label}</Text>
-      {selected ? <Icon as={Check} size={16} className="text-primary" /> : null}
     </Button>
   );
 }

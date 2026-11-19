@@ -48,7 +48,7 @@ export default function WelcomeScreen() {
             ) : null}
             {notice ? (
               <Alert icon={CircleAlert}>
-                <AlertTitle>{t('Thiết bị đang đăng nhập')}</AlertTitle>
+                <AlertTitle>{t('Đăng nhập')}</AlertTitle>
                 <AlertDescription>{t(notice)}</AlertDescription>
               </Alert>
             ) : null}

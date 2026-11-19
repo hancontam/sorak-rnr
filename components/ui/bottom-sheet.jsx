@@ -82,7 +82,7 @@ function BottomSheet({
         borderTopLeftRadius: 0,
         borderTopRightRadius: 0,
       }}
-      handleIndicatorStyle={{ width: 40, height: 6, backgroundColor: theme.border }}
+      handleIndicatorStyle={{ width: 40, height: 5, borderRadius: 0, backgroundColor: theme.border }}
       enableContentPanningGesture={enableContentPanningGesture}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore">

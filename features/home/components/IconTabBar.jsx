@@ -1,11 +1,5 @@
-import { useEffect } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 
 import { FONT_FAMILY } from '@/lib/fonts';
 import { THEME } from '@/lib/theme';
@@ -18,19 +12,41 @@ const LABEL_MAX_WIDTH = 160;
 // nền xanh nhạt hiện dần và tên trượt ra cạnh icon; tab khác thu về chỉ còn icon. Chỉ animate style
 // (độ rộng chữ, độ mờ), không dùng layout animation vì làm lệch vùng chạm trên Android. Các tab
 // rộng theo nội dung và chia đều khoảng trống (justify-around) nên bubble không lệch.
-function TabItem({ focused, label, renderIcon, theme, onPress, onLongPress }) {
-  const reduceMotion = useReducedMotion();
-  const progress = useSharedValue(focused ? 1 : 0);
+// Dùng Animated của React Native (JS driver) thay Reanimated: trên Android kiến trúc mới, giá trị
+// Reanimated của tab vừa bỏ chọn bị lần render React ghi đè nên bubble kẹt ở tab đầu.
+function useReduceMotion() {
+  const [reduce, setReduce] = useState(false);
   useEffect(() => {
-    progress.value = withTiming(focused ? 1 : 0, { duration: reduceMotion ? 0 : DURATION });
+    let active = true;
+    AccessibilityInfo.isReduceMotionEnabled().then((value) => active && setReduce(value));
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduce);
+    return () => {
+      active = false;
+      sub.remove();
+    };
+  }, []);
+  return reduce;
+}
+
+function TabItem({ focused, label, renderIcon, theme, reduceMotion, onPress, onLongPress }) {
+  const progress = useRef(new Animated.Value(focused ? 1 : 0)).current;
+  useEffect(() => {
+    const animation = Animated.timing(progress, {
+      toValue: focused ? 1 : 0,
+      duration: reduceMotion ? 0 : DURATION,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    });
+    animation.start();
+    return () => animation.stop();
   }, [focused, progress, reduceMotion]);
 
-  const bubbleStyle = useAnimatedStyle(() => ({ opacity: progress.value }));
-  const labelStyle = useAnimatedStyle(() => ({
-    opacity: progress.value,
-    maxWidth: progress.value * LABEL_MAX_WIDTH,
-    marginLeft: progress.value * 6,
-  }));
+  const bubbleStyle = { opacity: progress };
+  const labelStyle = {
+    opacity: progress,
+    maxWidth: progress.interpolate({ inputRange: [0, 1], outputRange: [0, LABEL_MAX_WIDTH] }),
+    marginLeft: progress.interpolate({ inputRange: [0, 1], outputRange: [0, 6] }),
+  };
 
   return (
     <Pressable
@@ -65,6 +81,7 @@ function TabItem({ focused, label, renderIcon, theme, onPress, onLongPress }) {
 // React Navigation để màn bên trong vẫn nghe được (vd. bấm lại tab đang mở).
 export function IconTabBar({ state, descriptors, navigation, insets, colorScheme }) {
   const theme = THEME[colorScheme === 'dark' ? 'dark' : 'light'];
+  const reduceMotion = useReduceMotion();
   return (
     <View
       accessibilityRole="tablist"
@@ -91,6 +108,7 @@ export function IconTabBar({ state, descriptors, navigation, insets, colorScheme
             label={options.title ?? route.name}
             renderIcon={options.tabBarIcon}
             theme={theme}
+            reduceMotion={reduceMotion}
             onPress={onPress}
             onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
           />

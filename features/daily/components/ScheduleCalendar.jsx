@@ -2,13 +2,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react-
 import { useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  FadeIn,
-  FadeOut,
-  LinearTransition,
-  SlideInLeft,
-  SlideInRight,
-} from 'react-native-reanimated';
+import Animated, { FadeIn, SlideInLeft, SlideInRight } from 'react-native-reanimated';
 
 import { MonthCalendar, monthIdOf } from '@/components/shared/MonthCalendar';
 import { Button } from '@/components/ui/button';
@@ -81,7 +75,7 @@ export function ScheduleCalendar({ date, today, onChange, dayLocks = {} }) {
         : FadeIn.duration(120);
 
   return (
-    <Animated.View layout={LinearTransition.duration(180)} className="gap-3">
+    <View className="gap-3">
       <View className="flex-row items-center gap-2">
         <Pressable
           accessibilityRole="button"
@@ -122,17 +116,16 @@ export function ScheduleCalendar({ date, today, onChange, dayLocks = {} }) {
         </Button>
       </View>
       {open ? (
-        <Animated.View
-          entering={FadeIn.duration(150)}
-          exiting={FadeOut.duration(100)}
-          className="border border-border bg-card p-3">
+        // View thường, không animation layout/fade: trên Android kiến trúc mới, view đang chạy layout
+        // animation của Reanimated nhận chạm lệch nên ô ngày của lịch tháng không bấm được.
+        <View className="border border-border bg-card p-3">
           <MonthCalendar
             monthId={monthId}
             onMonthChange={setMonthId}
             ranges={[{ startId: date, endId: date }]}
             onDayPress={pick}
           />
-        </Animated.View>
+        </View>
       ) : (
         <GestureDetector gesture={swipe}>
           <Animated.View
@@ -201,6 +194,6 @@ export function ScheduleCalendar({ date, today, onChange, dayLocks = {} }) {
           </Animated.View>
         </GestureDetector>
       )}
-    </Animated.View>
+    </View>
   );
 }

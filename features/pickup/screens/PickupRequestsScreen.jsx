@@ -23,13 +23,15 @@ import { PickupRequestForm } from '../components/PickupRequestForm';
 import { usePickupPhoto } from '../hooks/usePickupPhoto';
 import { usePickupRequests } from '../hooks/usePickupRequests';
 
+// Ba nhóm thay cho năm trạng thái: đơn chờ duyệt cần xử lý, còn lại gom vào Đã xử lý (nhãn trạng thái
+// cụ thể vẫn hiện trên từng đơn).
 const FILTERS = [
   ['all', 'Tất cả'],
   ['PENDING', 'Chờ duyệt'],
-  ['APPROVED', 'Đã duyệt'],
-  ['REJECTED', 'Đã từ chối'],
-  ['CANCELLED', 'Đã hủy'],
+  ['done', 'Đã xử lý'],
 ];
+const matches = (key, item) =>
+  key === 'all' || (key === 'done' ? item.status !== 'PENDING' : item.status === key);
 
 export default function PickupRequestsScreen() {
   const t = useTranslation();
@@ -50,12 +52,9 @@ export default function PickupRequestsScreen() {
 
   const disabled = !query.isSuccess || saving || needsReload || photo.busy;
   const all = query.data?.requests || [];
-  const rows = all.filter((item) => filter === 'all' || item.status === filter);
+  const rows = all.filter((item) => matches(filter, item));
   const counts = Object.fromEntries(
-    FILTERS.map(([key]) => [
-      key,
-      key === 'all' ? all.length : all.filter((item) => item.status === key).length,
-    ])
+    FILTERS.map(([key]) => [key, all.filter((item) => matches(key, item)).length])
   );
   const canCreate = allowed && query.data && !rejectingId && !creating;
 

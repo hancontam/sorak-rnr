@@ -86,7 +86,7 @@ export default function ScheduleActivityScreen() {
                   <Text>{[frame.start, frame.end].filter(Boolean).join('–')}</Text>
                 </Badge>
               ) : null}
-              {activity.status ? (
+              {activity.status === 'Đã hoàn thành' ? (
                 <Badge variant="outline">
                   <Text>{t(activity.status)}</Text>
                 </Badge>

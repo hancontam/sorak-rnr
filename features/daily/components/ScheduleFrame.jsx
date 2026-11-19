@@ -62,7 +62,8 @@ export function ScheduleFrame({ frame, isParent, now, onOpenActivity }) {
                 </Text>
                 {current ? (
                   <NowBadge />
-                ) : activity.status ? (
+                ) : activity.status === 'Đã hoàn thành' ? (
+                  // "Đã xếp lịch" đúng với mọi slot trên lịch nên không hiện; chỉ báo khi đã hoàn thành.
                   <Badge variant="secondary">
                     <Text>{t(activity.status)}</Text>
                   </Badge>

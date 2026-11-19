@@ -11,7 +11,7 @@ import Animated, {
 function Progress({ className, value, indicatorClassName, ...props }) {
   return (
     <ProgressPrimitive.Root
-      className={cn('relative h-2 w-full overflow-hidden rounded-full bg-primary/20', className)}
+      className={cn('relative h-2 w-full overflow-hidden bg-primary/20', className)}
       {...props}>
       <Indicator value={value} className={indicatorClassName} />
     </ProgressPrimitive.Root>

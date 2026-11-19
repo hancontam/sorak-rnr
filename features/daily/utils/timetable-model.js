@@ -170,16 +170,24 @@ export function dayOverview(data, date, isParent) {
   }
   const attendance = data.attendance.records.find((record) => record.isoDate === date);
   const health = data.health.history.filter((record) => record.rawDate?.slice(0, 10) === date);
+  const measured = health[health.length - 1];
   return {
     attendance: {
       state: attendance ? 'done' : 'todo',
       label: ATTENDANCE_LABELS[attendance?.rawStatus] || '',
       rawLabel: attendance?.statusLabel || '',
+      present: attendance?.rawStatus === 'PRESENT',
+      checkIn: plainText(attendance?.checkInTime),
     },
-    health: { state: health.length ? 'done' : 'todo' },
+    health: {
+      state: health.length ? 'done' : 'todo',
+      height: Number.isFinite(measured?.height) && measured.height > 0 ? measured.height : null,
+      weight: Number.isFinite(measured?.weight) && measured.weight > 0 ? measured.weight : null,
+    },
     pickup: {
       state: attendance?.checkOutTime ? 'done' : 'todo',
       time: attendance?.checkOutTime || '',
+      person: plainText(attendance?.pickupPersonName),
     },
   };
 }

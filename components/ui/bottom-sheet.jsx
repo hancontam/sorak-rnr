@@ -111,7 +111,7 @@ function BottomSheet({
               accessibilityLabel={closeLabel}
               hitSlop={8}
               onPress={() => onOpenChange?.(false)}
-              className="size-8 items-center justify-center rounded-full bg-muted active:opacity-70">
+              className="size-8 items-center justify-center bg-muted active:opacity-70">
               <Icon as={X} size={16} className="text-muted-foreground" />
             </Pressable>
           </View>

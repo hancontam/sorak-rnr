@@ -10,6 +10,7 @@ import { usePickupRequests } from '@/features/pickup/hooks/usePickupRequests';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { ChildDayResults } from '../components/ChildDayResults';
+import { ChildDaySummary } from '../components/ChildDaySummary';
 import { DayLockCard } from '../components/DayLockCard';
 import { DayStatusBar } from '../components/DayStatusBar';
 import { EmptyFrames, ScheduleFrame } from '../components/ScheduleFrame';
@@ -128,7 +129,6 @@ export default function TimetableScreen() {
             {lock ? (
               <DayLockCard
                 lock={lock}
-                isParent={isParent}
                 onOpenMakeup={lock.makeupDate ? () => setDate(lock.makeupDate) : undefined}
               />
             ) : null}
@@ -179,10 +179,30 @@ export default function TimetableScreen() {
           </View>
         )}
         ListFooterComponent={
-          ready && isParent ? <ChildDayResults results={childDayResults(data, date)} /> : null
+          ready && isParent ? (
+            // Phụ huynh: lịch đi ngay sau dải ngày; ngày của bé và kết quả hoạt động nằm dưới lịch.
+            <View className="gap-3 pt-3">
+              {!placeholder && !lock ? (
+                <View className="gap-2.5">
+                  <Text className="text-sm font-semibold">{t('Ngày của bé')}</Text>
+                  <ChildDaySummary
+                    overview={dayOverview(data, date, true)}
+                    pendingCount={pendingCount}
+                    onOpenPickupRequests={
+                      pickup.allowed
+                        ? () =>
+                            router.push({ pathname: '/(parent)/pickup-requests', params: { date } })
+                        : undefined
+                    }
+                  />
+                </View>
+              ) : null}
+              <ChildDayResults results={childDayResults(data, date)} />
+            </View>
+          ) : null
         }
       />
-      {ready && !lock ? (
+      {ready && !lock && !isParent ? (
         placeholder ? (
           <View
             accessible
@@ -194,27 +214,14 @@ export default function TimetableScreen() {
           </View>
         ) : (
           <DayStatusBar
-            overview={dayOverview(data, date, isParent)}
-            isParent={isParent}
+            overview={dayOverview(data, date, false)}
             pendingCount={pendingCount}
-            onOpenRecords={
-              isParent
-                ? undefined
-                : (kind) =>
-                    router.push({
-                      pathname: '/(teacher)/daily-records',
-                      params: { kind, date },
-                    })
+            onOpenRecords={(kind) =>
+              router.push({ pathname: '/(teacher)/daily-records', params: { kind, date } })
             }
             onOpenPickupRequests={
               pickup.allowed
-                ? () =>
-                    router.push({
-                      pathname: isParent
-                        ? '/(parent)/pickup-requests'
-                        : '/(teacher)/pickup-requests',
-                      params: { date },
-                    })
+                ? () => router.push({ pathname: '/(teacher)/pickup-requests', params: { date } })
                 : undefined
             }
           />

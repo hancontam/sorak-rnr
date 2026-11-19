@@ -82,7 +82,7 @@ export function MeasureField({
                 accessibilityRole="button"
                 accessibilityLabel={`${delta > 0 ? '+' : ''}${delta} ${unit || ''}`}
                 onPress={() => shift(delta)}
-                className="h-8 min-w-12 items-center justify-center rounded-full bg-muted px-2.5 active:bg-accent">
+                className="h-8 min-w-12 items-center justify-center bg-muted px-2.5 active:bg-accent">
                 <Text className="font-mono text-2xs font-medium">
                   {delta > 0 ? '+' : '−'}
                   {Math.abs(delta)}

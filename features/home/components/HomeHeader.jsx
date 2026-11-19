@@ -84,7 +84,7 @@ export function HomeHeader({
           }
           onPress={onNotifications}>
           {hasUnread ? (
-            <View className="absolute -right-1.5 -top-1.5 h-5 min-w-5 items-center justify-center rounded-full border-2 border-background bg-primary px-1">
+            <View className="absolute -right-1.5 -top-1.5 h-5 min-w-5 items-center justify-center border-2 border-background bg-primary px-1">
               <Text className="font-mono text-2xs font-semibold text-primary-foreground">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </Text>

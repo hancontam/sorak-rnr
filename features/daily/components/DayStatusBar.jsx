@@ -49,15 +49,9 @@ function Tile({ icon, label, value, done, alert, onPress, accessibilityLabel }) 
   );
 }
 
-// Tình hình trong ngày dạng thanh 4 ô gọn ở đáy màn Thời khóa biểu (GV: cả lớp, PH: của bé),
+// Tình hình cả lớp trong ngày dạng thanh 4 ô gọn ở đáy màn Thời khóa biểu (chỉ giáo viên),
 // để dải ngày đi thẳng tới lịch. Bấm ô để mở ghi nhận hoặc đơn ủy quyền của ngày đang chọn.
-export function DayStatusBar({
-  overview,
-  isParent,
-  pendingCount,
-  onOpenRecords,
-  onOpenPickupRequests,
-}) {
+export function DayStatusBar({ overview, pendingCount, onOpenRecords, onOpenPickupRequests }) {
   const t = useTranslation();
   const { attendance, health, pickup } = overview;
   const total = overview.total ?? null;
@@ -68,59 +62,32 @@ export function DayStatusBar({
   const open = (kind) => (onOpenRecords ? () => onOpenRecords(kind) : undefined);
   const hasPending = Number.isInteger(pendingCount) && pendingCount > 0;
 
-  const tiles = isParent
-    ? [
-        {
-          key: 'attendance',
-          icon: ClipboardCheck,
-          label: t('Điểm danh'),
-          value:
-            attendance.state === 'done'
-              ? t(attendance.label) || attendance.rawLabel || t('Đã ghi')
-              : notYet,
-          done: attendance.state === 'done',
-        },
-        {
-          key: 'health',
-          icon: HeartPulse,
-          label: t('Sức khỏe'),
-          value: health.state === 'done' ? t('Đã đo') : notYet,
-          done: health.state === 'done',
-        },
-        {
-          key: 'pickup',
-          icon: UserCheck,
-          label: t('Đón trẻ'),
-          value: pickup.state === 'done' ? pickup.time : notYet,
-          done: pickup.state === 'done',
-        },
-      ]
-    : [
-        {
-          key: 'attendance',
-          icon: ClipboardCheck,
-          label: t('Điểm danh'),
-          value: attendance.state === 'todo' ? notYet : ratio(present, total),
-          done: attendance.state === 'done',
-          onPress: open('attendance'),
-        },
-        {
-          key: 'health',
-          icon: HeartPulse,
-          label: t('Sức khỏe'),
-          value: health.state === 'todo' ? notYet : ratio(health.count, present),
-          done: health.state === 'done',
-          onPress: open('health'),
-        },
-        {
-          key: 'pickup',
-          icon: UserCheck,
-          label: t('Đón trẻ'),
-          value: ratio(pickup.count, present),
-          done: pickup.count !== null && present !== null && pickup.count >= present && present > 0,
-          onPress: open('pickup'),
-        },
-      ];
+  const tiles = [
+    {
+      key: 'attendance',
+      icon: ClipboardCheck,
+      label: t('Điểm danh'),
+      value: attendance.state === 'todo' ? notYet : ratio(present, total),
+      done: attendance.state === 'done',
+      onPress: open('attendance'),
+    },
+    {
+      key: 'health',
+      icon: HeartPulse,
+      label: t('Sức khỏe'),
+      value: health.state === 'todo' ? notYet : ratio(health.count, present),
+      done: health.state === 'done',
+      onPress: open('health'),
+    },
+    {
+      key: 'pickup',
+      icon: UserCheck,
+      label: t('Đón trẻ'),
+      value: ratio(pickup.count, present),
+      done: pickup.count !== null && present !== null && pickup.count >= present && present > 0,
+      onPress: open('pickup'),
+    },
+  ];
   if (onOpenPickupRequests)
     tiles.push({
       key: 'requests',

@@ -178,10 +178,10 @@ function LoginFlow({ role, adding, accountId }) {
             <Icon as={ChevronDown} size={14} className="text-muted-foreground" />
           </Button>
         </View>
-        {/* Tiêu đề theo vai trò như Figma (Phụ huynh / Nhà trường), thay khung thương hiệu cũ. */}
+        {/* Tiêu đề theo vai trò như Figma (Phụ huynh / Giáo viên), thay khung thương hiệu cũ. */}
         <View className="gap-1 pt-2">
           <Text role="heading" className="text-xl font-semibold tracking-tight">
-            {t(parent ? 'Phụ huynh' : 'Nhà trường')}
+            {t(parent ? 'Phụ huynh' : 'Giáo viên')}
           </Text>
           <Text className="text-sm text-muted-foreground">
             {t(parent ? 'Nhập mã học sinh của con.' : 'Nhập tài khoản được cấp.')}

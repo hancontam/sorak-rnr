@@ -28,7 +28,7 @@ export function RoleSheet({ visible, onClose, onSelect }) {
           onPress={() => onSelect(AUTH_ROLES.parent)}
         />
         <RoleButton
-          label={t('Tiếp tục với tài khoản Nhà trường')}
+          label={t('Tiếp tục với tài khoản Giáo viên')}
           icon={GraduationCap}
           onPress={() => onSelect(AUTH_ROLES.teacher)}
         />

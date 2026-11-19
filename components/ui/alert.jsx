@@ -19,7 +19,8 @@ function Alert({ className, variant, children, icon, iconClassName, ...props }) 
           className
         )}
         {...props}>
-        <View className="absolute left-3.5 top-3">
+        {/* Tâm icon 16 trùng tâm dòng đầu cao 20 (pt-3.5 + 10): icon đặt top-4. */}
+        <View className="absolute left-3.5 top-4">
           <Icon
             as={icon}
             className={cn('size-4', variant === 'destructive' && 'text-destructive', iconClassName)}
@@ -33,7 +34,7 @@ function Alert({ className, variant, children, icon, iconClassName, ...props }) 
 function AlertTitle({ className, ...props }) {
   return (
     <Text
-      className={cn('mb-1 ml-0.5 min-h-4 pl-6 font-medium leading-none tracking-tight', className)}
+      className={cn('mb-1 ml-0.5 min-h-5 pl-6 font-medium leading-5 tracking-tight', className)}
       {...props}
     />
   );

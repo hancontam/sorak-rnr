@@ -1036,4 +1036,5 @@ export const english = {
   'Người gửi': 'Sender',
   'Không có đơn chờ': 'Nothing pending',
   'Ghi nhận {name} đã đón bé': 'Record that {name} picked up the child',
+  'Trường Mầm Non Hòn Tre · Sorak. Cập nhật lần cuối {date}.': 'Hon Tre Preschool · Sorak. Last updated {date}.',
 };

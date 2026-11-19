@@ -1,8 +1,6 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { FileWarning } from 'lucide-react-native';
 import { View } from 'react-native';
 
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Text } from '@/components/ui/text';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
@@ -27,13 +25,6 @@ export default function LegalDocumentScreen() {
   return (
     <SettingsContent>
       <Stack.Screen options={{ title: content.title }} />
-      <Alert icon={FileWarning}>
-        <AlertDescription className="text-2xs leading-4">
-          {t('Bản nháp, nhà trường cần rà soát trước khi phát hành. Cập nhật {date}.', {
-            date: LEGAL_UPDATED,
-          })}
-        </AlertDescription>
-      </Alert>
       {content.sections.map((section) => (
         <View key={section.heading} className="gap-1.5">
           <Text role="heading" className="text-sm font-semibold">
@@ -46,6 +37,9 @@ export default function LegalDocumentScreen() {
           ))}
         </View>
       ))}
+      <Text className="border-t border-border pt-3 text-2xs text-muted-foreground">
+        {t('Trường Mầm Non Hòn Tre · Sorak. Cập nhật lần cuối {date}.', { date: LEGAL_UPDATED })}
+      </Text>
     </SettingsContent>
   );
 }

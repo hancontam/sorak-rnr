@@ -1,7 +1,6 @@
 import { Image, Linking, Pressable, View } from 'react-native';
 
 import { BottomSheet } from '@/components/ui/bottom-sheet';
-import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
@@ -69,9 +68,6 @@ export function NotificationDetailSheet({ item, onClose }) {
               <Meta label={t('Người gửi')} value={data.senderName} />
             </View>
           ) : null}
-          <Button size="sm" variant="outline" onPress={onClose}>
-            <Text>{t('Đóng')}</Text>
-          </Button>
         </>
       ) : null}
     </BottomSheet>

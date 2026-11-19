@@ -177,8 +177,17 @@ export function useDailyRecords({ kind, date, slotId }) {
   }
 
   const [isSaving, setIsSaving] = useState(false);
-  async function save(onlyId) {
+  // patch (chỉ dùng cho đón trẻ): giá trị vừa chọn trong sheet, lưu ngay trong cùng lần bấm nên
+  // không chờ bản nháp kịp render lại.
+  async function save(onlyId, patch) {
     if (!canEdit || running.current || needsReload || !query.isSuccess || !baseline) return;
+    if (patch && onlyId) update(onlyId, patch);
+    const source =
+      patch && onlyId
+        ? rows.map((row) =>
+            row.id === onlyId ? { ...row, value: { ...row.value, ...patch }, changed: true } : row
+          )
+        : rows;
     // Màn có thể mở từ trước 0:00: kiểm tra lại ngày ngay lúc bấm lưu.
     if (date !== schoolToday()) {
       setMessage({ error: true, text: 'Đã qua ngày ghi nhận. Dữ liệu ngày này chỉ còn xem.' });
@@ -189,7 +198,7 @@ export function useDailyRecords({ kind, date, slotId }) {
     // Keep absent children visible, but exclude their measurements until BE fixes this.
     const selected =
       kind === 'pickup'
-        ? rows.filter((row) => row.id === onlyId && row.changed)
+        ? source.filter((row) => row.id === onlyId && row.changed)
         : kind === 'health'
           ? rows.filter((row) => !isAbsent(row.student))
           : rows;

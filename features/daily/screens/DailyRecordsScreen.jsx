@@ -14,6 +14,7 @@ import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { usePickupRequests } from '@/features/pickup/hooks/usePickupRequests';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { DailyRecordCard } from '../components/DailyRecordCard';
@@ -23,8 +24,8 @@ import { PickupSummary } from '../components/PickupSummary';
 import { RecordDetailSheet } from '../components/RecordDetailSheet';
 import { ScheduleState } from '../components/ScheduleState';
 import { useDailyRecords } from '../hooks/useDailyRecords';
-import { DAILY_ACTIONS, isAbsent, pickupOptions } from '../utils/daily-records';
-import { dayTitle, shortDate } from '../utils/schedule-date';
+import { DAILY_ACTIONS, isAbsent } from '../utils/daily-records';
+import { schoolClock, shortDate } from '../utils/schedule-date';
 import { timetableError } from '../utils/timetable-model';
 
 export default function DailyRecordsScreen() {
@@ -48,9 +49,10 @@ function DailyRecordsForm({ kind, date, slotId }) {
   const router = useRouter();
   const locale = useLocale();
   const form = useDailyRecords({ kind, date, slotId });
+  // Đơn ủy quyền nằm trong màn Đón trẻ: lấy số chờ duyệt để dòng lối vào có trạng thái.
+  const requests = usePickupRequests({ date, enabled: kind === 'pickup' });
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
-  const [confirm, setConfirm] = useState(null);
   // Một sheet chi tiết cho cả màn; hàng gọn chỉ mở sheet theo id học sinh.
   const [detailId, setDetailId] = useState(null);
   const detailRow = detailId ? form.rows.find((row) => row.id === detailId) || null : null;
@@ -72,19 +74,6 @@ function DailyRecordsForm({ kind, date, slotId }) {
     ({ student }) => student.isAttendanceRecorded === false
   ).length;
   const showSaveBar = kind !== 'pickup' && form.canEdit && !form.error && form.rows.length > 0;
-
-  function confirmPickup(row) {
-    const person = pickupOptions(row.student).find((item) => item.key === row.value.personKey);
-    setConfirm({
-      title: t('Xác nhận đón {name}?', { name: row.student.name }),
-      description: [person?.name, dayTitle(date, locale), row.value.time]
-        .filter(Boolean)
-        .join(' · '),
-      cancelLabel: t('Hủy'),
-      confirmLabel: t('Xác nhận'),
-      onConfirm: () => form.save(row.id),
-    });
-  }
 
   // Ngày không còn sửa được (đã qua, chưa tới, ngày nghỉ): ô ngày xám và nhãn Chỉ xem/Ngày nghỉ.
   const readOnly = !form.canEdit && !form.error && !form.loading;
@@ -125,6 +114,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
           absent={absent}
           unrecorded={unrecorded}
           busy={form.isSaving}
+          pendingCount={requests.query.data?.stats?.pendingCount}
           onOpenRequests={() =>
             router.push({ pathname: '/(teacher)/pickup-requests', params: { date } })
           }
@@ -235,24 +225,17 @@ function DailyRecordsForm({ kind, date, slotId }) {
         editable={canChange}
         onChange={(patch) => detailRow && form.update(detailRow.id, patch)}
         onClose={() => setDetailId(null)}
-        onPickup={() => {
-          // Đóng sheet trước khi hỏi xác nhận để hộp thoại không nằm dưới sheet.
+        onPickup={(personKey) => {
           setDetailId(null);
-          if (detailRow) confirmPickup(detailRow);
+          // Bấm lại đúng người đã đón thì không gửi lại.
+          if (!detailRow || (detailRow.student.isDismissed && personKey === detailRow.value.personKey))
+            return;
+          form.save(detailRow.id, {
+            personKey,
+            time: detailRow.value.time || schoolClock(new Date()),
+          });
         }}
-        onCreateAuthorization={
-          canChange && detailRow
-            ? () => {
-                setDetailId(null);
-                router.push({
-                  pathname: '/(teacher)/pickup-requests',
-                  params: { date, studentId: detailRow.id, create: '1' },
-                });
-              }
-            : undefined
-        }
       />
-      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
       <ConfirmDialog {...unsaved.dialog} />
     </View>
   );

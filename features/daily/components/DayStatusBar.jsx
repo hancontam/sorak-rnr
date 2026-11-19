@@ -1,4 +1,4 @@
-import { ClipboardCheck, HeartPulse, ShieldCheck, UserCheck } from 'lucide-react-native';
+import { ClipboardCheck, HeartPulse, UserCheck } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
@@ -6,7 +6,7 @@ import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
-function Tile({ icon, label, value, done, alert, onPress, accessibilityLabel }) {
+function Tile({ icon, label, value, done, onPress, accessibilityLabel }) {
   // Chủ thể là thao tác: icon + tên ở trên, trạng thái (tỉ lệ / Chưa ghi) nhỏ hơn ở dưới.
   const content = (
     <>
@@ -21,11 +21,7 @@ function Tile({ icon, label, value, done, alert, onPress, accessibilityLabel }) 
         numberOfLines={1}
         className={cn(
           'font-mono text-2xs',
-          done
-            ? 'font-semibold text-primary'
-            : alert
-              ? 'font-semibold text-destructive'
-              : 'text-muted-foreground'
+          done ? 'font-semibold text-primary' : 'text-muted-foreground'
         )}>
         {value}
       </Text>
@@ -49,9 +45,9 @@ function Tile({ icon, label, value, done, alert, onPress, accessibilityLabel }) 
   );
 }
 
-// Tình hình cả lớp trong ngày dạng thanh 4 ô gọn ở đáy màn Thời khóa biểu (chỉ giáo viên),
-// để dải ngày đi thẳng tới lịch. Bấm ô để mở ghi nhận hoặc đơn ủy quyền của ngày đang chọn.
-export function DayStatusBar({ overview, pendingCount, onOpenRecords, onOpenPickupRequests }) {
+// Tình hình cả lớp trong ngày dạng thanh 3 ô gọn ở đáy màn Thời khóa biểu (chỉ giáo viên): điểm
+// danh, sức khỏe, đón trẻ. Đơn ủy quyền nằm trong màn Đón trẻ.
+export function DayStatusBar({ overview, onOpenRecords }) {
   const t = useTranslation();
   const { attendance, health, pickup } = overview;
   const total = overview.total ?? null;
@@ -60,7 +56,6 @@ export function DayStatusBar({ overview, pendingCount, onOpenRecords, onOpenPick
   const ratio = (value, of) =>
     value !== null && value !== undefined && of !== null ? `${value}/${of}` : '—';
   const open = (kind) => (onOpenRecords ? () => onOpenRecords(kind) : undefined);
-  const hasPending = Number.isInteger(pendingCount) && pendingCount > 0;
 
   const tiles = [
     {
@@ -88,15 +83,6 @@ export function DayStatusBar({ overview, pendingCount, onOpenRecords, onOpenPick
       onPress: open('pickup'),
     },
   ];
-  if (onOpenPickupRequests)
-    tiles.push({
-      key: 'requests',
-      icon: ShieldCheck,
-      label: t('Ủy quyền'),
-      value: hasPending ? t('{count} chờ', { count: pendingCount }) : t('Xem đơn'),
-      alert: hasPending,
-      onPress: onOpenPickupRequests,
-    });
 
   return (
     <View className="flex-row border-t border-border bg-background">

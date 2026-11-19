@@ -1034,4 +1034,6 @@ export const english = {
   'Ảnh đính kèm {index}': 'Attachment {index}',
   'Lớp': 'Class',
   'Người gửi': 'Sender',
+  'Không có đơn chờ': 'Nothing pending',
+  'Ghi nhận {name} đã đón bé': 'Record that {name} picked up the child',
 };

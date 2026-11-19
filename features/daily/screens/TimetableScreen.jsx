@@ -49,7 +49,7 @@ export default function TimetableScreen() {
   const clock = useSchoolClock();
   const [date, setDate] = useState(schoolToday);
   const { query, error, isParent, noClass } = useTimetable(date, { prefetchWeek: true });
-  const pickup = usePickupRequests({ date });
+  const pickup = usePickupRequests({ date, enabled: isParent });
   const pendingCount = pickup.query.data?.stats?.pendingCount;
   const data = query.data;
   const pull = usePullToRefresh(query.refetch);
@@ -208,21 +208,15 @@ export default function TimetableScreen() {
             accessible
             accessibilityLabel={t('Đang tải số liệu trong ngày…')}
             className="flex-row gap-3 border-t border-border bg-background px-4 py-3">
-            {[0, 1, 2, 3].map((key) => (
+            {[0, 1, 2].map((key) => (
               <Skeleton key={key} className="h-8 flex-1" />
             ))}
           </View>
         ) : (
           <DayStatusBar
             overview={dayOverview(data, date, false)}
-            pendingCount={pendingCount}
             onOpenRecords={(kind) =>
               router.push({ pathname: '/(teacher)/daily-records', params: { kind, date } })
-            }
-            onOpenPickupRequests={
-              pickup.allowed
-                ? () => router.push({ pathname: '/(teacher)/pickup-requests', params: { date } })
-                : undefined
             }
           />
         )

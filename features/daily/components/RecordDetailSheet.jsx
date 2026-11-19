@@ -1,9 +1,8 @@
-import { Check, Plus } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
 import { AccountAvatar } from '@/components/shared/AccountAvatar';
 import { MeasureField } from '@/components/shared/MeasureField';
-import { TimeField } from '@/components/shared/TimeField';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
@@ -13,12 +12,9 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { decimal, pickupOptions } from '../utils/daily-records';
-import { schoolClock } from '../utils/schedule-date';
-
-const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 // Phần chi tiết của một bé, mở từ hàng gọn: ghi chú (điểm danh/đánh giá), nút −/+ số đo và ghi chú
-// (sức khỏe), chọn người đón + giờ + dặn dò (đón trẻ). Dùng chung một sheet cho cả màn.
+// (sức khỏe), chọn người đón để ghi nhận đón trẻ. Dùng chung một sheet cho cả màn.
 export function RecordDetailSheet({
   kind,
   row,
@@ -26,7 +22,6 @@ export function RecordDetailSheet({
   onChange,
   onClose,
   onPickup,
-  onCreateAuthorization,
 }) {
   const t = useTranslation();
   const open = Boolean(row);
@@ -43,14 +38,7 @@ export function RecordDetailSheet({
       scrollable>
       {row ? (
         kind === 'pickup' ? (
-          <PickupDetail
-            row={row}
-            canWrite={canWrite}
-            onChange={onChange}
-            onPickup={onPickup}
-            onCreateAuthorization={onCreateAuthorization}
-            t={t}
-          />
+          <PickupDetail row={row} canWrite={canWrite} onPickup={onPickup} t={t} />
         ) : (
           <>
             {kind === 'health' ? (
@@ -108,89 +96,54 @@ function HealthDetail({ value, canWrite, onChange, t }) {
   );
 }
 
-function PickupDetail({ row, canWrite, onChange, onPickup, onCreateAuthorization, t }) {
+function PickupDetail({ row, canWrite, onPickup, t }) {
   const { student, value } = row;
   const people = pickupOptions(student);
-  const selected = people.find((person) => person.key === value.personKey);
 
-  // Chọn người đón thì điền luôn giờ hiện tại nếu chưa có giờ; giáo viên vẫn sửa được bên dưới.
-  function choose(personKey) {
-    onChange(value.time ? { personKey } : { personKey, time: schoolClock(new Date()) });
-  }
-
+  // Bấm một người đón là ghi nhận luôn (giờ hiện tại, hoặc giữ giờ cũ khi đổi người đã đón);
+  // không có bước xác nhận riêng. Đơn ủy quyền tạo trong mục Yêu cầu ủy quyền của màn Đón trẻ.
   return (
-    <>
-      <View className="gap-1.5">
-        <Text className="text-xs font-medium">{t('Người đón')}</Text>
-        {people.length ? (
-          <View accessibilityRole="radiogroup" className="border border-border">
-            {people.map((person, index) => {
-              const active = person.key === value.personKey;
-              return (
-                <Pressable
-                  key={person.key}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: active, disabled: !canWrite }}
-                  disabled={!canWrite}
-                  onPress={() => choose(person.key)}
-                  className={cn(
-                    'flex-row items-center gap-3 px-3 py-2.5 active:bg-muted',
-                    index > 0 && 'border-t border-border',
-                    active && 'bg-secondary'
-                  )}>
-                  <AccountAvatar
-                    user={{ fullName: person.name, avatarUrl: person.avatarUrl || person.photoUrl }}
-                    className="size-8"
-                  />
-                  <View className="min-w-0 flex-1">
-                    <Text numberOfLines={1} className="text-sm font-medium">
-                      {person.name}
-                    </Text>
-                    <Text numberOfLines={1} className="text-2xs text-muted-foreground">
-                      {[person.relationship, person.phone].filter(Boolean).join(' · ')}
-                    </Text>
-                  </View>
-                  {active ? <Icon as={Check} size={16} className="text-primary" /> : null}
-                </Pressable>
-              );
-            })}
-          </View>
-        ) : (
-          <Text className="text-xs text-muted-foreground">
-            {t('Chưa có người đón hợp lệ cho ngày này.')}
-          </Text>
-        )}
-      </View>
-      <TimeField
-        label={t('Giờ đón')}
-        value={value.time}
-        disabled={!canWrite}
-        now={() => schoolClock(new Date())}
-        onChange={(time) => onChange({ time })}
-      />
-      <View className="gap-1.5">
-        <Text className="text-xs font-medium">{t('Dặn dò phụ huynh')}</Text>
-        <Input
-          value={value.note}
-          onChangeText={(note) => onChange({ note })}
-          editable={canWrite}
-          maxLength={500}
-          accessibilityLabel={t('Dặn dò phụ huynh')}
-        />
-      </View>
-      <Button
-        disabled={!canWrite || !row.changed || !selected || !TIME_PATTERN.test(value.time)}
-        onPress={onPickup}>
-        <Text>
-          {student.isDismissed ? t('Cập nhật ghi nhận đón trẻ') : t('Xác nhận đã đón trẻ')}
+    <View className="gap-1.5">
+      <Text className="text-xs font-medium">{t('Người đón')}</Text>
+      {people.length ? (
+        <View accessibilityRole="radiogroup" className="border border-border">
+          {people.map((person, index) => {
+            const active = person.key === value.personKey;
+            return (
+              <Pressable
+                key={person.key}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: active, disabled: !canWrite }}
+                accessibilityHint={t('Ghi nhận {name} đã đón bé', { name: person.name })}
+                disabled={!canWrite}
+                onPress={() => onPickup(person.key)}
+                className={cn(
+                  'flex-row items-center gap-3 px-3 py-2.5 active:bg-muted',
+                  index > 0 && 'border-t border-border',
+                  active && 'bg-secondary'
+                )}>
+                <AccountAvatar
+                  user={{ fullName: person.name, avatarUrl: person.avatarUrl || person.photoUrl }}
+                  className="size-8"
+                />
+                <View className="min-w-0 flex-1">
+                  <Text numberOfLines={1} className="text-sm font-medium">
+                    {person.name}
+                  </Text>
+                  <Text numberOfLines={1} className="text-2xs text-muted-foreground">
+                    {[person.relationship, person.phone].filter(Boolean).join(' · ')}
+                  </Text>
+                </View>
+                {active ? <Icon as={Check} size={16} className="text-primary" /> : null}
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : (
+        <Text className="text-xs text-muted-foreground">
+          {t('Chưa có người đón hợp lệ cho ngày này.')}
         </Text>
-      </Button>
-      {onCreateAuthorization && !student.isDismissed ? (
-        <Button variant="outline" onPress={onCreateAuthorization}>
-          <Icon as={Plus} size={14} />
-          <Text>{t('Tạo ủy quyền')}</Text>
-        </Button>
-      ) : null}
-    </>
+      )}
+    </View>
   );
 }

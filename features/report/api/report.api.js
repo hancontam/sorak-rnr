@@ -3,7 +3,7 @@ import { apiClient } from '@/shared/api/client';
 function readData(response) {
   const body = response.data;
   if (body?.success !== true || !body.data || typeof body.data !== 'object') {
-    throw new Error('Máy chủ chưa trả đủ dữ liệu báo cáo.');
+    throw new Error('Hệ thống chưa trả đủ dữ liệu báo cáo.');
   }
   return body.data;
 }
@@ -56,7 +56,7 @@ function readReport(data, expectedStudentId) {
       !Array.isArray(data[section]?.history) ||
       data[section].history.some((record) => !record || typeof record !== 'object')
     )
-      throw new Error('Máy chủ trả thiếu một phần báo cáo.');
+      throw new Error('Hệ thống trả thiếu một phần báo cáo.');
   }
   return data;
 }

@@ -4,7 +4,7 @@ import { getTeacherTimetable } from './timetable.api';
 
 function readData(response) {
   if (response.data?.success !== true || !response.data.data) {
-    throw new Error('Máy chủ chưa xác nhận thao tác.');
+    throw new Error('Hệ thống chưa xác nhận thao tác.');
   }
   return response.data.data;
 }
@@ -127,7 +127,7 @@ export async function saveDailyRecords({ kind, classId, date, slot, records }) {
   const data = readData(await apiClient.post(classPath(module, classId, action), body));
   if (!Number.isInteger(data[countKey]) || data[countKey] < 0 || data[countKey] > records.length) {
     throw new Error(
-      'Máy chủ chưa xác nhận đủ số bản ghi. Hãy tải lại để đối chiếu trước khi lưu tiếp.'
+      'Hệ thống chưa xác nhận đủ các mục vừa lưu. Hãy tải lại để kiểm tra trước khi lưu tiếp.'
     );
   }
   // Counts alone cannot prove which child was saved. The hook reads each record back.

@@ -48,7 +48,7 @@ export default function NotificationSettingsScreen() {
       toast.error(
         next
           ? t('Chưa bật được thông báo. Hãy thử lại.')
-          : t('Chưa tắt được thông báo trên máy chủ. Hãy thử lại.')
+          : t('Chưa tắt được thông báo. Hãy thử lại.')
       );
     }
   }

@@ -152,7 +152,7 @@ export function DailyRecordCard({ kind, row, first, editable, locked, onChange, 
           <Text className="text-2xs text-muted-foreground">
             {student.height > 0 || student.weight > 0
               ? t(
-                  'Máy chủ đang có số đo cho ngày này: {height} cm · {weight} kg. Cần đối chiếu với nhà trường.',
+                  'Hệ thống đang có số đo cho ngày này: {height} cm · {weight} kg. Hãy kiểm tra lại với nhà trường.',
                   { height: student.height || '—', weight: student.weight || '—' }
                 )
               : t('Vắng — không ghi số đo mới.')}
@@ -194,7 +194,7 @@ export function DailyRecordCard({ kind, row, first, editable, locked, onChange, 
       ) : null}
       {unknownStatus ? (
         <Text className="text-2xs text-destructive">
-          {t('Trạng thái máy chủ chưa hỗ trợ: {status}. Cần kiểm tra lại trước khi lưu.', {
+          {t('Trạng thái chưa hỗ trợ: {status}. Cần kiểm tra lại trước khi lưu.', {
             status: value.status,
           })}
         </Text>

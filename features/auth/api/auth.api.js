@@ -13,7 +13,7 @@ function nonEmptyString(value) {
 
 function readUser(user) {
   if (!nonEmptyString(user?.id) || !nonEmptyString(user.role)) {
-    throw new Error('Máy chủ chưa trả đủ thông tin tài khoản.');
+    throw new Error('Hệ thống chưa trả đủ thông tin tài khoản.');
   }
   return user;
 }
@@ -21,7 +21,7 @@ function readUser(user) {
 function readTokens(data) {
   const { accessToken, refreshToken } = data;
   if (!nonEmptyString(accessToken) || !nonEmptyString(refreshToken)) {
-    throw new Error('Máy chủ chưa trả đủ token cho ứng dụng.');
+    throw new Error('Chưa đăng nhập được. Vui lòng thử lại.');
   }
   return { accessToken, refreshToken };
 }
@@ -40,7 +40,7 @@ export async function login({ username, password, role }, signal) {
   );
   const data = readData(response);
   if (data.requires2FA === true) {
-    if (!nonEmptyString(data.tempToken)) throw new Error('Thiếu mã phiên xác thực.');
+    if (!nonEmptyString(data.tempToken)) throw new Error('Thiếu thông tin xác thực. Vui lòng đăng nhập lại.');
     return { tempToken: data.tempToken, emailMasked: data.emailMasked };
   }
   return readSession(data);

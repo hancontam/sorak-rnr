@@ -20,7 +20,7 @@ const STATUS = {
   EXPIRED: 'Hết hạn',
 };
 
-function Field({ label, value, mono, danger }) {
+function Field({ label, value, mono }) {
   return (
     <View className="flex-row items-start gap-2">
       <Text className="w-28 text-2xs leading-5 text-muted-foreground">{label}</Text>
@@ -28,7 +28,6 @@ function Field({ label, value, mono, danger }) {
         className={cn(
           'min-w-0 flex-1 text-xs leading-5',
           mono && 'font-mono',
-          danger && 'text-destructive',
           !value && 'text-muted-foreground'
         )}>
         {value || '—'}
@@ -66,7 +65,23 @@ export function PickupRequestCard({
   const student = request.student;
 
   // Thẻ đọc như một dòng của bảng đơn ủy quyền trên web: học sinh, người được ủy quyền, số điện thoại,
-  // thời gian hiệu lực, dặn dò và trạng thái. Phụ huynh xem đơn của con nên không lặp tên bé.
+  // thời gian hiệu lực, dặn dò và trạng thái. Phụ huynh xem đơn của con nên đầu thẻ là người được ủy
+  // quyền (không lặp tên bé hay chữ "Ủy quyền đón trẻ" ở mọi thẻ).
+  const personHeader = (
+    <>
+      <AccountAvatar user={{ fullName: person, avatarUrl: request.photoUrl }} className="size-9" />
+      <View className="min-w-0 flex-1">
+        <Text numberOfLines={1} className="text-sm font-semibold">
+          {person}
+        </Text>
+        {request.relationship ? (
+          <Text numberOfLines={1} className="text-2xs text-muted-foreground">
+            {request.relationship}
+          </Text>
+        ) : null}
+      </View>
+    </>
+  );
   return (
     <Card className="gap-0 px-0 py-0">
       <View className="flex-row items-center gap-2.5 px-3 py-2.5">
@@ -83,35 +98,37 @@ export function PickupRequestCard({
             </View>
           </>
         ) : (
-          <Text className="min-w-0 flex-1 text-sm font-semibold">{t('Đơn ủy quyền đón trẻ')}</Text>
+          personHeader
         )}
         <Badge variant={variant}>
           <Text>{t(label)}</Text>
         </Badge>
       </View>
       <View className="gap-2 border-t border-border px-3 py-2.5">
-        <View className="flex-row items-center gap-2">
-          <Text className="w-28 text-2xs text-muted-foreground">{t('Người được ủy quyền')}</Text>
-          <AccountAvatar
-            user={{ fullName: person, avatarUrl: request.photoUrl }}
-            className="size-6"
-          />
-          <View className="min-w-0 flex-1">
-            <Text numberOfLines={1} className="text-xs font-medium">
-              {person}
-            </Text>
-            {request.relationship ? (
-              <Text numberOfLines={1} className="text-2xs text-muted-foreground">
-                {request.relationship}
+        {isParent ? null : (
+          <View className="flex-row items-center gap-2">
+            <Text className="w-28 text-2xs text-muted-foreground">{t('Người được ủy quyền')}</Text>
+            <AccountAvatar
+              user={{ fullName: person, avatarUrl: request.photoUrl }}
+              className="size-6"
+            />
+            <View className="min-w-0 flex-1">
+              <Text numberOfLines={1} className="text-xs font-medium">
+                {person}
               </Text>
-            ) : null}
+              {request.relationship ? (
+                <Text numberOfLines={1} className="text-2xs text-muted-foreground">
+                  {request.relationship}
+                </Text>
+              ) : null}
+            </View>
           </View>
-        </View>
+        )}
         <Field label={t('Số điện thoại')} value={request.pickupPersonPhone} mono />
         <Field label={t('Thời gian hiệu lực')} value={period} mono />
-        <Field label={t('Dặn dò phụ huynh')} value={request.note} />
+        <Field label={t(isParent ? 'Ghi chú' : 'Dặn dò phụ huynh')} value={request.note} />
         {request.rejectedReason ? (
-          <Field label={t('Lý do từ chối')} value={request.rejectedReason} danger />
+          <Field label={t('Lý do từ chối')} value={request.rejectedReason} />
         ) : null}
       </View>
       {pending ? (

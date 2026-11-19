@@ -164,7 +164,7 @@ export function usePickupRequests({ enabled = true, date = schoolToday(), creati
             }
           : {
               error: true,
-              text: 'Máy chủ đã nhận yêu cầu nhưng chưa đối chiếu được trạng thái. Hãy tải lại danh sách.',
+              text: 'Hệ thống đã nhận yêu cầu nhưng chưa xác nhận trạng thái. Hãy tải lại danh sách.',
             }
       );
       return confirmed;

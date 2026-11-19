@@ -121,7 +121,7 @@ export default function PickupRequestsScreen() {
         <AlertDescription className="text-xs">
           {query.isError && !needsReload
             ? t(timetableError(query.error))
-            : t('Cần tải lại để đối chiếu với máy chủ trước khi thao tác tiếp.')}
+            : t('Cần tải lại dữ liệu mới nhất trước khi làm tiếp.')}
         </AlertDescription>
         {needsReload || allowed ? (
           <Button
@@ -210,7 +210,7 @@ export default function PickupRequestsScreen() {
     <View className="flex-1 bg-background">
       <Stack.Screen
         options={{
-          title: t('Đơn ủy quyền đón trẻ'),
+          title: t(isParent ? 'Ủy quyền đón con' : 'Ủy quyền đón trẻ'),
           headerRight: canCreate
             ? () => (
                 <Button

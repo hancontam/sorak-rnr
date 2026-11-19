@@ -242,7 +242,7 @@ export function useDailyRecords({ kind, date, slotId }) {
         setNeedsReload(true);
         setMessage({
           error: true,
-          text: 'Dữ liệu đã thay đổi trên máy chủ. Bản nháp vẫn còn; tải lại để đối chiếu trước khi lưu.',
+          text: 'Dữ liệu vừa được cập nhật ở nơi khác. Thay đổi của bạn vẫn còn; tải lại để xem trước khi lưu.',
         });
         return;
       }
@@ -289,7 +289,7 @@ export function useDailyRecords({ kind, date, slotId }) {
             : { text: SAVED_MESSAGES[kind], values: { count: records.length } }
           : {
               error: true,
-              text: 'Máy chủ đã nhận yêu cầu nhưng dữ liệu đọc lại chưa khớp. Hãy tải lại để kiểm tra.',
+              text: 'Hệ thống đã nhận yêu cầu nhưng dữ liệu đọc lại chưa khớp. Hãy tải lại để kiểm tra.',
             }
       );
     } catch (error) {

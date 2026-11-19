@@ -127,7 +127,7 @@ export default function AccountsScreen() {
         </Pressable>
       </Card>
       <Text className="text-2xs leading-4 text-muted-foreground">
-        {t('Đăng xuất chỉ xóa phiên của tài khoản được chọn trên thiết bị này.')}
+        {t('Đăng xuất chỉ áp dụng cho tài khoản đang chọn trên máy này.')}
       </Text>
       {signedIn ? (
         <Button variant="ghost" onPress={() => router.push('/settings')}>

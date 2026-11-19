@@ -3,7 +3,7 @@ import { getDismissalStudents } from '@/features/daily/api/daily-records.api';
 
 function readData(response) {
   if (response.data?.success !== true || !response.data.data) {
-    throw new Error('Máy chủ chưa xác nhận yêu cầu ủy quyền.');
+    throw new Error('Hệ thống chưa xác nhận yêu cầu ủy quyền.');
   }
   return response.data.data;
 }
@@ -57,12 +57,12 @@ export async function submitPickupRequest({ isParent, classId, action, id, body 
     );
     // Create returns both internal id and publicId; list uses publicId as id.
     const createdId = created.publicId || created.id;
-    if (!createdId) throw new Error('Máy chủ chưa trả mã đơn mới. Hãy tải lại danh sách.');
+    if (!createdId) throw new Error('Hệ thống chưa trả mã đơn mới. Hãy tải lại danh sách.');
     return String(createdId);
   }
   if (isParent && action === 'create') {
     const created = readData(await apiClient.post('/parent/requests/pickup', body));
-    if (!created.id) throw new Error('Máy chủ chưa trả mã đơn mới. Hãy tải lại danh sách.');
+    if (!created.id) throw new Error('Hệ thống chưa trả mã đơn mới. Hãy tải lại danh sách.');
     return String(created.id);
   }
   if (isParent && action === 'cancel' && id) {

@@ -123,7 +123,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
       {form.needsReload ? (
         <Alert variant="destructive" icon={CircleAlert}>
           <AlertDescription className="text-xs">
-            {t('Cần tải lại để đối chiếu với máy chủ trước khi thao tác tiếp.')}
+            {t('Cần tải lại dữ liệu mới nhất trước khi làm tiếp.')}
           </AlertDescription>
           <Button size="sm" variant="outline" className="ml-6 mt-1 self-start" onPress={reload}>
             <Text>{t('Tải lại dữ liệu')}</Text>

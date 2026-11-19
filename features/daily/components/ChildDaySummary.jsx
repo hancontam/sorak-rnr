@@ -77,7 +77,7 @@ export function ChildDaySummary({ overview, pendingCount, onOpenPickupRequests }
           onPress={onOpenPickupRequests}
           className="flex-row items-center gap-3 border-t border-border px-4 py-3 active:bg-muted">
           <Icon as={ShieldCheck} size={16} className="text-foreground" />
-          <Text className="min-w-0 flex-1 text-sm">{t('Đơn ủy quyền đón trẻ')}</Text>
+          <Text className="min-w-0 flex-1 text-sm">{t('Ủy quyền đón con')}</Text>
           {hasPending ? (
             <Badge variant="destructive">
               <Text>{t('{count} chờ duyệt', { count: pendingCount })}</Text>

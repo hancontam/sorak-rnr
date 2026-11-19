@@ -241,10 +241,10 @@ export function childDayResults(data, date, routineSlot) {
 export function timetableError(error) {
   if (error?.response?.status === 403)
     return 'Tài khoản chưa được cấp quyền xem thời khóa biểu này.';
-  if (error?.response?.status === 401) return 'Phiên đăng nhập không còn hợp lệ.';
+  if (error?.response?.status === 401) return 'Đăng nhập đã hết hạn.';
   if (error?.isAxiosError)
     return error.response
       ? 'Chưa tải được lịch từ nhà trường. Vui lòng thử lại.'
-      : 'Chưa kết nối được máy chủ. Kiểm tra mạng rồi thử lại.';
+      : 'Chưa kết nối được. Kiểm tra mạng rồi thử lại.';
   return error?.message || 'Chưa tải được thời khóa biểu.';
 }

@@ -13,7 +13,7 @@ function errorMessage(error, isOtp) {
         : 'Kiểm tra lại tài khoản, mật khẩu và loại tài khoản.';
     case 401:
       return isOtp
-        ? 'Mã hoặc phiên xác thực không còn hợp lệ.'
+        ? 'Mã xác thực không còn hiệu lực. Hãy lấy mã mới.'
         : 'Kiểm tra lại tài khoản, mật khẩu và loại tài khoản.';
     case 403:
       return 'Tài khoản chưa được phép đăng nhập. Vui lòng liên hệ nhà trường.';
@@ -22,8 +22,8 @@ function errorMessage(error, isOtp) {
     default:
       if (error.isAxiosError) {
         return error.response
-          ? 'Máy chủ chưa xử lý được yêu cầu. Vui lòng thử lại.'
-          : 'Không kết nối được với máy chủ. Kiểm tra mạng rồi thử lại.';
+          ? 'Hệ thống chưa xử lý được yêu cầu. Vui lòng thử lại.'
+          : 'Không kết nối được. Kiểm tra mạng rồi thử lại.';
       }
       return error.message || 'Đăng nhập chưa thành công.';
   }

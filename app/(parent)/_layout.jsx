@@ -30,7 +30,7 @@ export default function ParentLayout() {
         name="pickup-requests"
         options={{
           headerShown: true,
-          title: t('Đơn ủy quyền đón trẻ'),
+          title: t('Ủy quyền đón con'),
           headerTitleAlign: 'center',
         }}
       />

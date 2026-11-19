@@ -1003,4 +1003,19 @@ export const english = {
   'Đã đón {pickedUp}/{total} bé': '{pickedUp}/{total} children picked up',
   'Vắng / chưa điểm danh': 'Absent / not marked',
   Vắng: 'Absent',
+  'Tiếp tục với tài khoản Phụ huynh': 'Continue with a Parent account',
+  'Tiếp tục với tài khoản Nhà trường': 'Continue with a School account',
+  'Đăng nhập bằng mã học sinh của con': "Sign in with your child's student code",
+  'Giáo viên đăng nhập bằng mã cán bộ': 'Teachers sign in with their staff code',
+  'Bằng việc tiếp tục, bạn đồng ý với Điều khoản sử dụng và Chính sách bảo mật của Sorak.':
+    "By continuing, you agree to Sorak's Terms of Use and Privacy Policy.",
+  'Nhà trường': 'School',
+  'Đăng nhập bằng mã học sinh và mật khẩu của con.':
+    "Sign in with your child's student code and password.",
+  'Đăng nhập bằng mã cán bộ và mật khẩu được cấp.':
+    'Sign in with your staff code and the password provided.',
+  'Quên mật khẩu? Phụ huynh vui lòng liên hệ giáo viên chủ nhiệm để được hỗ trợ.':
+    "Forgot your password? Please contact your child's homeroom teacher.",
+  'Nhập mã học sinh của con.': "Enter your child's student code.",
+  'Nhập tài khoản được cấp.': 'Enter the account you were given.',
 };

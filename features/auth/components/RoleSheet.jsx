@@ -1,87 +1,60 @@
-import { Check, ChevronRight, GraduationCap, UsersRound } from 'lucide-react-native';
-import { Pressable, View } from 'react-native';
+import { Check, GraduationCap, UsersRound } from 'lucide-react-native';
+import { View } from 'react-native';
 
-import { Badge } from '@/components/ui/badge';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
+import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
-import { AUTH_ROLES, roleLabel, WEB_ACCOUNT_NOTICE } from '../utils/auth-roles';
+import { AUTH_ROLES, WEB_ACCOUNT_NOTICE } from '../utils/auth-roles';
 
-// Chọn vai trò đăng nhập trong bottom sheet chung (Gorhom) như các lựa chọn khác của app.
+// Chọn loại tài khoản như Figma (Welcome/login flow): hai nút "Tiếp tục với tài khoản …" và dòng
+// điều khoản. Vai trò đang chọn (khi mở lại từ màn đăng nhập) có dấu tích.
 export function RoleSheet({ visible, selectedRole, onClose, onSelect }) {
   const t = useTranslation();
   return (
     <BottomSheet
       open={visible}
       onOpenChange={(open) => !open && onClose()}
-      title={t('Chọn vai trò đăng nhập')}
-      description={t('Chọn loại tài khoản để tiếp tục.')}
+      title={t('Chọn loại tài khoản')}
+      // Ghi chú BGH đặt ngay dưới tiêu đề; cuối sheet chỉ còn dòng điều khoản.
+      description={t(WEB_ACCOUNT_NOTICE)}
       closeLabel={t('Đóng chọn vai trò')}>
       <View className="gap-2.5">
-        <RoleOption
-          role={AUTH_ROLES.teacher}
-          selected={selectedRole === AUTH_ROLES.teacher}
-          icon={GraduationCap}
-          tag={t('Mã cán bộ')}
-          description={t('Điểm danh lớp học và cập nhật nhật ký ngày cho phụ huynh.')}
-          onSelect={onSelect}
-        />
-        <RoleOption
-          role={AUTH_ROLES.parent}
-          selected={selectedRole === AUTH_ROLES.parent}
+        <RoleButton
+          label={t('Tiếp tục với tài khoản Phụ huynh')}
           icon={UsersRound}
-          tag={t('Mã học sinh')}
-          description={t('Xem hoạt động, hồ sơ và kết quả đánh giá của con.')}
-          onSelect={onSelect}
+          selected={selectedRole === AUTH_ROLES.parent}
+          onPress={() => onSelect(AUTH_ROLES.parent)}
         />
-        <Text className="text-2xs leading-4 text-muted-foreground">{t(WEB_ACCOUNT_NOTICE)}</Text>
+        <RoleButton
+          label={t('Tiếp tục với tài khoản Nhà trường')}
+          icon={GraduationCap}
+          selected={selectedRole === AUTH_ROLES.teacher}
+          onPress={() => onSelect(AUTH_ROLES.teacher)}
+        />
+        <Text className="pt-1 text-center text-2xs leading-4 text-muted-foreground">
+          {t(
+            'Bằng việc tiếp tục, bạn đồng ý với Điều khoản sử dụng và Chính sách bảo mật của Sorak.'
+          )}
+        </Text>
       </View>
     </BottomSheet>
   );
 }
 
-function RoleOption({ role, selected, icon, tag, description, onSelect }) {
-  const t = useTranslation();
-  const label = t(roleLabel(role));
+function RoleButton({ label, icon, selected, onPress }) {
   return (
-    <Pressable
-      onPress={() => onSelect(role)}
-      accessibilityRole="radio"
+    <Button
+      variant="outline"
+      accessibilityLabel={label}
       accessibilityState={{ selected }}
-      accessibilityLabel={`${label}. ${tag}. ${description}`}
-      // Viền dày cố định 2 dp, chỉ đổi màu viền để khung không nhảy khi chọn.
-      className={cn(
-        'flex-row items-start gap-3 rounded-2xl border-2 px-3.5 py-3 active:bg-muted/60',
-        selected ? 'border-primary bg-muted/50' : 'border-border'
-      )}>
-      <View
-        className={cn(
-          'size-9 items-center justify-center rounded-xl',
-          selected ? 'bg-primary' : 'bg-muted'
-        )}>
-        <Icon
-          as={icon}
-          size={16}
-          className={selected ? 'text-primary-foreground' : 'text-foreground'}
-        />
-      </View>
-      <View className="min-w-0 flex-1 gap-1">
-        <View className="flex-row flex-wrap items-center gap-2">
-          <Text className="text-sm font-semibold">{label}</Text>
-          <Badge variant="brand">
-            <Text>{tag}</Text>
-          </Badge>
-        </View>
-        <Text className="text-xs leading-5 text-muted-foreground">{description}</Text>
-      </View>
-      <Icon
-        as={selected ? Check : ChevronRight}
-        size={16}
-        className={cn('mt-1', selected ? 'text-foreground' : 'text-muted-foreground')}
-      />
-    </Pressable>
+      onPress={onPress}
+      className="h-12 justify-start gap-3 px-4">
+      <Icon as={icon} size={18} className="text-primary" />
+      <Text className="min-w-0 flex-1 text-sm font-semibold">{label}</Text>
+      {selected ? <Icon as={Check} size={16} className="text-primary" /> : null}
+    </Button>
   );
 }

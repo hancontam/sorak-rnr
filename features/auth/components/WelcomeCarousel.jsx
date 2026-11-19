@@ -1,36 +1,34 @@
-import { ChevronRight } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   AccessibilityInfo,
   Image,
   PanResponder,
   Platform,
+  Pressable,
   View,
   useWindowDimensions,
 } from 'react-native';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
-import { Badge } from '@/components/ui/badge';
+import { TypewriterText } from '@/components/shared/TypewriterText';
 import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 const SLIDES = [
   {
-    photo: require('@/assets/images/welcome-class.jpg'),
+    photo: require('@/assets/images/welcome-mascot-school.webp'),
     label: 'Hoạt động lớp',
     headline: 'Mỗi ngày đến lớp,\nmột điều tuyệt vời.',
     caption: 'Theo dõi lịch học và các hoạt động trong ngày của bé.',
   },
   {
-    photo: require('@/assets/images/welcome-contact-book.jpg'),
+    photo: require('@/assets/images/welcome-mascot-campus.webp'),
     label: 'Sổ liên lạc điện tử',
     headline: 'Kết nối Giáo viên,\nđồng hành cùng con.',
     caption: 'Xem Sổ bé ngoan và gửi phản hồi cho giáo viên.',
   },
   {
-    photo: require('@/assets/images/welcome-attendance.jpg'),
+    photo: require('@/assets/images/welcome-mascot-clouds.webp'),
     label: 'Điểm danh & An toàn',
     headline: 'An tâm mỗi ngày,\ntrọn vẹn yêu thương.',
     caption: 'Theo dõi điểm danh, thông tin đón trẻ và sức khỏe của bé.',
@@ -50,6 +48,8 @@ export function WelcomeCarousel({ paused, branding }) {
   const t = useTranslation();
   const [index, setIndex] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(true);
+  // Câu tiêu đề của ảnh nào đã gõ xong; chỉ chuyển ảnh sau khi câu hiện đủ một lúc.
+  const [typedHeadline, setTypedHeadline] = useState('');
   const { width } = useWindowDimensions();
   const cardWidth = Math.max(1, Math.min(PHOTO_WIDTH, width - 88));
   const cardHeight = Math.round((cardWidth * PHOTO_HEIGHT) / PHOTO_WIDTH);
@@ -71,11 +71,12 @@ export function WelcomeCarousel({ paused, branding }) {
     };
   }, []);
 
+  const headline = t(slide.headline);
   useEffect(() => {
-    if (paused || reduceMotion) return;
-    const timer = setTimeout(() => setIndex(wrap(index + 1)), 5000);
+    if (paused || reduceMotion || typedHeadline !== headline) return;
+    const timer = setTimeout(() => setIndex(wrap(index + 1)), 3000);
     return () => clearTimeout(timer);
-  }, [index, paused, reduceMotion]);
+  }, [headline, index, paused, reduceMotion, typedHeadline]);
 
   const swipe = useMemo(
     () =>
@@ -94,11 +95,14 @@ export function WelcomeCarousel({ paused, branding }) {
     <View className="grow gap-5">
       <View className="gap-4">
         {branding}
-        <Text
+        {/* Tiêu đề gõ chữ như bản Welcome cũ, đổi theo ảnh đang hiện; giữ chỗ 2 dòng để ảnh không nhảy. */}
+        <TypewriterText
           role="heading"
-          className="px-4 text-center font-mono text-xl font-medium leading-[27px] tracking-tight">
-          {t(slide.headline)}
-        </Text>
+          text={headline}
+          reduceMotion={reduceMotion}
+          onComplete={setTypedHeadline}
+          className="mt-6 min-h-[84px] px-4 pt-1 text-center text-[28px] font-normal leading-[40px] tracking-tight"
+        />
       </View>
       <View className="grow justify-center py-2">
         <View className="flex-row items-center justify-center gap-3" {...swipe.panHandlers}>
@@ -108,74 +112,18 @@ export function WelcomeCarousel({ paused, branding }) {
             height={peekHeight}
             onPress={() => setIndex(wrap(index - 1))}
           />
+          {/* Ảnh mascot chính thức như Figma: ảnh sạch, không phủ tối hay chữ trên ảnh. */}
           <View
-            className="rounded-2xl bg-muted shadow-md shadow-black/15"
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel={`${t(slide.label)}. ${t(slide.caption)}`}
+            className="overflow-hidden border border-border bg-muted"
             style={{ width: cardWidth, height: cardHeight }}>
-            <View className="flex-1 overflow-hidden rounded-2xl border border-border">
-              <Image
-                source={slide.photo}
-                className="absolute inset-0 h-full w-full"
-                resizeMode="cover"
-              />
-              <Svg pointerEvents="none" width="100%" height="100%" style={{ position: 'absolute' }}>
-                <Defs>
-                  <LinearGradient id="photoShade" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <Stop offset="0" stopColor="black" stopOpacity={0} />
-                    <Stop offset="0.5" stopColor="black" stopOpacity={0.15} />
-                    <Stop offset="1" stopColor="black" stopOpacity={0.75} />
-                  </LinearGradient>
-                </Defs>
-                <Rect width="100%" height="100%" fill="url(#photoShade)" />
-              </Svg>
-              <View className="flex-1 justify-between p-4">
-                <View className="flex-row items-center justify-between gap-1">
-                  <Badge
-                    variant="outline"
-                    className="min-w-0 shrink rounded-md border-white/15 bg-black/45">
-                    <Text className="shrink font-mono text-2xs font-semibold uppercase leading-[14px] tracking-wider text-white">
-                      {String(index + 1).padStart(2, '0')} / 0{count} • {t(slide.label)}
-                    </Text>
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 rounded-full border border-white/15 bg-black/40 active:bg-black/60"
-                    accessibilityRole="button"
-                    accessibilityLabel={t('Ảnh tiếp theo')}
-                    hitSlop={8}
-                    onPress={() => setIndex(wrap(index + 1))}>
-                    <Icon as={ChevronRight} size={14} className="text-white" />
-                  </Button>
-                </View>
-                <View className="gap-2">
-                  <Text className="text-xs font-medium leading-4 text-white">
-                    {t(slide.caption)}
-                  </Text>
-                  <View className="flex-row items-center gap-1.5 pt-1">
-                    {SLIDES.map(({ label }, position) => (
-                      <Button
-                        key={label}
-                        variant="ghost"
-                        size="icon"
-                        className={
-                          index === position
-                            ? 'h-1.5 w-5 rounded-full bg-white'
-                            : 'size-1.5 rounded-full bg-white/45'
-                        }
-                        hitSlop={{ top: 10, bottom: 10, left: 3, right: 3 }}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('Ảnh {number}: {label}', {
-                          number: position + 1,
-                          label: t(label),
-                        })}
-                        accessibilityState={{ selected: index === position }}
-                        onPress={() => setIndex(position)}
-                      />
-                    ))}
-                  </View>
-                </View>
-              </View>
-            </View>
+            <Image
+              source={slide.photo}
+              className="absolute inset-0 h-full w-full"
+              resizeMode="cover"
+            />
           </View>
           <PeekPhoto
             side="right"
@@ -183,6 +131,22 @@ export function WelcomeCarousel({ paused, branding }) {
             height={peekHeight}
             onPress={() => setIndex(wrap(index + 1))}
           />
+        </View>
+        <View className="flex-row items-center justify-center gap-1.5 pt-4">
+          {SLIDES.map(({ label }, position) => (
+            <Pressable
+              key={label}
+              hitSlop={{ top: 10, bottom: 10, left: 4, right: 4 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('Ảnh {number}: {label}', {
+                number: position + 1,
+                label: t(label),
+              })}
+              accessibilityState={{ selected: index === position }}
+              onPress={() => setIndex(position)}
+              className={index === position ? 'h-1.5 w-5 bg-primary' : 'size-1.5 bg-border'}
+            />
+          ))}
         </View>
       </View>
     </View>
@@ -195,13 +159,12 @@ function PeekPhoto({ side, photo, height, onPress }) {
   return (
     <Button
       variant="ghost"
-      className={`w-6 overflow-hidden border-y border-border bg-muted p-0 opacity-75 ${left ? 'rounded-l-none rounded-r-2xl border-r' : 'rounded-l-2xl rounded-r-none border-l'}`}
+      className={`w-6 overflow-hidden border-y border-border bg-muted p-0 opacity-75 ${left ? 'border-r' : 'border-l'}`}
       style={{ height }}
       accessibilityRole="button"
       accessibilityLabel={left ? t('Ảnh trước') : t('Ảnh tiếp theo')}
       onPress={onPress}>
       <Image source={photo} className="absolute inset-0 h-full w-full" resizeMode="cover" />
-      <View className="absolute inset-0 bg-black/15" />
     </Button>
   );
 }

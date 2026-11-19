@@ -1,7 +1,7 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { CircleAlert, Plus } from 'lucide-react-native';
-import { useState } from 'react';
-import { FlatList, View } from 'react-native';
+import { ArrowLeft, CircleAlert, Plus } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
+import { BackHandler, FlatList, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { ScheduleState } from '@/features/daily/components/ScheduleState';
-import { schoolToday } from '@/features/daily/utils/schedule-date';
+import { schoolToday, shortDate } from '@/features/daily/utils/schedule-date';
 import { timetableError } from '@/features/daily/utils/timetable-model';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
@@ -30,6 +30,8 @@ const FILTERS = [
   ['PENDING', 'Chờ duyệt'],
   ['done', 'Đã xử lý'],
 ];
+// Ngày dd/mm/yyyy cho hộp xác nhận (đơn lưu dạng YYYY-MM-DD).
+const fullDate = (value) => (value ? `${shortDate(value)}/${value.slice(0, 4)}` : '');
 const matches = (key, item) =>
   key === 'all' || (key === 'done' ? item.status !== 'PENDING' : item.status === key);
 
@@ -65,6 +67,20 @@ export default function PickupRequestsScreen() {
     }
   }
 
+  function leaveForm() {
+    if (!saving && !photo.busy) confirmDiscard(closeForm);
+  }
+
+  // Phím quay lại của Android khi đang mở form: về danh sách đơn thay vì rời màn.
+  useEffect(() => {
+    if (!creating) return undefined;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      leaveForm();
+      return true;
+    });
+    return () => sub.remove();
+  });
+
   function closeForm() {
     setCreating(false);
     setRejectingId(null);
@@ -90,7 +106,7 @@ export default function PickupRequestsScreen() {
       title: labels[action],
       description:
         action === 'create'
-          ? `${selected?.fullName || selected?.name || ''}\n${t('Người đón')}: ${body.pickup_person_name}\n${body.start_date} – ${body.end_date}`
+          ? `${selected?.fullName || selected?.name || ''}\n${t('Người đón')}: ${body.pickup_person_name}\n${fullDate(body.start_date)} – ${fullDate(body.end_date)}`
           : undefined,
       cancelLabel: t('Quay lại'),
       confirmLabel: t('Xác nhận'),
@@ -136,7 +152,24 @@ export default function PickupRequestsScreen() {
   if (creating)
     return (
       <>
-        <Stack.Screen options={{ title: t('Tạo đơn ủy quyền'), headerRight: () => null }} />
+        <Stack.Screen
+          options={{
+            title: t('Tạo đơn ủy quyền'),
+            headerRight: () => null,
+            // Nút quay lại đóng form về danh sách đơn (thay nút "Đóng form" cuối form).
+            headerBackVisible: false,
+            headerLeft: () => (
+              <Button
+                size="icon"
+                variant="ghost"
+                accessibilityLabel={t('Quay lại danh sách đơn')}
+                disabled={saving || photo.busy}
+                onPress={leaveForm}>
+                <Icon as={ArrowLeft} size={20} />
+              </Button>
+            ),
+          }}
+        />
         <KeyboardAwareScrollView
           bottomOffset={16}
           className="flex-1 bg-background"
@@ -164,9 +197,7 @@ export default function PickupRequestsScreen() {
               selectedStudentId={typeof params.studentId === 'string' ? params.studentId : ''}
               photo={photo}
               disabled={disabled}
-              closingDisabled={saving || photo.busy}
               onDirtyChange={setDirty}
-              onClose={() => confirmDiscard(closeForm)}
               onSend={(body) => confirm('create', null, body)}
             />
           )}

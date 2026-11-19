@@ -77,3 +77,16 @@ export async function getParentReport({ studentId, semester, signal }) {
   );
   return readReport(data, studentId);
 }
+
+// Giáo viên chủ nhiệm của bé (từ hồ sơ PH) để phụ huynh liên hệ; null khi lớp chưa có giáo viên.
+export async function getHomeroomTeacher(signal) {
+  const data = readData(await apiClient.get('/parent/profile', { signal }));
+  const teacher = data.primaryTeacher;
+  if (!teacher || typeof teacher !== 'object' || !teacher.fullName) return null;
+  return {
+    fullName: teacher.fullName,
+    phone: teacher.phone || '',
+    email: teacher.email || '',
+    avatarUrl: teacher.avatarUrl || '',
+  };
+}

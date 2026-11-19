@@ -36,9 +36,7 @@ export function PickupRequestForm({
   date,
   photo,
   disabled,
-  closingDisabled,
   onSend,
-  onClose,
   onDirtyChange,
 }) {
   const t = useTranslation();
@@ -119,7 +117,6 @@ export function PickupRequestForm({
 
   return (
     <Card className="gap-3 p-4 shadow-none">
-      <Text className="text-sm font-semibold">{t('Tạo đơn ủy quyền đón trẻ')}</Text>
       {student?.fullName ? (
         <Text className="text-xs">{t('Học sinh {name}', { name: student.fullName })}</Text>
       ) : null}
@@ -208,9 +205,6 @@ export function PickupRequestForm({
       {error ? <Text className="text-xs text-destructive">{t(error)}</Text> : null}
       <Button size="sm" disabled={disabled || (photo && !photo.ready)} onPress={send}>
         <Text>{isParent ? t('Gửi đơn chờ duyệt') : t('Tạo ủy quyền đã duyệt')}</Text>
-      </Button>
-      <Button size="sm" disabled={closingDisabled} variant="outline" onPress={onClose}>
-        <Text>{t('Đóng form')}</Text>
       </Button>
     </Card>
   );

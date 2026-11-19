@@ -197,8 +197,9 @@ export function MonthlyResultCard({
     ) : null
   ) : (
     <View className="flex-row items-center gap-2">
-      {record?.isLotus === true ? <LotusMark /> : null}
+      {/* Đủ hoa hồng mới được hoa sen nên hoa sen đứng sau số hoa. */}
       {hasRoses ? <RoseCount count={record.rosesCount} max={maxRoses} /> : null}
+      {record?.isLotus === true ? <LotusMark /> : null}
     </View>
   );
   const summary = week

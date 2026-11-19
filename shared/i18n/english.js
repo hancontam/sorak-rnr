@@ -923,7 +923,7 @@ export const english = {
   'Đã lưu số đo sức khỏe cho {count} học sinh.': 'Saved health measurements for {count} students.',
   'Đã lưu đánh giá cho {count} học sinh.': 'Saved assessments for {count} students.',
   'Đã ghi nhận đón {name}.': 'Recorded pickup for {name}.',
-  'Đã gửi đơn ủy quyền, đang chờ cô duyệt.':
+  'Đã gửi đơn ủy quyền, đang chờ giáo viên duyệt.':
     'Authorization sent, waiting for the teacher to approve.',
   'Đã tạo đơn ủy quyền đã duyệt.': 'Approved authorization created.',
   'Đã hủy đơn ủy quyền.': 'Authorization cancelled.',
@@ -1036,4 +1036,9 @@ export const english = {
   'Không có đơn chờ': 'Nothing pending',
   'Ghi nhận {name} đã đón bé': 'Record that {name} picked up the child',
   'Trường Mầm Non Hòn Tre · Sorak. Cập nhật lần cuối {date}.': 'Hon Tre Preschool · Sorak. Last updated {date}.',
+  'Nhà trường chưa công bố phiếu đánh giá tháng này.': 'The school has not published this month’s report yet.',
+  'Quay lại danh sách đơn': 'Back to requests',
+  'Giáo viên chủ nhiệm': 'Homeroom teacher',
+  'Gọi giáo viên': 'Call teacher',
+  'Email': 'Email',
 };

@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Search } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
@@ -61,6 +61,15 @@ export default function LearningResultScreen() {
   const schoolYear = data?.classInfo?.schoolYear || data?.classInfo?.academicYear;
   const selectedMonth = period || shownPeriod;
   const months = monthly ? schoolMonths(schoolYear, selectedMonth, schoolToday()) : [];
+  // Giáo viên: máy chủ trả tháng đầu năm học, nên mở sẵn tháng đã kết thúc gần nhất. Phụ huynh giữ
+  // tháng máy chủ chọn (tháng đã công bố gần nhất); tháng sau có thể chưa công bố.
+  const latestEnded = months.filter((month) => month.ended).at(-1);
+  const shownKey = shownPeriod?.month ? monthKey(shownPeriod) : '';
+  useEffect(() => {
+    if (parent || !monthly || period || !latestEnded || !shownKey || shownKey === latestEnded.key)
+      return;
+    setPeriod({ month: latestEnded.month, year: latestEnded.year });
+  }, [parent, monthly, period, latestEnded, shownKey]);
   const monthNotEnded =
     selectedMonth && months.some((month) => month.key === monthKey(selectedMonth) && !month.ended);
   const semesterDates = !monthly && !parent ? data?.classInfo?.semesterDates : null;
@@ -257,7 +266,13 @@ export default function LearningResultScreen() {
             parent
           />
         ) : (
-          <Empty text={t('Chưa có phiếu đánh giá tháng này.')} />
+          <Empty
+            text={t(
+              data.period?.isPublished === false
+                ? 'Nhà trường chưa công bố phiếu đánh giá tháng này.'
+                : 'Chưa có phiếu đánh giá tháng này.'
+            )}
+          />
         )}
         {data.record?.id && (shownWeek === 0 || feedback) ? (
           <Card className="gap-3 px-4 py-3.5">

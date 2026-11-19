@@ -158,7 +158,7 @@ export function usePickupRequests({ enabled = true, date = schoolToday(), creati
               text:
                 action === 'create'
                   ? isParent
-                    ? 'Đã gửi đơn ủy quyền, đang chờ cô duyệt.'
+                    ? 'Đã gửi đơn ủy quyền, đang chờ giáo viên duyệt.'
                     : 'Đã tạo đơn ủy quyền đã duyệt.'
                   : DONE_MESSAGES[action],
             }

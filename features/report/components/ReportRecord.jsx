@@ -9,6 +9,7 @@ import {
   formatDate,
   measurement,
 } from '../utils/report-format';
+import { heightForAge, recordedByLabel, weightStatus } from '../utils/growth-evaluation';
 import { ReportFields } from './ReportFields';
 
 const MONO = { mono: true };
@@ -24,7 +25,17 @@ export function ReportRecord({ section, record }) {
         fields={[
           ['Chiều cao', t(measurement(record.height, 'cm', locale)), MONO],
           ['Cân nặng', t(measurement(record.weight, 'kg', locale)), MONO],
-          ...(record.notes ? [['Ghi chú', record.notes]] : []),
+          ...(Number.isFinite(Number(record.bmi)) && Number(record.bmi) > 0
+            ? [['BMI', Number(record.bmi).toLocaleString(locale), MONO]]
+            : []),
+          ['Chiều cao / Tuổi', <GrowthBadge evaluation={heightForAge(record)} />],
+          ['Cân nặng / Thể trạng', <GrowthBadge evaluation={weightStatus(record)} />],
+          // Chỉ hiện ghi chú khi backend có; không tự điền câu mặc định như web.
+          ...(record.notes ? [['Ghi chú y tế', record.notes]] : []),
+          [
+            'Người ghi nhận',
+            recordedByLabel(record.recordedBy) && t(recordedByLabel(record.recordedBy)),
+          ],
         ]}
       />
     );
@@ -74,6 +85,22 @@ export function ReportRecord({ section, record }) {
         ...(record.note ? [['Ghi chú', record.note]] : []),
       ]}
     />
+  );
+}
+
+const TONE_VARIANT = { danger: 'destructive', warn: 'outline', info: 'secondary', ok: 'secondary' };
+
+// Nhãn đánh giá WHO; thiếu z-score thì ghi rõ chưa có thông tin, không mặc định "Đạt chuẩn".
+function GrowthBadge({ evaluation }) {
+  const t = useTranslation();
+  if (!evaluation)
+    return (
+      <Text className="text-xs leading-5 text-muted-foreground">{t('Chưa có thông tin')}</Text>
+    );
+  return (
+    <Badge variant={TONE_VARIANT[evaluation.tone]}>
+      <Text>{t(evaluation.label)}</Text>
+    </Badge>
   );
 }
 

@@ -11,6 +11,7 @@ import { useColorScheme } from 'nativewind';
 import { useEffect, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { AnimatedSplash } from '@/components/shared/AnimatedSplash';
 import { BottomSheetModalProvider } from '@/components/ui/bottom-sheet';
@@ -75,17 +76,19 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       {fontsReady ? (
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-            <BottomSheetModalProvider>
-              <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-              <AuthStack />
-              <PushNotifications />
-              <Toaster />
-              <PortalHost />
-            </BottomSheetModalProvider>
-          </ThemeProvider>
-        </QueryClientProvider>
+        <KeyboardProvider>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+              <BottomSheetModalProvider>
+                <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+                <AuthStack />
+                <PushNotifications />
+                <Toaster />
+                <PortalHost />
+              </BottomSheetModalProvider>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </KeyboardProvider>
       ) : null}
       {Platform.OS !== 'web' ? (
         <AnimatedSplash ready={appReady} onShown={hideNativeSplash} />

@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, Eye, EyeOff } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { BackHandler, Keyboard, ScrollView, View } from 'react-native';
+import { BackHandler, Keyboard, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -72,8 +73,8 @@ export function PasswordRecoveryScreen({ initialIdentifier, onBack, onComplete }
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView
-        automaticallyAdjustKeyboardInsets
+      <KeyboardAwareScrollView
+        bottomOffset={16}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         contentContainerClassName="mx-auto w-full max-w-md gap-4 px-4 pb-6 pt-3">
@@ -238,7 +239,7 @@ export function PasswordRecoveryScreen({ initialIdentifier, onBack, onComplete }
             </AccordionItem>
           </Accordion>
         ) : null}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

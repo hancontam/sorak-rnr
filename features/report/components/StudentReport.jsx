@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { ChipTabs } from '@/components/shared/ChipTabs';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -34,6 +35,7 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
   const [section, setSection] = useState('profile');
   const list = useRef(null);
   const report = query.data;
+  const pull = usePullToRefresh(query.refetch);
   const switchSection = (value) => {
     setSection(value);
     list.current?.scrollToOffset({ offset: 0, animated: false });
@@ -86,8 +88,8 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
         keyExtractor={(item, index) => String(item.publicId || item.id || `${section}-${index}`)}
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8"
-        refreshing={query.isRefetching}
-        onRefresh={query.refetch}
+        refreshing={pull.refreshing}
+        onRefresh={pull.onRefresh}
         ListHeaderComponent={
           <View className="gap-4">
             {query.isError ? (

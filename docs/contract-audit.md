@@ -73,7 +73,7 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 
 - Swagger công khai khai báo DELETE với hai tham số path `classId` và `studentId` nhưng thiếu query `date`. Bundle web đang deploy trên test2 dùng cùng đường dẫn và truyền query qua `params`. Gọi DELETE test2 không có phiên với ID giả trả `401 UNAUTHORIZED`; phép thử này chỉ xác nhận nhánh thiếu phiên.
 
-- Network web test2 do người dùng cung cấp ghi nhận HTTP 200 cho `DELETE /attendance/classes/{classId}/dismissal/{studentId}?date=YYYY-MM-DD`. Web gửi ID học sinh từ danh sách đón trẻ. Backend tham chiếu xóa các trường giờ đón, người đón, ảnh và dặn dò trong bản ghi của đúng học sinh/ngày, giữ điểm danh và đơn ủy quyền.
+- Network web test2 do người dùng cung cấp ghi nhận HTTP 200 cho `DELETE /attendance/classes/{classId}/dismissal/{studentId}?date=YYYY-MM-DD`. Web gửi ID học sinh từ danh sách đón trẻ. Backend tham chiếu xóa các trường giờ đón, người đón, ảnh và dặn dò trong bản ghi của đúng học sinh/ngày, giữ điểm danh và đơn ủy quyền. Ngày 14/11/2026 người dùng chốt mobile không có nghiệp vụ hủy ghi nhận đón trẻ; mobile đã gỡ nút và lời gọi endpoint này.
 - Mobile đọc lại danh sách sau DELETE, kiểm tra đã bỏ trạng thái và thông tin đón của đúng học sinh, rồi làm mới lịch và báo cáo. Trên Android test2 ngày 02/11, đã quan sát hộp xác nhận đúng học sinh/ngày và kết quả sau xác nhận trên thiết bị: bé về Chưa đón, người/giờ đón được xóa, tổng đã đón giảm từ 3/5 xuống 2/5. Bằng chứng HTTP 200 trong ảnh Network là từ web.
 
 ## Kết quả học tập và thông báo 6A trên test2 — 11/11/2026
@@ -104,11 +104,22 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 - Không có API đọc danh sách thiết bị đã đăng ký, nên chưa đọc lại được tác động của POST/DELETE; chưa gửi/nhận push thật trên thiết bị. Không gọi `test-push`.
 - Mã nguồn `sorak-api` chỉ gửi email OTP (`sendOtpEmail`); không có email theo loại thông báo, không có bảng/API tùy chọn thông báo. Màn "Cài đặt thông báo" của web lưu công tắc email/push/âm thanh vào `localStorage`, không gọi API, nên các công tắc email trên web hiện không điều khiển email nào. Mobile chỉ làm công tắc push theo thiết bị (đăng ký/gỡ token thật) và âm thanh khi app đang mở (cài đặt cục bộ).
 
+### Refresh token: cookie được ưu tiên hơn body (test2, 14/11/2026)
+
+- Tài khoản GV CB26003, header `X-Client-Platform: android`. `POST /auth/login` và `POST /auth/refresh` đều trả `Set-Cookie: sorak_refresh=…; Max-Age=604800; HttpOnly; Secure; SameSite=Lax`; access token sống 900 giây; refresh xoay vòng (dùng lại refresh token cũ trả 401).
+- Gửi `/auth/refresh` với body là refresh token mới nhưng cookie `sorak_refresh` là token đã xoay: 401 `UNAUTHORIZED`; cùng body không kèm cookie: 200. Server dùng cookie trước body.
+- Mobile trước đây không đặt `withCredentials`, nên XHR của React Native (mặc định `true`) bật cookie jar hệ thống và gửi cookie cũ, làm phiên bị đăng xuất sau khoảng 15 phút (đăng xuất rồi đăng nhập lại, nhiều tài khoản PH trên máy). Đã đặt `withCredentials: false` cho API client; `/auth/sessions` vẫn tự gắn cookie của phiên hiện tại.
+- Đăng nhập/đăng xuất phiên khác (android hoặc web) không thu hồi refresh của phiên đang dùng.
+
 ### Avatar học sinh theo endpoint (test2, 12–13/11/2026)
 
 - Chỉ GET, tài khoản GV (lớp Nhà Trẻ 1 và Lá 1). `GET /classes/{id}/students` và `GET /attendance/classes/{id}/dismissal` trả `avatarUrl` (dicebear SVG, tải được 200 `image/svg+xml`); `GET /attendance/classes/{id}/authorizations` trả `student.avatarUrl`.
 - `GET /attendance/classes/{id}/timetable` (`students`) và các endpoint kết quả `assessment` tháng/học kỳ không có trường avatar. `id` học sinh của lịch và kết quả khớp `id` trong danh sách lớp (4/4 và 8/8 bé), nên mobile ghép avatar theo `id` trong hook.
 - Không có ảnh thật nào trên test2 để kiểm tra trường hợp ảnh tải lên.
+
+### Ngày nghỉ và Thứ Bảy dạy bù (test2, 19/11/2026)
+
+`GET /attendance/classes/{classId}/timetable` (CB26001, Lá 1) trả `holidays[]` có thêm `makeupDate` (`YYYY-MM-DD` hoặc `null`); test2 chưa có mục nào đặt ngày dạy bù nên UI học bù mới được xem bằng dữ liệu giả trên bản dev. Theo code `sorak-api` cùng ngày: ngày dạy bù chỉ đặt cho ngày nghỉ 1 ngày (`is_teaching_allowed = false`), luôn là Thứ Bảy tuần đó hoặc tuần sau, và hoạt động được sao chép sang Thứ Bảy với `notes` mở đầu `[Dạy bù ngày dd/mm]`; ngày dạy bù không bị tính là ngày nghỉ. Không xếp lịch Chủ nhật; Thứ Bảy chỉ xếp được khi là ngày dạy bù hoặc có sự kiện cho dạy. Mobile theo cùng quy tắc (và theo web `DailyRoutinePage`): Thứ Bảy dạy bù mở ghi nhận kể cả khi chưa có slot. Các API lưu vẫn chưa chặn ngày nghỉ và `/parent/schedule` vẫn chưa trả `holidays` (BE-06).
 
 ## Nguồn và lịch sử
 

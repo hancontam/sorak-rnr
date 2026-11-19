@@ -43,8 +43,13 @@ export function dayFrames(data, date, isParent) {
   const activities = dayActivities(data, date, isParent);
   const weekday = calendarDate(date)?.getUTCDay();
   // Do not invent a school day from routine templates on an empty weekend.
-  // Real weekend activities remain available to both roles.
-  if ((weekday === 0 || weekday === 6) && activities.length === 0) return [];
+  // Real weekend activities and Saturday make-up days remain available to both roles.
+  if (
+    (weekday === 0 || weekday === 6) &&
+    activities.length === 0 &&
+    !(weekday === 6 && saturdayMakeup(calendarEntries(data), date))
+  )
+    return [];
   const routines = isParent
     ? data.timetable.routineSlots.map((slot) => {
         const [start = '', end = ''] = plainText(slot.time).split(/\s*[–—]\s*/);
@@ -68,6 +73,70 @@ export function dayFrames(data, date, isParent) {
     }
   }
   return frames;
+}
+
+// Mục lịch năm học áp cho lớp: targetGrades rỗng là toàn trường, có giá trị thì cho mọi lớp thuộc khối.
+function calendarEntries(data) {
+  const grade = data?.classInfo?.ageGroup;
+  return (Array.isArray(data?.holidays) ? data.holidays : []).filter(
+    (item) =>
+      typeof item?.startDate === 'string' &&
+      typeof item?.endDate === 'string' &&
+      (!item.targetGrades?.length || !grade || item.targetGrades.includes(grade))
+  );
+}
+
+// Thứ Bảy là ngày học khi BGH đặt làm ngày dạy bù (makeupDate của một ngày nghỉ) hoặc có sự kiện
+// cho dạy phủ ngày đó (cách đánh dấu học bù cũ), giống điều kiện xếp lịch T7 của backend.
+function saturdayMakeup(entries, date) {
+  return (
+    entries.find((item) => item.makeupDate === date) ||
+    entries.find(
+      (item) => item.isTeachingAllowed === true && item.startDate <= date && date <= item.endDate
+    ) ||
+    null
+  );
+}
+
+// Lịch năm học của ngày (theo backend/web):
+// - Ngày nghỉ (isTeachingAllowed = false) khóa ghi nhận; slot đã sắp vẫn hiện để xem. Ngày được đặt
+//   làm ngày dạy bù không bị khóa. Ngày nghỉ có makeupDate cho biết lịch dạy dời sang Thứ Bảy đó.
+// - Thứ Bảy dạy bù là ngày học kể cả khi chưa có slot; makeupOf là ngày nghỉ được bù.
+// - T7/CN khác không có hoạt động là ngày nghỉ cuối tuần; có hoạt động thì như ngày thường.
+// - Sự kiện vẫn cho dạy chỉ để hiện nhãn. Lịch PH chưa trả holidays (BE-06) nên PH chỉ thấy khóa
+//   cuối tuần.
+export function dayCalendar(data, date, isParent) {
+  const entries = calendarEntries(data);
+  const covering = entries.filter((item) => item.startDate <= date && date <= item.endDate);
+  const isMakeupDate = entries.some((item) => item.makeupDate === date);
+  const holiday = isMakeupDate ? null : covering.find((item) => item.isTeachingAllowed === false);
+  const events = covering
+    .filter((item) => item.isTeachingAllowed === true)
+    .map((item) => plainText(item.name))
+    .filter(Boolean);
+  if (holiday) {
+    return {
+      lock: {
+        kind: 'holiday',
+        name: plainText(holiday.name),
+        makeupDate: typeof holiday.makeupDate === 'string' ? holiday.makeupDate : '',
+      },
+      events,
+      makeupOf: '',
+    };
+  }
+  const weekday = calendarDate(date)?.getUTCDay();
+  const makeup = weekday === 6 ? saturdayMakeup(entries, date) : null;
+  // Chỉ mục có makeupDate mới biết ngày nghỉ gốc; sự kiện học bù cũ chỉ có tên (đã nằm trong events).
+  const makeupOf = makeup?.makeupDate === date ? makeup.startDate : '';
+  if (
+    (weekday === 0 || weekday === 6) &&
+    !makeup &&
+    dayActivities(data, date, isParent).length === 0
+  ) {
+    return { lock: { kind: 'weekend', name: '', makeupDate: '' }, events, makeupOf };
+  }
+  return { lock: null, events, makeupOf, makeup: Boolean(makeup) };
 }
 
 export function routineTitle(frame, isParent, t) {

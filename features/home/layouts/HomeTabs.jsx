@@ -2,7 +2,8 @@ import { Tabs, useRouter } from 'expo-router';
 import { Baby, CalendarDays, GraduationCap, LayoutGrid } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import { useAccounts } from '@/features/auth/hooks/useAccounts';
@@ -25,6 +26,8 @@ export function HomeTabs({ role }) {
   const { user, notice, loginSucceeded, dismissLoginSuccess } = useSession();
   const { colorScheme } = useColorScheme();
   const theme = THEME[colorScheme ?? 'light'];
+  const insets = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
   const isParent = role === 'parent';
   const inbox = useNotificationInbox();
   const accounts = useAccounts();
@@ -44,6 +47,9 @@ export function HomeTabs({ role }) {
   }, [notice, t]);
 
   if (!user) return null;
+  // Chiều cao mặc định (49 + vùng an toàn) không đủ cho icon 20 + nhãn Inter 11 + paddingTop:
+  // nhãn tràn khỏi khung và bị Android cắt nửa dưới. Đặt khung 56 dp, cộng thêm khi tăng cỡ chữ.
+  const tabBarHeight = 56 + Math.ceil(14 * Math.max(fontScale - 1, 0)) + insets.bottom;
   const showPushPrompt =
     !pushPromptClosed &&
     push.supported &&
@@ -124,6 +130,7 @@ export function HomeTabs({ role }) {
             backgroundColor: theme.background,
             borderTopColor: theme.border,
             paddingTop: 4,
+            height: tabBarHeight,
           },
         }}>
         <Tabs.Screen

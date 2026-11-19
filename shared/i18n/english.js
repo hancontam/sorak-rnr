@@ -631,12 +631,6 @@ export const english = {
   'Chưa có kết quả được ghi nhận cho ngày này.': 'No results have been recorded for this day.',
   'Xác nhận đón {name}?': 'Confirm pickup for {name}?',
   'Xác nhận': 'Confirm',
-  'Hủy ghi nhận đón trẻ?': 'Undo pickup record?',
-  'Bé sẽ về trạng thái Chưa đón. Điểm danh và đơn ủy quyền vẫn được giữ.':
-    'Pickup status will return to Not picked up. Attendance and authorizations will stay on record.',
-  'Các chỉnh sửa chưa lưu trên thẻ này sẽ bị bỏ.': 'Unsaved edits on this card will be discarded.',
-  'Giữ ghi nhận': 'Keep record',
-  'Hủy ghi nhận': 'Undo record',
   'Ghi nhận': 'Daily records',
   'Đã đón {pickedUp}/{total} học sinh': '{pickedUp}/{total} students picked up',
   '{awaiting} chưa đón · {absent} vắng · {unrecorded} chưa điểm danh':
@@ -676,8 +670,6 @@ export const english = {
   'Dặn dò phụ huynh': 'Notes for parents',
   'Cập nhật ghi nhận đón trẻ': 'Update pickup record',
   'Xác nhận đã đón trẻ': 'Confirm pickup',
-  'Hủy ghi nhận đón trẻ của {name}': 'Undo pickup for {name}',
-  'Hủy ghi nhận đón trẻ': 'Undo pickup record',
   'Thay đổi chưa lưu. Trạng thái Đã đón chỉ cập nhật sau khi máy chủ xác nhận.':
     'Unsaved changes. Pickup status updates after the server confirms.',
   'Tạo ủy quyền cho học sinh này': 'Create authorization for this student',
@@ -799,11 +791,6 @@ export const english = {
     'The server received the request, but the saved data did not match. Reload and check.',
   'Chưa xác nhận được kết quả lưu. Hãy tải lại để kiểm tra trước khi thử lại.':
     'The save could not be confirmed. Reload and check before trying again.',
-  'Ghi nhận đón trẻ đã thay đổi. Hãy tải lại trước khi hủy.':
-    'The pickup record has changed. Reload it before undoing.',
-  'Chưa xác nhận được kết quả hủy. Hãy tải lại để kiểm tra.':
-    'The undo action could not be confirmed. Reload and check.',
-  'Đã hủy ghi nhận đón trẻ của {name}.': 'Undid the pickup record for {name}.',
   'Tài khoản, ngày hoặc tác vụ không hợp lệ.': 'The account, date or action is invalid.',
   'Hoạt động này không còn trong lịch hoặc chưa có mã đánh giá.':
     'The activity is no longer scheduled or has no assessment ID.',
@@ -967,4 +954,48 @@ export const english = {
   'Đã từ chối đơn ủy quyền.': 'Authorization rejected.',
   Vắng: 'Absent',
   'Ngày có bản ghi': 'Days recorded',
+  'Chiều cao / Tuổi': 'Height for age',
+  'Cân nặng / Thể trạng': 'Weight / body status',
+  'Ghi chú y tế': 'Health note',
+  'Người ghi nhận': 'Recorded by',
+  'Cán bộ Y tế': 'Health staff',
+  'Thấp còi độ 2 (nặng)': 'Severely stunted',
+  'Thấp còi độ 1': 'Stunted',
+  'Cao hơn tuổi': 'Tall for age',
+  'Béo phì': 'Obese',
+  'Thừa cân': 'Overweight',
+  'Nguy cơ thừa cân': 'Risk of overweight',
+  'Gầy còm nặng': 'Severely wasted',
+  'Gầy còm': 'Wasted',
+  'Suy dinh dưỡng nặng': 'Severely underweight',
+  'Nhẹ cân': 'Underweight',
+  'Cân nặng cao hơn tuổi': 'Heavy for age',
+  'Đã ghi': 'Recorded',
+  'Không có ghi nhận đón trẻ trong ngày này.': 'No pickup was recorded on this day.',
+  'Chưa tới ngày ghi nhận. Bạn ghi nhận vào đúng ngày này.':
+    'This day has not come yet. Record it on the day itself.',
+  'Ghi nhận chỉ làm và cập nhật trong ngày (đến 23:59). Ngày này chỉ xem lại.':
+    'Records can only be made and updated on the day (until 23:59). This day is view only.',
+  'Cập nhật ghi nhận': 'Update records',
+  'Cập nhật ghi nhận · {count} thay đổi': 'Update records · {count} changes',
+  'Đã qua ngày ghi nhận. Dữ liệu ngày này chỉ còn xem.':
+    'The recording day has passed. This day is view only.',
+  'Đang tải số liệu trong ngày…': 'Loading this day’s figures…',
+  'Ngày nghỉ': 'Day off',
+  'Nghỉ cuối tuần': 'Weekend',
+  'Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.':
+    'Day off: {name}. Nothing is recorded on days off.',
+  'Cuối tuần không có lịch học nên không ghi nhận trong ngày này.':
+    'There are no classes this weekend day, so nothing is recorded.',
+  'Trường nghỉ trong ngày này.': 'School is closed on this day.',
+  'Không điểm danh, ghi sức khỏe, đón trẻ hay đánh giá trong ngày nghỉ. Lịch đã sắp chỉ để xem lại.':
+    'No attendance, health, pickup or assessment on days off. The planned schedule is view only.',
+  'Cuối tuần không có lịch học.': 'No classes on this weekend day.',
+  'Cuối tuần không có lịch học. Ngày có lịch học bù được ghi nhận như ngày thường.':
+    'No classes on this weekend day. Make-up days with a schedule are recorded as usual.',
+  Nghỉ: 'Off',
+  'Học bù': 'Make-up',
+  'Bù cho {date}': 'Make-up for {date}',
+  'Lịch dạy được bù vào Thứ Bảy {date}.': 'Classes are made up on Saturday {date}.',
+  'Xem ngày học bù': 'View make-up day',
 };

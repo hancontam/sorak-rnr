@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, View } from 'react-native';
 import { toast } from 'sonner-native';
 
+import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { ActionNotice } from '@/components/shared/ActionNotice';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ export default function NotificationInboxScreen() {
   const [confirm, setConfirm] = useState(null);
   const query = useNotificationInbox();
   const actions = useNotificationReadActions(query);
+  const pull = usePullToRefresh(actions.busy ? undefined : actions.reload);
   const all = query.data?.notifications || [];
   const rows = all.filter((item) => item.isRead === (tab === 'read'));
   const unread = query.data?.unreadCount;
@@ -47,8 +49,8 @@ export default function NotificationInboxScreen() {
         contentContainerClassName="mx-auto w-full max-w-xl px-4 pb-8 pt-4"
         data={rows}
         keyExtractor={(item) => String(item.id)}
-        refreshing={query.isRefetching && !actions.busy}
-        onRefresh={actions.reload}
+        refreshing={pull.refreshing}
+        onRefresh={pull.onRefresh}
         ListHeaderComponent={
           <View className="gap-3 pb-3">
             <View className="flex-row items-center gap-2">

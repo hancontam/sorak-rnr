@@ -2,7 +2,9 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
+import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { ActionNotice } from '@/components/shared/ActionNotice';
 import { ChipTabs } from '@/components/shared/ChipTabs';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -52,6 +54,7 @@ export default function LearningResultScreen() {
   // Lưu phản hồi thành công báo bằng toast; lỗi vẫn hiện trong form để đọc lại.
   useActionToast(result.message?.error ? null : result.message, t);
   const { parent, query, saving } = result;
+  const pull = usePullToRefresh(!result.error && !saving ? () => query.refetch() : undefined);
   const data = query.data;
   const shownPeriod = parent ? data?.period : data?.classInfo;
   const schoolYear = data?.classInfo?.schoolYear || data?.classInfo?.academicYear;
@@ -320,11 +323,11 @@ export default function LearningResultScreen() {
         data={error ? [] : students}
         keyExtractor={(student) => String(student.id)}
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        renderScrollComponent={(props) => <KeyboardAwareScrollView {...props} bottomOffset={16} />}
         ListHeaderComponent={header}
         ListEmptyComponent={renderEmpty()}
-        refreshing={query.isRefetching && !saving}
-        onRefresh={!result.error && !saving ? () => query.refetch() : undefined}
+        refreshing={pull.refreshing}
+        onRefresh={pull.onRefresh}
         renderItem={({ item }) =>
           monthly ? (
             <MonthlyResultCard

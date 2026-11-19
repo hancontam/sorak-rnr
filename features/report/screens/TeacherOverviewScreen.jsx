@@ -3,6 +3,7 @@ import { ChevronRight, Search } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 
+import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { AccountAvatar } from '@/components/shared/AccountAvatar';
 import { Badge } from '@/components/ui/badge';
 import { Icon } from '@/components/ui/icon';
@@ -39,6 +40,7 @@ export default function TeacherOverviewScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const { assignment, query } = useClassStudents();
+  const pull = usePullToRefresh(query.refetch);
   const students = useMemo(
     () =>
       (query.data?.students || []).filter((s) =>
@@ -65,8 +67,8 @@ export default function TeacherOverviewScreen() {
         keyboardShouldPersistTaps="handled"
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-xl px-4 pb-8 pt-4"
-        refreshing={query.isRefetching}
-        onRefresh={query.refetch}
+        refreshing={pull.refreshing}
+        onRefresh={pull.onRefresh}
         ListHeaderComponent={
           <View className="gap-4 pb-3">
             <View className="gap-0.5">

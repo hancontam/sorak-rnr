@@ -57,7 +57,7 @@ module.exports = {
       // Text ở components/ui/text.jsx quy font-medium/semibold/bold sang đúng file font.
       fontFamily: {
         sans: ['Inter_400Regular'],
-        mono: ['JetBrainsMono_400Regular'],
+        mono: ['Inter_400Regular'],
       },
       fontSize: {
         '2xs': ['11px', { lineHeight: '14px' }],

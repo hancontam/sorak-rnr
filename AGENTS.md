@@ -37,7 +37,7 @@
 
 - Chuẩn hình ảnh từ đợt redesign (12/11/2026) là bản RNR mobile showcase (`react_native_reusables_mobile_showcase.html`): token zinc, Card `rounded-2xl` có viền và shadow mảnh, danh sách gom trong một Card kẻ mảnh, segmented control nền muted có ô đang chọn nổi, toast sonner, bottom sheet bo 28 có thanh kéo, alert dialog bo 2xl. Nội dung, thứ tự khối và luồng lấy từ app hiện tại; prototype Sorak chỉ để hiểu flow cũ.
 - Màu: primary zinc-900 (tối: zinc-100). Xanh cobalt `#1447E6` dùng chung với web, chỉ cho badge vai trò, link và chấm thông báo. Đỏ chỉ cho cảnh báo/hành động nguy hiểm; xanh lá chỉ ở icon toast thành công. `global.css` và `lib/theme.js` phải khớp nhau.
-- Font: Inter cho chữ giao diện, JetBrains Mono cho dữ liệu (mã HS/CB, giờ, ngày, số đếm). Font nạp một lần ở `app/_layout.jsx` trước khi ẩn splash. `Text`, `Label`, `Input` và tiêu đề dialog quy `font-medium/semibold/bold/mono` về đúng file font qua `lib/fonts.js`; không đặt `fontFamily`/`fontWeight` riêng ở screen. Chưa có file Inter 700 nên `font-bold` hiển thị như SemiBold.
+- Font: chỉ dùng họ Inter (người dùng chốt 19/11/2026). Class `font-mono` cho dữ liệu (mã HS/CB, giờ, ngày, số đếm) vẫn là Inter nhưng bật số đều cột (`tabular-nums`). Font nạp một lần ở `app/_layout.jsx` trước khi ẩn splash. `Text`, `Label`, `Input` và tiêu đề dialog quy `font-medium/semibold/bold/mono` về đúng file font qua `lib/fonts.js`; không đặt `fontFamily`/`fontWeight` riêng ở screen. Chưa có file Inter 700 nên `font-bold` hiển thị như SemiBold.
 - Đo ở vùng nội dung **376 dp**, kiểm tra thêm 360/412 dp; 1 CSS px của showcase ≈ 1 dp. Màn rộng tăng khoảng trống, không phóng to.
 
 | Phần UI | Mốc mặc định |

@@ -318,7 +318,7 @@ export default function LearningResultScreen() {
       <Stack.Screen options={{ title }} />
       <FlatList
         className="flex-1"
-        contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8"
+        contentContainerClassName="mx-auto w-full max-w-xl gap-2 p-4 pb-8"
         data={error ? [] : students}
         keyExtractor={(student) => String(student.id)}
         keyboardShouldPersistTaps="handled"
@@ -336,6 +336,7 @@ export default function LearningResultScreen() {
               record={item}
               week={shownWeek}
               maxRoses={weeks}
+              compact
             />
           ) : (
             <SemesterResultCard
@@ -343,6 +344,7 @@ export default function LearningResultScreen() {
               code={item.code}
               avatarUrl={result.avatarOf(item.id)}
               record={item}
+              compact
             />
           )
         }

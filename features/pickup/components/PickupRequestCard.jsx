@@ -37,14 +37,18 @@ export function PickupRequestCard({
   const [label, variant] = STATUS[request.status] || ['Chưa rõ trạng thái', 'outline'];
   const person = request.pickupPersonName || t('Người đón trẻ');
   const contact = [request.relationship, request.pickupPersonPhone].filter(Boolean).join(' · ');
-  const period = [request.startDate, request.endDate].filter(Boolean).join(' – ');
+  // Đơn một ngày chỉ hiện một ngày; khoảng ngày giữ đủ hai đầu.
+  const period =
+    request.startDate && request.startDate === request.endDate
+      ? request.startDate
+      : [request.startDate, request.endDate].filter(Boolean).join(' – ');
 
   return (
-    <Card className="gap-3 px-4 py-3.5">
-      <View className="flex-row items-center gap-3">
+    <Card className="gap-2 px-3 py-2.5">
+      <View className="flex-row items-center gap-2.5">
         <AccountAvatar
           user={{ fullName: person, avatarUrl: request.photoUrl }}
-          className="size-10"
+          className="size-9"
         />
         <View className="min-w-0 flex-1 gap-0.5">
           <Text numberOfLines={1} className="text-sm font-semibold">
@@ -60,30 +64,32 @@ export function PickupRequestCard({
           <Text>{t(label)}</Text>
         </Badge>
       </View>
-      {!isParent && request.student?.name ? (
-        <View className="flex-row items-center gap-2">
-          <AccountAvatar user={request.student} className="size-6" />
-          <Text numberOfLines={1} className="min-w-0 flex-1 text-xs">
-            {t('Học sinh {name}', { name: request.student.name })}
-          </Text>
-          {request.student.code ? (
-            <Text className="font-mono text-2xs text-muted-foreground">{request.student.code}</Text>
-          ) : null}
-        </View>
-      ) : null}
-      {period ? (
-        <View className="flex-row items-center gap-2">
-          <Icon as={CalendarDays} size={14} className="text-muted-foreground" />
-          <Text className="font-mono text-xs">{period}</Text>
-        </View>
-      ) : null}
+      {/* Học sinh và thời gian gộp một dòng để danh sách hiện được nhiều đơn. */}
+      <View className="flex-row items-center gap-2 pl-[46px]">
+        {!isParent && request.student?.name ? (
+          <>
+            <AccountAvatar user={request.student} className="size-5" />
+            <Text numberOfLines={1} className="min-w-0 shrink text-xs">
+              {request.student.name}
+            </Text>
+          </>
+        ) : null}
+        {period ? (
+          <View className="ml-auto flex-row items-center gap-1">
+            <Icon as={CalendarDays} size={12} className="text-muted-foreground" />
+            <Text className="font-mono text-2xs text-muted-foreground">{period}</Text>
+          </View>
+        ) : null}
+      </View>
       {request.note ? (
-        <Text className="text-xs leading-5 text-muted-foreground">{request.note}</Text>
+        <Text numberOfLines={2} className="pl-[46px] text-2xs leading-4 text-muted-foreground">
+          {request.note}
+        </Text>
       ) : null}
       {request.rejectedReason ? (
-        <View className="rounded-xl bg-destructive/5 px-3 py-2">
-          <Text className="text-xs text-destructive">{request.rejectedReason}</Text>
-        </View>
+        <Text numberOfLines={2} className="bg-destructive/5 px-2 py-1 text-2xs text-destructive">
+          {request.rejectedReason}
+        </Text>
       ) : null}
       {pending && isParent ? (
         <Button

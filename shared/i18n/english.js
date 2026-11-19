@@ -981,4 +981,18 @@ export const english = {
   'Ủy quyền': 'Pickup auth.',
   '{count} chờ': '{count} pending',
   'Xem đơn': 'Requests',
+  Cao: 'Height',
+  Nặng: 'Weight',
+  'Ghi chú cho {name}': 'Note for {name}',
+  'Chi tiết số đo và ghi chú của {name}': 'Measurements and note for {name}',
+  Xong: 'Done',
+  Đón: 'Pick up',
+  'Ghi nhận đón {name}': 'Record pickup for {name}',
+  'Chi tiết đón trẻ của {name}': 'Pickup details for {name}',
+  'Vắng trong ngày, không ghi nhận đón trẻ.': 'Absent today, no pickup is recorded.',
+  'Cần điểm danh Có mặt trước khi ghi nhận đón trẻ.':
+    'Mark the child present before recording pickup.',
+  'Thu gọn {name}': 'Collapse {name}',
+  'Xem chi tiết {name}': 'Show details for {name}',
+  'PH đã phản hồi': 'Parent replied',
 };

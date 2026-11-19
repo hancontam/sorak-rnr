@@ -1,8 +1,11 @@
-import { View } from 'react-native';
+import { ChevronDown, ChevronUp } from 'lucide-react-native';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
 
 import { AccountAvatar } from '@/components/shared/AccountAvatar';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
@@ -15,10 +18,13 @@ const DOMAINS = [
   ['aesthetic', 'Thẩm mỹ'],
 ];
 
-function Header({ title, code, avatarUrl, badge }) {
+function Header({ title, code, avatarUrl, badge, right, compact }) {
   return (
-    <View className="flex-row items-center gap-3 px-4 pb-3 pt-3.5">
-      <AccountAvatar user={{ fullName: title, avatarUrl }} className="size-9" />
+    <View className={cn('flex-row items-center gap-3 px-4', compact ? 'py-2.5' : 'pb-3 pt-3.5')}>
+      <AccountAvatar
+        user={{ fullName: title, avatarUrl }}
+        className={compact ? 'size-8' : 'size-9'}
+      />
       <View className="min-w-0 flex-1 gap-0.5">
         <Text numberOfLines={1} className="text-sm font-semibold">
           {title}
@@ -30,7 +36,58 @@ function Header({ title, code, avatarUrl, badge }) {
           <Text>{badge}</Text>
         </Badge>
       ) : null}
+      {right}
     </View>
+  );
+}
+
+// Danh sách cả lớp: mỗi bé một khối thu gọn (tóm tắt một dòng), bấm để mở đủ chỉ số và nhận xét.
+// Màn một bé (PH) truyền compact = false để hiện đầy đủ ngay.
+function Collapsible({ compact, title, code, avatarUrl, badge, value, summary, children }) {
+  const t = useTranslation();
+  const [open, setOpen] = useState(false);
+  if (!compact)
+    return (
+      <Card className="gap-0 py-0">
+        <Header title={title} code={code} avatarUrl={avatarUrl} badge={badge} />
+        {children}
+      </Card>
+    );
+  return (
+    <Card className="gap-0 py-0">
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel={t(open ? 'Thu gọn {name}' : 'Xem chi tiết {name}', { name: title })}
+        onPress={() => setOpen(!open)}
+        className="active:bg-muted">
+        <Header
+          compact
+          title={title}
+          code={code}
+          avatarUrl={avatarUrl}
+          badge={badge}
+          right={
+            <View className="flex-row items-center gap-1.5">
+              {value ? <Text className="font-mono text-xs font-semibold">{value}</Text> : null}
+              <Icon
+                as={open ? ChevronUp : ChevronDown}
+                size={16}
+                className="text-muted-foreground"
+              />
+            </View>
+          }
+        />
+        {!open && summary ? (
+          <Text
+            numberOfLines={1}
+            className="-mt-1 pb-2.5 pl-[60px] pr-4 text-2xs text-muted-foreground">
+            {summary}
+          </Text>
+        ) : null}
+      </Pressable>
+      {open ? children : null}
+    </Card>
   );
 }
 
@@ -70,7 +127,16 @@ function Notes({ label, value, fallback }) {
   );
 }
 
-export function MonthlyResultCard({ title, code, avatarUrl, record, week, maxRoses, parent }) {
+export function MonthlyResultCard({
+  title,
+  code,
+  avatarUrl,
+  record,
+  week,
+  maxRoses,
+  parent,
+  compact = false,
+}) {
   const t = useTranslation();
   const stats = week && record?.weeklyStats?.[`week${week}`];
   const rose = week
@@ -82,9 +148,31 @@ export function MonthlyResultCard({ title, code, avatarUrl, record, week, maxRos
     : null;
   const roseLabel = rose === true ? 'Được tặng hoa' : rose === false ? 'Chưa được tặng hoa' : null;
   const badge = week ? roseLabel && t(roseLabel) : record?.isLotus === true ? t('Hoa sen') : null;
+  const roses =
+    Number.isInteger(record?.rosesCount) && maxRoses > 0 ? `${record.rosesCount}/${maxRoses}` : '';
+  const summary = week
+    ? [
+        stats?.attendanceRate !== undefined && `${t('Chuyên cần')} ${stats.attendanceRate}%`,
+        stats?.goalsRate !== undefined && `${t('Mục tiêu')} ${stats.goalsRate}%`,
+        stats?.healthStatus && t(stats.healthStatus),
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : [
+        record?.teacherNotes || t('Chưa có nhận xét.'),
+        !parent && record?.parentFeedback ? t('PH đã phản hồi') : null,
+      ]
+        .filter(Boolean)
+        .join(' · ');
   return (
-    <Card className="gap-0 py-0">
-      <Header title={title} code={code} avatarUrl={avatarUrl} badge={badge} />
+    <Collapsible
+      compact={compact}
+      title={title}
+      code={code}
+      avatarUrl={avatarUrl}
+      badge={badge}
+      value={week ? '' : roses}
+      summary={summary}>
       {week ? (
         <>
           <Metric
@@ -125,11 +213,11 @@ export function MonthlyResultCard({ title, code, avatarUrl, record, week, maxRos
           ) : null}
         </>
       )}
-    </Card>
+    </Collapsible>
   );
 }
 
-export function SemesterResultCard({ title, code, avatarUrl, record, parent }) {
+export function SemesterResultCard({ title, code, avatarUrl, record, parent, compact = false }) {
   const t = useTranslation();
   const domains = parent
     ? Array.isArray(record.domains)
@@ -144,19 +232,20 @@ export function SemesterResultCard({ title, code, avatarUrl, record, parent }) {
         const data = record.domainBreakdown?.[key];
         return [label, percent(data?.rate, data?.achieved, data?.total)];
       });
+  const attendance = percent(
+    record.attendance?.rate,
+    record.attendance?.presentDays,
+    record.attendance?.totalDays
+  );
   return (
-    <Card className="gap-0 py-0">
-      <Header title={title} code={code} avatarUrl={avatarUrl} />
-      {!parent ? (
-        <Metric
-          label="Chuyên cần"
-          value={percent(
-            record.attendance?.rate,
-            record.attendance?.presentDays,
-            record.attendance?.totalDays
-          )}
-        />
-      ) : null}
+    <Collapsible
+      compact={compact}
+      title={title}
+      code={code}
+      avatarUrl={avatarUrl}
+      value={Number.isFinite(record.attendance?.rate) ? `${record.attendance.rate}%` : ''}
+      summary={record.teacherNotes || t('Chưa có nhận xét.')}>
+      {!parent ? <Metric label="Chuyên cần" value={attendance} /> : null}
       {domains
         .filter(([label]) => label)
         .map(([label, value], index) => (
@@ -167,6 +256,6 @@ export function SemesterResultCard({ title, code, avatarUrl, record, parent }) {
         value={record.teacherNotes}
         fallback="Chưa có nhận xét."
       />
-    </Card>
+    </Collapsible>
   );
 }

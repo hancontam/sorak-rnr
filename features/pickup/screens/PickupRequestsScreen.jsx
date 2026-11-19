@@ -197,7 +197,7 @@ export default function PickupRequestsScreen() {
       />
       <FlatList
         className="flex-1"
-        contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8"
+        contentContainerClassName="mx-auto w-full max-w-xl gap-2 p-4 pb-8"
         data={rows}
         keyExtractor={(item) => String(item.id)}
         refreshing={pull.refreshing}

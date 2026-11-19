@@ -21,6 +21,7 @@ import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { DailyRecordCard } from '../components/DailyRecordCard';
 import { PickupRecordCard } from '../components/PickupRecordCard';
+import { RecordDetailSheet } from '../components/RecordDetailSheet';
 import { ScheduleState } from '../components/ScheduleState';
 import { useDailyRecords } from '../hooks/useDailyRecords';
 import { DAILY_ACTIONS, isAbsent, pickupOptions } from '../utils/daily-records';
@@ -51,6 +52,9 @@ function DailyRecordsForm({ kind, date, slotId }) {
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [confirm, setConfirm] = useState(null);
+  // Một sheet chi tiết cho cả màn; hàng gọn chỉ mở sheet theo id học sinh.
+  const [detailId, setDetailId] = useState(null);
+  const detailRow = detailId ? form.rows.find((row) => row.id === detailId) || null : null;
   const unsaved = useUnsavedChanges(form.hasUserEdits, form.isSaving);
   const confirmDiscard = unsaved.confirmDiscard;
   useActionToast(form.message, t);
@@ -84,7 +88,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
   }
 
   const header = (
-    <View className="gap-3 pb-1">
+    <View className="gap-3 pb-3">
       <View className="gap-1">
         <View className="flex-row flex-wrap items-center gap-2">
           <Text className="text-sm font-semibold">{dayTitle(date, locale)}</Text>
@@ -205,7 +209,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
       <Stack.Screen options={{ title: t(DAILY_ACTIONS[kind] || 'Ghi nhận') }} />
       <FlatList
         className="flex-1"
-        contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8"
+        contentContainerClassName="mx-auto w-full max-w-xl p-4 pb-8"
         keyboardShouldPersistTaps="handled"
         // Cuộn ô đang gõ lên trên bàn phím và trên thanh Lưu (~76 dp).
         renderScrollComponent={(props) => (
@@ -229,28 +233,24 @@ function DailyRecordsForm({ kind, date, slotId }) {
             title={text ? 'Không tìm thấy học sinh' : 'Chưa có học sinh'}
           />
         }
-        renderItem={({ item }) =>
+        renderItem={({ item, index }) =>
           kind === 'pickup' ? (
             <PickupRecordCard
               row={item}
+              first={index === 0}
               editable={canChange}
               locked={!form.canEdit}
-              onChange={(patch) => form.update(item.id, patch)}
-              onPickup={() => confirmPickup(item)}
-              onCreateAuthorization={() =>
-                router.push({
-                  pathname: '/(teacher)/pickup-requests',
-                  params: { date, studentId: item.id, create: '1' },
-                })
-              }
+              onOpenDetail={() => setDetailId(item.id)}
             />
           ) : (
             <DailyRecordCard
               kind={kind}
               row={item}
+              first={index === 0}
               editable={canChange}
               locked={!form.canEdit}
               onChange={(patch) => form.update(item.id, patch)}
+              onOpenDetail={() => setDetailId(item.id)}
             />
           )
         }
@@ -276,6 +276,29 @@ function DailyRecordsForm({ kind, date, slotId }) {
           </SafeAreaView>
         </KeyboardStickyView>
       ) : null}
+      <RecordDetailSheet
+        kind={kind}
+        row={detailRow}
+        editable={canChange}
+        onChange={(patch) => detailRow && form.update(detailRow.id, patch)}
+        onClose={() => setDetailId(null)}
+        onPickup={() => {
+          // Đóng sheet trước khi hỏi xác nhận để hộp thoại không nằm dưới sheet.
+          setDetailId(null);
+          if (detailRow) confirmPickup(detailRow);
+        }}
+        onCreateAuthorization={
+          canChange && detailRow
+            ? () => {
+                setDetailId(null);
+                router.push({
+                  pathname: '/(teacher)/pickup-requests',
+                  params: { date, studentId: detailRow.id, create: '1' },
+                });
+              }
+            : undefined
+        }
+      />
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
       <ConfirmDialog {...unsaved.dialog} />
     </View>

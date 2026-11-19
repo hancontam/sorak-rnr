@@ -995,4 +995,5 @@ export const english = {
   'Thu gọn {name}': 'Collapse {name}',
   'Xem chi tiết {name}': 'Show details for {name}',
   'PH đã phản hồi': 'Parent replied',
+  'Th{month}': 'M{month}',
 };

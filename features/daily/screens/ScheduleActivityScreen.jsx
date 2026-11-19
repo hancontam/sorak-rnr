@@ -11,9 +11,10 @@ import { cn } from '@/lib/utils';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { ChildDayResults } from '../components/ChildDayResults';
+import { DateHeader } from '../components/DateHeader';
 import { ScheduleState } from '../components/ScheduleState';
 import { useTimetable } from '../hooks/useTimetable';
-import { dayTitle, schoolToday, shortDate } from '../utils/schedule-date';
+import { schoolToday, shortDate } from '../utils/schedule-date';
 import {
   childDayResults,
   dayActivities,
@@ -59,8 +60,18 @@ export default function ScheduleActivityScreen() {
         />
       ) : (
         <>
+          <DateHeader
+            date={date}
+            tone={holiday ? 'locked' : date === schoolToday() ? 'today' : 'past'}
+            badges={
+              holiday
+                ? [[t('Ngày nghỉ'), 'destructive']]
+                : date === schoolToday()
+                  ? [[t('Hôm nay'), 'secondary']]
+                  : []
+            }
+          />
           <View className="gap-2">
-            <Text className="text-xs text-muted-foreground">{dayTitle(date, locale)}</Text>
             <Text className="text-lg font-semibold leading-6 tracking-tight">
               {activity.title || t('Hoạt động chưa có tên')}
             </Text>

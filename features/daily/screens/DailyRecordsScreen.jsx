@@ -9,7 +9,6 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useActionToast } from '@/components/shared/useActionToast';
 import { useUnsavedChanges } from '@/components/shared/useUnsavedChanges';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
@@ -20,6 +19,7 @@ import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { DailyRecordCard } from '../components/DailyRecordCard';
+import { DateHeader } from '../components/DateHeader';
 import { PickupRecordCard } from '../components/PickupRecordCard';
 import { RecordDetailSheet } from '../components/RecordDetailSheet';
 import { ScheduleState } from '../components/ScheduleState';
@@ -87,18 +87,24 @@ function DailyRecordsForm({ kind, date, slotId }) {
     });
   }
 
+  // Ngày không còn sửa được (đã qua, chưa tới, ngày nghỉ): ô ngày xám và nhãn Chỉ xem/Ngày nghỉ.
+  const readOnly = !form.canEdit && !form.error && !form.loading;
   const header = (
     <View className="gap-3 pb-3">
-      <View className="gap-1">
-        <View className="flex-row flex-wrap items-center gap-2">
-          <Text className="text-sm font-semibold">{dayTitle(date, locale)}</Text>
-          {!form.canEdit && !form.error && !form.loading ? (
-            <Badge variant="outline">
-              <Text>{t(form.lock ? 'Ngày nghỉ' : 'Chỉ xem')}</Text>
-            </Badge>
-          ) : null}
-        </View>
-        {!form.canEdit && !form.error && !form.loading ? (
+      <View className="gap-2">
+        <DateHeader
+          date={date}
+          tone={readOnly ? 'locked' : form.canEdit ? 'today' : 'past'}
+          badges={
+            readOnly
+              ? [[t(form.lock ? 'Ngày nghỉ' : 'Chỉ xem'), form.lock ? 'destructive' : 'outline']]
+              : form.canEdit
+                ? [[t('Hôm nay'), 'secondary']]
+                : []
+          }
+          subtitle={form.slot ? form.slot.title || t('Hoạt động chưa có tên') : undefined}
+        />
+        {readOnly ? (
           <Text className="text-2xs leading-4 text-muted-foreground">
             {form.lock?.kind === 'holiday'
               ? `${t('Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.', {
@@ -113,11 +119,6 @@ function DailyRecordsForm({ kind, date, slotId }) {
                 : form.isFuture
                   ? t('Chưa tới ngày ghi nhận. Bạn ghi nhận vào đúng ngày này.')
                   : t('Ghi nhận chỉ làm và cập nhật trong ngày (đến 23:59). Ngày này chỉ xem lại.')}
-          </Text>
-        ) : null}
-        {form.slot ? (
-          <Text className="text-xs text-muted-foreground">
-            {form.slot.title || t('Hoạt động chưa có tên')}
           </Text>
         ) : null}
       </View>

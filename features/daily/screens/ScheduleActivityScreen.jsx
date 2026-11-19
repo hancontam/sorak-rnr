@@ -13,7 +13,7 @@ import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 import { ChildDayResults } from '../components/ChildDayResults';
 import { ScheduleState } from '../components/ScheduleState';
 import { useTimetable } from '../hooks/useTimetable';
-import { dayTitle, schoolToday } from '../utils/schedule-date';
+import { dayTitle, schoolToday, shortDate } from '../utils/schedule-date';
 import {
   childDayResults,
   dayActivities,
@@ -87,6 +87,9 @@ export default function ScheduleActivityScreen() {
                 {t('Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.', {
                   name: holiday.name || t('Ngày nghỉ'),
                 })}
+                {holiday.makeupDate
+                  ? ` ${t('Lịch dạy được bù vào Thứ Bảy {date}.', { date: shortDate(holiday.makeupDate, locale) })}`
+                  : ''}
               </AlertDescription>
             </Alert>
           ) : null}

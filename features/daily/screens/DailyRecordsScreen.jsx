@@ -24,7 +24,7 @@ import { PickupRecordCard } from '../components/PickupRecordCard';
 import { ScheduleState } from '../components/ScheduleState';
 import { useDailyRecords } from '../hooks/useDailyRecords';
 import { DAILY_ACTIONS, isAbsent, pickupOptions } from '../utils/daily-records';
-import { dayTitle } from '../utils/schedule-date';
+import { dayTitle, shortDate } from '../utils/schedule-date';
 import { timetableError } from '../utils/timetable-model';
 
 export default function DailyRecordsScreen() {
@@ -97,9 +97,13 @@ function DailyRecordsForm({ kind, date, slotId }) {
         {!form.canEdit && !form.error && !form.loading ? (
           <Text className="text-2xs leading-4 text-muted-foreground">
             {form.lock?.kind === 'holiday'
-              ? t('Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.', {
+              ? `${t('Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.', {
                   name: form.lock.name || t('Ngày nghỉ'),
-                })
+                })}${
+                  form.lock.makeupDate
+                    ? ` ${t('Lịch dạy được bù vào Thứ Bảy {date}.', { date: shortDate(form.lock.makeupDate, locale) })}`
+                    : ''
+                }`
               : form.lock
                 ? t('Cuối tuần không có lịch học nên không ghi nhận trong ngày này.')
                 : form.isFuture

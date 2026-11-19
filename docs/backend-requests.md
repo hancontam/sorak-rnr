@@ -70,7 +70,7 @@ Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: resp
 
 ## BE-06 — Chặn ghi nhận ngày nghỉ/ngoài ngày và trả ngày nghỉ cho PH
 
-**Trạng thái:** đề xuất ngày 15/11; mobile đã chặn phía app, chờ BE báo xong để kiểm chứng lại.
+**Trạng thái:** đề xuất ngày 15/11; mobile đã chặn phía app, chờ BE báo xong để kiểm chứng lại. Ngày 19/11: backend mới thêm `makeupDate` (Thứ Bảy dạy bù) nhưng bốn API lưu vẫn chưa kiểm tra ngày nghỉ/ngày hiện tại và `/parent/schedule` vẫn chưa trả `holidays`; khi chặn, ngày dạy bù phải được phép lưu.
 
 **Nghiệp vụ đã chốt:** điểm danh, sức khỏe, đón trẻ và đánh giá HĐGD không có xóa, chỉ tạo/cập nhật trong đúng ngày (đến 23:59 giờ trường). Ngày thuộc `SchoolHoliday` có `is_teaching_allowed = false` và `target_grades` rỗng hoặc chứa khối của lớp thì không ghi nhận gì, kể cả khi GV đã sắp slot; lịch vẫn hiện slot. T7/CN không thuộc ngày nghỉ và có slot (học bù) thì ghi nhận bình thường.
 

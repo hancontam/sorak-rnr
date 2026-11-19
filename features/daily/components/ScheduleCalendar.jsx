@@ -26,8 +26,8 @@ const monthYearFormatter = new Intl.DateTimeFormat('en-US', {
 const weekdayFormatter = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'UTC' });
 
 // Tiêu đề tháng mở lịch tháng (sheet), hai nút chuyển tuần, nút Hôm nay và dải tuần dạng segmented.
-// dayLocks: { 'YYYY-MM-DD': 'holiday' | 'weekend' } của tuần đang xem; ngày nghỉ có băng "Nghỉ"
-// ở đáy ô, ngày nghỉ và cuối tuần không có lịch hiện số xám.
+// dayLocks: { 'YYYY-MM-DD': 'holiday' | 'weekend' | 'makeup' } của tuần đang xem; ngày nghỉ có băng
+// đỏ "Nghỉ", Thứ Bảy dạy bù có băng xanh "Học bù" ở đáy ô; ngày nghỉ và cuối tuần không lịch số xám.
 export function ScheduleCalendar({ date, today, onChange, dayLocks = {} }) {
   const t = useTranslation();
   const locale = useLocale();
@@ -100,8 +100,8 @@ export function ScheduleCalendar({ date, today, onChange, dayLocks = {} }) {
               key={day}
               accessibilityRole="radio"
               accessibilityLabel={
-                lock === 'holiday'
-                  ? `${dayTitle(day, locale)}, ${t('Ngày nghỉ')}`
+                lock === 'holiday' || lock === 'makeup'
+                  ? `${dayTitle(day, locale)}, ${t(lock === 'holiday' ? 'Ngày nghỉ' : 'Học bù')}`
                   : dayTitle(day, locale)
               }
               accessibilityState={{ selected }}
@@ -120,7 +120,7 @@ export function ScheduleCalendar({ date, today, onChange, dayLocks = {} }) {
               <Text
                 className={cn(
                   'font-mono text-sm',
-                  lock && 'text-muted-foreground',
+                  (lock === 'holiday' || lock === 'weekend') && 'text-muted-foreground',
                   selected && 'font-semibold'
                 )}>
                 {Number(day.slice(8))}
@@ -131,12 +131,16 @@ export function ScheduleCalendar({ date, today, onChange, dayLocks = {} }) {
                   day === today ? 'bg-foreground' : 'bg-transparent'
                 )}
               />
-              {lock === 'holiday' ? (
+              {lock === 'holiday' || lock === 'makeup' ? (
                 // Băng ngang ở đáy ô (đè chỗ chấm hôm nay); lớp bọc cắt theo bo góc của ô.
                 <View pointerEvents="none" className="absolute inset-0 overflow-hidden rounded-xl">
-                  <View className="absolute bottom-0 left-0 right-0 items-center bg-destructive">
+                  <View
+                    className={cn(
+                      'absolute bottom-0 left-0 right-0 items-center',
+                      lock === 'holiday' ? 'bg-destructive' : 'bg-brand'
+                    )}>
                     <Text className="text-[9px] font-semibold leading-3 text-white">
-                      {t('Nghỉ')}
+                      {t(lock === 'holiday' ? 'Nghỉ' : 'Học bù')}
                     </Text>
                   </View>
                 </View>

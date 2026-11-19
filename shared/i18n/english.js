@@ -994,4 +994,8 @@ export const english = {
   'Cuối tuần không có lịch học. Ngày có lịch học bù được ghi nhận như ngày thường.':
     'No classes on this weekend day. Make-up days with a schedule are recorded as usual.',
   Nghỉ: 'Off',
+  'Học bù': 'Make-up',
+  'Bù cho {date}': 'Make-up for {date}',
+  'Lịch dạy được bù vào Thứ Bảy {date}.': 'Classes are made up on Saturday {date}.',
+  'Xem ngày học bù': 'View make-up day',
 };

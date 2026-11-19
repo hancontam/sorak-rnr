@@ -117,6 +117,10 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 - `GET /attendance/classes/{id}/timetable` (`students`) và các endpoint kết quả `assessment` tháng/học kỳ không có trường avatar. `id` học sinh của lịch và kết quả khớp `id` trong danh sách lớp (4/4 và 8/8 bé), nên mobile ghép avatar theo `id` trong hook.
 - Không có ảnh thật nào trên test2 để kiểm tra trường hợp ảnh tải lên.
 
+### Ngày nghỉ và Thứ Bảy dạy bù (test2, 19/11/2026)
+
+`GET /attendance/classes/{classId}/timetable` (CB26001, Lá 1) trả `holidays[]` có thêm `makeupDate` (`YYYY-MM-DD` hoặc `null`); test2 chưa có mục nào đặt ngày dạy bù nên UI học bù mới được xem bằng dữ liệu giả trên bản dev. Theo code `sorak-api` cùng ngày: ngày dạy bù chỉ đặt cho ngày nghỉ 1 ngày (`is_teaching_allowed = false`), luôn là Thứ Bảy tuần đó hoặc tuần sau, và hoạt động được sao chép sang Thứ Bảy với `notes` mở đầu `[Dạy bù ngày dd/mm]`; ngày dạy bù không bị tính là ngày nghỉ. Không xếp lịch Chủ nhật; Thứ Bảy chỉ xếp được khi là ngày dạy bù hoặc có sự kiện cho dạy. Mobile theo cùng quy tắc (và theo web `DailyRoutinePage`): Thứ Bảy dạy bù mở ghi nhận kể cả khi chưa có slot. Các API lưu vẫn chưa chặn ngày nghỉ và `/parent/schedule` vẫn chưa trả `holidays` (BE-06).
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

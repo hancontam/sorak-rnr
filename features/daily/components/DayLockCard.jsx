@@ -1,15 +1,20 @@
-import { CalendarOff } from 'lucide-react-native';
+import { CalendarOff, ChevronRight } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { useTranslation } from '@/shared/i18n/useLanguage';
+import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
+
+import { shortDate } from '../utils/schedule-date';
 
 // Thay card tình hình trong ngày khi ngày đó là ngày nghỉ (lịch năm học) hoặc cuối tuần không có lịch.
-export function DayLockCard({ lock, isParent }) {
+// Ngày nghỉ có ngày dạy bù: báo lịch dời sang Thứ Bảy và cho mở ngày đó.
+export function DayLockCard({ lock, isParent, onOpenMakeup }) {
   const t = useTranslation();
+  const locale = useLocale();
   const holiday = lock.kind === 'holiday';
   const description = holiday
     ? isParent
@@ -33,6 +38,19 @@ export function DayLockCard({ lock, isParent }) {
           </Badge>
         </View>
         <Text className="text-2xs leading-4 text-muted-foreground">{t(description)}</Text>
+        {lock.makeupDate ? (
+          <Text className="text-2xs font-medium leading-4">
+            {t('Lịch dạy được bù vào Thứ Bảy {date}.', {
+              date: shortDate(lock.makeupDate, locale),
+            })}
+          </Text>
+        ) : null}
+        {lock.makeupDate && onOpenMakeup ? (
+          <Button size="sm" variant="outline" className="mt-1 self-start" onPress={onOpenMakeup}>
+            <Text>{t('Xem ngày học bù')}</Text>
+            <Icon as={ChevronRight} size={14} />
+          </Button>
+        ) : null}
       </View>
     </Card>
   );

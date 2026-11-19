@@ -16,7 +16,7 @@ import { ScheduleCalendar } from '../components/ScheduleCalendar';
 import { ScheduleState } from '../components/ScheduleState';
 import { useSchoolToday } from '../hooks/useSchoolToday';
 import { useTimetable } from '../hooks/useTimetable';
-import { dayTitle, schoolClock, schoolToday, weekDates } from '../utils/schedule-date';
+import { dayTitle, schoolClock, schoolToday, shortDate, weekDates } from '../utils/schedule-date';
 import {
   childDayResults,
   dayCalendar,
@@ -66,7 +66,10 @@ export default function TimetableScreen() {
   const dayLocks = ready
     ? Object.fromEntries(
         weekDates(date)
-          .map((day) => [day, dayCalendar(data, day, isParent).lock?.kind])
+          .map((day) => {
+            const info = dayCalendar(data, day, isParent);
+            return [day, info.lock?.kind || (info.makeup ? 'makeup' : undefined)];
+          })
           .filter(([, kind]) => kind)
       )
     : undefined;
@@ -94,7 +97,13 @@ export default function TimetableScreen() {
         ListHeaderComponent={
           <View className="gap-4 pb-1">
             <ScheduleCalendar date={date} today={today} onChange={setDate} dayLocks={dayLocks} />
-            {lock ? <DayLockCard lock={lock} isParent={isParent} /> : null}
+            {lock ? (
+              <DayLockCard
+                lock={lock}
+                isParent={isParent}
+                onOpenMakeup={lock.makeupDate ? () => setDate(lock.makeupDate) : undefined}
+              />
+            ) : null}
             {ready && placeholder && !lock ? (
               <View className="flex-row items-center gap-2 px-1 py-2">
                 <ActivityIndicator size="small" />
@@ -140,6 +149,11 @@ export default function TimetableScreen() {
               ) : date > today ? (
                 <Badge variant="outline">
                   <Text>{t('Lịch sắp tới')}</Text>
+                </Badge>
+              ) : null}
+              {calendar?.makeupOf ? (
+                <Badge variant="brand">
+                  <Text>{t('Bù cho {date}', { date: shortDate(calendar.makeupOf, locale) })}</Text>
                 </Badge>
               ) : null}
               {calendar?.events.map((name) => (

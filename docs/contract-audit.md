@@ -116,6 +116,7 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 - Chỉ GET, tài khoản GV (lớp Nhà Trẻ 1 và Lá 1). `GET /classes/{id}/students` và `GET /attendance/classes/{id}/dismissal` trả `avatarUrl` (dicebear SVG, tải được 200 `image/svg+xml`); `GET /attendance/classes/{id}/authorizations` trả `student.avatarUrl`.
 - `GET /attendance/classes/{id}/timetable` (`students`) và các endpoint kết quả `assessment` tháng/học kỳ không có trường avatar. `id` học sinh của lịch và kết quả khớp `id` trong danh sách lớp (4/4 và 8/8 bé), nên mobile ghép avatar theo `id` trong hook.
 - Không có ảnh thật nào trên test2 để kiểm tra trường hợp ảnh tải lên.
+- 19/11/2026: kết quả học tập có học sinh không còn trong danh sách lớp hiện tại (HS26025, lớp Lá 1) nên không ghép được avatar theo `id`. Mobile dùng cùng quy tắc backend (`class.service.js`: `avatar_url`, nếu không có thì DiceBear `10.x/critters` theo mã HS và bảng màu cố định) qua `lib/student-avatar.js`. Khi BE-05 trả `avatarUrl` trong kết quả, bỏ bước ghép này.
 
 ### Ngày nghỉ và Thứ Bảy dạy bù (test2, 19/11/2026)
 

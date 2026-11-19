@@ -228,7 +228,11 @@ export default function LearningResultScreen() {
         <SemesterResultCard
           title={data.student.fullName}
           code={data.student.studentCode}
-          avatarUrl={result.avatarOf(data.student.id)}
+          avatarUrl={result.avatarOf(
+            data.student.id,
+            data.student.studentCode,
+            data.student.fullName
+          )}
           record={semesterResult}
           parent
         />
@@ -242,7 +246,11 @@ export default function LearningResultScreen() {
           <MonthlyResultCard
             title={data.student.fullName}
             code={data.student.studentCode}
-            avatarUrl={result.avatarOf(data.student.id)}
+            avatarUrl={result.avatarOf(
+              data.student.id,
+              data.student.studentCode,
+              data.student.fullName
+            )}
             record={{ ...data.record, weeklyStats: data.weeklyStats }}
             week={shownWeek}
             maxRoses={data.record?.maxRoses}
@@ -332,7 +340,7 @@ export default function LearningResultScreen() {
             <MonthlyResultCard
               title={item.name}
               code={item.code}
-              avatarUrl={result.avatarOf(item.id)}
+              avatarUrl={result.avatarOf(item.id, item.code, item.name)}
               record={item}
               week={shownWeek}
               maxRoses={weeks}
@@ -342,7 +350,7 @@ export default function LearningResultScreen() {
             <SemesterResultCard
               title={item.name}
               code={item.code}
-              avatarUrl={result.avatarOf(item.id)}
+              avatarUrl={result.avatarOf(item.id, item.code, item.name)}
               record={item}
               compact
             />

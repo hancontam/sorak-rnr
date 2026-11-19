@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
+import { studentAvatarUrl } from '@/lib/student-avatar';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
@@ -110,7 +111,10 @@ export function useDailyRecords({ kind, date, slotId }) {
     const fields = Object.keys(initial);
     const changed = fields.some((field) => initial[field] !== value[field]);
     const edited = fields.some((field) => defaultDraft[field] !== value[field]);
-    const avatarUrl = student.avatarUrl || avatars.get(id) || '';
+    const avatarUrl =
+      student.avatarUrl ||
+      avatars.get(id) ||
+      studentAvatarUrl({ studentCode: student.code, fullName: student.name });
     return {
       id,
       student,

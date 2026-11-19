@@ -63,6 +63,7 @@ export function MonthCalendar({ monthId, onMonthChange, ranges, minDateId, onDay
       itemDayContainer: { activeDayFiller: { backgroundColor: theme.muted } },
       itemDay: {
         base: () => ({
+          container: { borderRadius: 0 },
           content: { fontFamily: FONT_FAMILY.mono.regular, fontSize: 13, color: theme.foreground },
         }),
         idle: ({ isPressed, isDifferentMonth }) => ({
@@ -82,7 +83,12 @@ export function MonthCalendar({ monthId, onMonthChange, ranges, minDateId, onDay
           return {
             container: {
               backgroundColor: edge ? theme.primary : theme.muted,
+              // Góc vuông như web; Flash Calendar tự bo từng góc của đầu/cuối khoảng nên đặt rõ cả 4.
               borderRadius: 0,
+              borderTopLeftRadius: 0,
+              borderBottomLeftRadius: 0,
+              borderTopRightRadius: 0,
+              borderBottomRightRadius: 0,
             },
             content: {
               fontFamily: edge ? FONT_FAMILY.mono.semibold : FONT_FAMILY.mono.regular,

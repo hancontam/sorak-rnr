@@ -977,4 +977,8 @@ export const english = {
   'Xem ngày học bù': 'View make-up day',
   'Nhập mã tài khoản và mật khẩu do nhà trường cấp.':
     'Enter the account code and password provided by the school.',
+  'Đã đo': 'Measured',
+  'Ủy quyền': 'Pickup auth.',
+  '{count} chờ': '{count} pending',
+  'Xem đơn': 'Requests',
 };

@@ -2,16 +2,16 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
-import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { usePickupRequests } from '@/features/pickup/hooks/usePickupRequests';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { ChildDayResults } from '../components/ChildDayResults';
 import { DayLockCard } from '../components/DayLockCard';
-import { DayOverviewCard } from '../components/DayOverviewCard';
+import { DayStatusBar } from '../components/DayStatusBar';
 import { EmptyFrames, ScheduleFrame } from '../components/ScheduleFrame';
 import { ScheduleCalendar } from '../components/ScheduleCalendar';
 import { ScheduleState } from '../components/ScheduleState';
@@ -98,44 +98,6 @@ export default function TimetableScreen() {
         ListHeaderComponent={
           <View className="gap-4 pb-1">
             <ScheduleCalendar date={date} today={today} onChange={setDate} dayLocks={dayLocks} />
-            {lock ? (
-              <DayLockCard
-                lock={lock}
-                isParent={isParent}
-                onOpenMakeup={lock.makeupDate ? () => setDate(lock.makeupDate) : undefined}
-              />
-            ) : null}
-            {ready && placeholder && !lock ? (
-              <LoadingSkeleton variant="cards" rows={1} label={t('Đang tải số liệu trong ngày…')} />
-            ) : null}
-            {ready && !placeholder && !lock ? (
-              <DayOverviewCard
-                overview={dayOverview(data, date, isParent)}
-                isParent={isParent}
-                isToday={date === today}
-                pendingCount={pendingCount}
-                onOpenRecords={
-                  isParent
-                    ? undefined
-                    : (kind) =>
-                        router.push({
-                          pathname: '/(teacher)/daily-records',
-                          params: { kind, date },
-                        })
-                }
-                onOpenPickupRequests={
-                  pickup.allowed
-                    ? () =>
-                        router.push({
-                          pathname: isParent
-                            ? '/(parent)/pickup-requests'
-                            : '/(teacher)/pickup-requests',
-                          params: { date },
-                        })
-                    : undefined
-                }
-              />
-            ) : null}
             <View className="flex-row flex-wrap items-center gap-2 pt-1">
               <Text className="text-sm font-semibold">{dayTitle(date, locale)}</Text>
               {date === today ? (
@@ -163,6 +125,13 @@ export default function TimetableScreen() {
                 </Text>
               ) : null}
             </View>
+            {lock ? (
+              <DayLockCard
+                lock={lock}
+                isParent={isParent}
+                onOpenMakeup={lock.makeupDate ? () => setDate(lock.makeupDate) : undefined}
+              />
+            ) : null}
           </View>
         }
         ListEmptyComponent={
@@ -214,6 +183,44 @@ export default function TimetableScreen() {
           ready && isParent ? <ChildDayResults results={childDayResults(data, date)} /> : null
         }
       />
+      {ready && !lock ? (
+        placeholder ? (
+          <View
+            accessible
+            accessibilityLabel={t('Đang tải số liệu trong ngày…')}
+            className="flex-row gap-3 border-t border-border bg-background px-4 py-3">
+            {[0, 1, 2, 3].map((key) => (
+              <Skeleton key={key} className="h-8 flex-1" />
+            ))}
+          </View>
+        ) : (
+          <DayStatusBar
+            overview={dayOverview(data, date, isParent)}
+            isParent={isParent}
+            pendingCount={pendingCount}
+            onOpenRecords={
+              isParent
+                ? undefined
+                : (kind) =>
+                    router.push({
+                      pathname: '/(teacher)/daily-records',
+                      params: { kind, date },
+                    })
+            }
+            onOpenPickupRequests={
+              pickup.allowed
+                ? () =>
+                    router.push({
+                      pathname: isParent
+                        ? '/(parent)/pickup-requests'
+                        : '/(teacher)/pickup-requests',
+                      params: { date },
+                    })
+                : undefined
+            }
+          />
+        )
+      ) : null}
     </View>
   );
 }

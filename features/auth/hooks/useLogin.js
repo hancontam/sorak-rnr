@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
-import { getChallengeUrl, login, verifyLoginOtp } from '../api/auth.api';
+import { login, verifyLoginOtp } from '../api/auth.api';
 import { acceptLogin } from '../session';
 import { useAuthStore } from '../store/auth.store';
 
@@ -10,7 +10,7 @@ function errorMessage(error, isOtp) {
     case 400:
       return isOtp
         ? 'Mã xác thực không hợp lệ hoặc đã hết hạn.'
-        : 'Kiểm tra lại thông tin và thử xác minh bảo mật mới.';
+        : 'Kiểm tra lại tài khoản, mật khẩu và loại tài khoản.';
     case 401:
       return isOtp
         ? 'Mã hoặc phiên xác thực không còn hợp lệ.'
@@ -70,8 +70,8 @@ export function useLogin(role, { adding = false, accountId, onAuthenticated } = 
     }
   }
 
-  function submitLogin({ username, password, captchaToken, remember }) {
-    return submit((signal) => login({ username, password, role, captchaToken }, signal), remember);
+  function submitLogin({ username, password, remember }) {
+    return submit((signal) => login({ username, password, role }, signal), remember);
   }
 
   function submitOtp(otp) {
@@ -98,6 +98,5 @@ export function useLogin(role, { adding = false, accountId, onAuthenticated } = 
     error,
     needsOtp: !!challenge,
     emailMasked,
-    challengeUrl: getChallengeUrl(),
   };
 }

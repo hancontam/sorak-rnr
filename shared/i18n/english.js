@@ -82,27 +82,9 @@ export const english = {
   'Trường Mầm Non': 'Preschool',
   'Mã xác minh đã hết hạn. Tải lại để xác minh tiếp.':
     'The verification expired. Reload to try again.',
-  'Chưa nhận được kết quả xác minh. Kiểm tra kết nối rồi thử lại.':
-    'Verification did not finish. Check your connection and try again.',
-  'Xác minh bảo mật chưa thành công. Vui lòng thử lại.':
-    'Security verification failed. Please try again.',
-  'Tiến trình tải trang xác minh': 'Verification page loading progress',
-  'Xác nhận quyền truy cập': 'Confirm access',
   'Tài khoản': 'Account',
   Trường: 'School',
-  'MN Hòn Tre': 'Hòn Tre Preschool',
-  'Cho phép & Tiếp tục vào Sorak': 'Allow and continue to Sorak',
-  'Chưa xác minh được': 'Unable to verify',
-  'Không tải được trang xác minh. Vui lòng thử lại.':
-    'The verification page could not load. Please try again.',
-  'Máy chủ xác minh chưa phản hồi thành công.':
-    'The verification server did not respond successfully.',
-  'Đóng xác minh': 'Close verification',
   Đóng: 'Close',
-  'Tải lại trang xác minh': 'Reload verification page',
-  'Xác minh bảo mật': 'Security verification',
-  'Cổng xác thực Trường Mầm Non Hòn Tre': 'Hòn Tre Preschool verification portal',
-  'Xác minh trên điện thoại': 'Verify on your phone',
   'Mở ứng dụng Sorak trên iOS hoặc Android để tiếp tục.':
     'Open Sorak on iOS or Android to continue.',
   'Hoạt động lớp': 'Class activities',
@@ -121,8 +103,6 @@ export const english = {
   'Ảnh tiếp theo': 'Next photo',
   'Ảnh trước': 'Previous photo',
   'Mã xác thực không hợp lệ hoặc đã hết hạn.': 'The verification code is invalid or has expired.',
-  'Kiểm tra lại thông tin và thử xác minh bảo mật mới.':
-    'Check your details and try security verification again.',
   'Mã hoặc phiên xác thực không còn hợp lệ.':
     'The code or verification session is no longer valid.',
   'Kiểm tra lại tài khoản, mật khẩu và loại tài khoản.':
@@ -159,8 +139,6 @@ export const english = {
   'Quay lại màn hình đầu': 'Back to the start screen',
   'Đổi vai trò': 'Change role',
   'Đăng nhập tài khoản': 'Sign in to your account',
-  'Nhập thông tin tài khoản để xác minh bảo mật qua WebView.':
-    'Enter your account details for security verification in WebView.',
   'Nhập mã học sinh': 'Enter student code',
   'Nhập mã cán bộ': 'Enter staff code',
   'Mật khẩu': 'Password',
@@ -171,7 +149,6 @@ export const english = {
   'Ghi nhớ phiên đăng nhập': 'Remember this session',
   'Giữ phiên trên thiết bị này khi mở lại ứng dụng.':
     'Keep this session on this device when you reopen the app.',
-  'Đăng nhập (WebView)': 'Sign in (WebView)',
   'Phụ huynh vui lòng liên hệ giáo viên chủ nhiệm để được hỗ trợ.':
     'Parents can contact the homeroom teacher for help.',
   'Giáo viên tìm lại mật khẩu': 'Reset your teacher password',
@@ -998,4 +975,6 @@ export const english = {
   'Bù cho {date}': 'Make-up for {date}',
   'Lịch dạy được bù vào Thứ Bảy {date}.': 'Classes are made up on Saturday {date}.',
   'Xem ngày học bù': 'View make-up day',
+  'Nhập mã tài khoản và mật khẩu do nhà trường cấp.':
+    'Enter the account code and password provided by the school.',
 };

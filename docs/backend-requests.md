@@ -82,6 +82,16 @@ Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: resp
 
 **Nghiệm thu:** lưu vào 16/11 (Lá 1) bị từ chối, đọc lại không đổi dữ liệu; ngày nghỉ chỉ áp cho khối khác thì lớp Lá vẫn lưu được; T7 học bù có slot lưu được; ngày hôm qua bị từ chối. Lịch PH của bé lớp Lá có mục 16/11.
 
+## BE-07 — Đăng nhập mobile không Turnstile ở production
+
+**Trạng thái:** đề xuất ngày 19/11; app đã bỏ WebView Turnstile theo quyết định của nhóm.
+
+**Cần gì/vì sao:** app gửi `/auth/login` không có `captchaToken`, kèm `X-Client-Platform: android|ios`. Backend chỉ bỏ qua Turnstile cho trường hợp này khi `NODE_ENV !== 'production'` hoặc `ALLOW_MOBILE_BYPASS=true`, nên môi trường production phải bật biến này trước khi phát hành bản mobile mới, nếu không đăng nhập sẽ trả 400 `botBlocked`.
+
+**Rủi ro cần BE xem lại:** `verifyCaptchaToken` chấp nhận các token cố định (`sorak-mobile-bypass`, `sorak-mobile-test`, `test-token-playwright`, `sorak-link-child-bypass`) ở mọi môi trường và mọi client, kể cả web; header `X-Client-Platform` cũng do client tự đặt. Đề xuất giới hạn token cố định ngoài production và thay Turnstile bằng giới hạn tần suất đăng nhập theo tài khoản/IP cho mobile.
+
+**Nghiệm thu:** trên môi trường phát hành, login mobile không token trả 200; web không token vẫn bị chặn; token cố định bị từ chối ở production.
+
 ## Mẫu yêu cầu mới
 
 Vai trò/flow bị chặn; cần gì/vì sao; bằng chứng ngày/môi trường; endpoint hiện có và phần thiếu; request/response đề xuất; quyền/empty/error; dữ liệu test; nghiệm thu; ảnh hưởng thời hạn; phản hồi BE. Không ghi bug client, nghiệp vụ đã bỏ (xin nghỉ/ghi học kỳ GV) hoặc điều chưa điều tra thành lỗi BE chắc chắn.

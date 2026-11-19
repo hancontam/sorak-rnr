@@ -30,14 +30,12 @@ function readSession(data) {
   return { user: readUser(data.user), tokens: readTokens(data) };
 }
 
-export function getChallengeUrl() {
-  return `${apiClient.defaults.baseURL}/auth/mobile-challenge`;
-}
-
-export async function login({ username, password, role, captchaToken }, signal) {
+// Không gửi captchaToken: backend nhận diện app qua X-Client-Platform (shared/api/client.js) và bỏ
+// qua Turnstile cho mobile. Không dùng token bypass cố định.
+export async function login({ username, password, role }, signal) {
   const response = await apiClient.post(
     '/auth/login',
-    { username, password, role, captchaToken },
+    { username, password, role },
     { skipSession: true, signal }
   );
   const data = readData(response);

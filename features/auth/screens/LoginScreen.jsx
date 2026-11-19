@@ -2,11 +2,11 @@ import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ArrowLeft,
   ChevronDown,
-  ExternalLink,
   Eye,
   EyeOff,
   GraduationCap,
   KeyRound,
+  LogIn,
   School,
   UsersRound,
 } from 'lucide-react-native';
@@ -32,7 +32,6 @@ import { AuthSubmitButton } from '../components/AuthSubmitButton';
 import { LoginError } from '../components/LoginError';
 import { LoginOtpForm } from '../components/LoginOtpForm';
 import { RoleSheet } from '../components/RoleSheet';
-import { TurnstileChallenge } from '../components/TurnstileChallenge';
 import { useLogin } from '../hooks/useLogin';
 import { useAuthStore } from '../store/auth.store';
 import { AUTH_ROLES, isMobileRole, roleLabel } from '../utils/auth-roles';
@@ -85,11 +84,9 @@ function LoginFlow({ role, adding, accountId }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
-  const [showChallenge, setShowChallenge] = useState(false);
   const [roleSheetOpen, setRoleSheetOpen] = useState(false);
   const [recovering, setRecovering] = useState(false);
   const closeRecovery = useCallback(() => setRecovering(false), []);
-  const challengeOpen = useRef(false);
   const passwordField = useRef(null);
   const {
     submitLogin,
@@ -100,7 +97,6 @@ function LoginFlow({ role, adding, accountId }) {
     error,
     needsOtp,
     emailMasked,
-    challengeUrl,
   } = useLogin(role, {
     adding,
     accountId,
@@ -108,25 +104,15 @@ function LoginFlow({ role, adding, accountId }) {
   });
   const canSubmit = username.trim().length >= 3 && password.length >= 6;
 
-  function openChallenge() {
-    if (!canSubmit || isPending || challengeOpen.current) return;
+  // Đăng nhập trực tiếp: backend bỏ qua Turnstile cho app mobile (X-Client-Platform), không mở WebView.
+  function submitCredentials() {
+    if (!canSubmit || isPending) return;
     Keyboard.dismiss();
     clearError();
-    challengeOpen.current = true;
-    setShowChallenge(true);
-  }
-
-  function closeChallenge() {
-    challengeOpen.current = false;
-    setShowChallenge(false);
-  }
-
-  function handleVerified(captchaToken) {
-    if (!challengeOpen.current) return;
-    closeChallenge();
+    const secret = password;
     setShowPassword(false);
     setPassword('');
-    void submitLogin({ username: username.trim(), password, captchaToken, remember });
+    void submitLogin({ username: username.trim(), password: secret, remember });
   }
 
   function openRecovery() {
@@ -218,7 +204,7 @@ function LoginFlow({ role, adding, accountId }) {
               <CardHeader className="gap-1">
                 <CardTitle>{t('Đăng nhập tài khoản')}</CardTitle>
                 <CardDescription className="leading-5">
-                  {t('Nhập thông tin tài khoản để xác minh bảo mật qua WebView.')}
+                  {t('Nhập mã tài khoản và mật khẩu do nhà trường cấp.')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="gap-4">
@@ -277,7 +263,7 @@ function LoginFlow({ role, adding, accountId }) {
                       editable={!isPending}
                       maxLength={100}
                       returnKeyType="go"
-                      onSubmitEditing={openChallenge}
+                      onSubmitEditing={submitCredentials}
                     />
                     <Button
                       variant="ghost"
@@ -323,11 +309,11 @@ function LoginFlow({ role, adding, accountId }) {
                 </View>
                 <LoginError message={error} />
                 <AuthSubmitButton
-                  label={t('Đăng nhập (WebView)')}
-                  icon={ExternalLink}
+                  label={t('Đăng nhập')}
+                  icon={LogIn}
                   pending={isPending}
                   disabled={!canSubmit}
-                  onPress={openChallenge}
+                  onPress={submitCredentials}
                 />
               </CardContent>
             </Card>
@@ -368,15 +354,6 @@ function LoginFlow({ role, adding, accountId }) {
           if (nextRole !== role) router.setParams({ role: nextRole });
         }}
       />
-      {showChallenge ? (
-        <TurnstileChallenge
-          url={challengeUrl}
-          role={role}
-          account={username.trim()}
-          onVerified={handleVerified}
-          onClose={closeChallenge}
-        />
-      ) : null}
     </SafeAreaView>
   );
 }

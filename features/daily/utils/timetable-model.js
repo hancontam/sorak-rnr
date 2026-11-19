@@ -127,8 +127,16 @@ export function dayCalendar(data, date, isParent) {
   }
   const weekday = calendarDate(date)?.getUTCDay();
   const makeup = weekday === 6 ? saturdayMakeup(entries, date) : null;
-  // Chỉ mục có makeupDate mới biết ngày nghỉ gốc; sự kiện học bù cũ chỉ có tên (đã nằm trong events).
-  const makeupOf = makeup?.makeupDate === date ? makeup.startDate : '';
+  // Ngày nghỉ gốc là mục nghỉ (không cho dạy) ở ngày khác có makeupDate trỏ tới Thứ Bảy này. Mục học
+  // bù riêng của chính Thứ Bảy cũng có makeupDate = date nên không dùng startDate của nó (từng hiện
+  // "Bù cho 21/11" cho chính ngày 21/11).
+  const original = makeup
+    ? entries.find(
+        (item) =>
+          item.makeupDate === date && item.isTeachingAllowed === false && item.startDate !== date
+      )
+    : null;
+  const makeupOf = original ? original.startDate : '';
   if (
     (weekday === 0 || weekday === 6) &&
     !makeup &&

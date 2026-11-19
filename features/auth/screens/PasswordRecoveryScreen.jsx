@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Eye, EyeOff } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { BackHandler, Keyboard, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -210,7 +210,6 @@ export function PasswordRecoveryScreen({ initialIdentifier, onBack, onComplete }
                 <LoginError message={error} />
                 <AuthSubmitButton
                   label={secondsLeft > 0 ? resendLabel : t('Gửi mã xác thực OTP')}
-                  icon={ArrowRight}
                   pending={isPending}
                   disabled={!canSend}
                   onPress={sendCode}

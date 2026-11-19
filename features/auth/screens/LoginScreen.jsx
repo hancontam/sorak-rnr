@@ -5,7 +5,6 @@ import {
   Eye,
   EyeOff,
   GraduationCap,
-  LogIn,
   UsersRound,
 } from 'lucide-react-native';
 import { useCallback, useRef, useState } from 'react';
@@ -316,7 +315,6 @@ function LoginFlow({ role, adding, accountId }) {
               <LoginError message={error} />
               <AuthSubmitButton
                 label={t('Đăng nhập')}
-                icon={LogIn}
                 pending={isPending}
                 disabled={!canSubmit}
                 onPress={submitCredentials}

@@ -1,4 +1,4 @@
-import { CalendarOff, ChevronRight } from 'lucide-react-native';
+import { CalendarOff } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { Badge } from '@/components/ui/badge';
@@ -40,7 +40,6 @@ export function DayLockCard({ lock, onOpenMakeup }) {
         {lock.makeupDate && onOpenMakeup ? (
           <Button size="sm" variant="outline" className="mt-1 self-start" onPress={onOpenMakeup}>
             <Text>{t('Xem ngày học bù')}</Text>
-            <Icon as={ChevronRight} size={14} />
           </Button>
         ) : null}
       </View>

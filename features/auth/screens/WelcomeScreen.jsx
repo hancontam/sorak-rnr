@@ -71,6 +71,10 @@ export default function WelcomeScreen() {
         visible={roleSheetOpen}
         onClose={() => setRoleSheetOpen(false)}
         onSelect={selectRole}
+        onOpenDocument={(doc) => {
+          setRoleSheetOpen(false);
+          router.push({ pathname: '/legal/[doc]', params: { doc } });
+        }}
       />
     </SafeAreaView>
   );

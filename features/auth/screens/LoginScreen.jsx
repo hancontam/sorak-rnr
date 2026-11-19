@@ -155,36 +155,52 @@ function LoginFlow({ role, adding, accountId }) {
             accessibilityLabel={t('Quay lại')}>
             <Icon as={ArrowLeft} size={18} />
           </Button>
-          {adding || accountId ? (
-            <Text className="text-sm font-semibold">
-              {t(adding ? 'Thêm tài khoản' : 'Đăng nhập lại')}
-            </Text>
-          ) : null}
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 gap-1.5 px-3"
-            hitSlop={4}
-            disabled={adding || Boolean(accountId) || isPending || needsOtp}
-            accessibilityLabel={t('Đổi vai trò đăng nhập, đang chọn {role}', {
-              role: t(roleLabel(role)),
-            })}
-            onPress={() => {
-              Keyboard.dismiss();
-              setRoleSheetOpen(true);
-            }}>
-            <Icon as={parent ? UsersRound : GraduationCap} size={14} className="text-brand-link" />
-            <Text className="text-xs font-semibold">{t(roleLabel(role))}</Text>
-            <Icon as={ChevronDown} size={14} className="text-muted-foreground" />
-          </Button>
+          {/* Thêm tài khoản / đăng nhập lại chỉ dành cho đúng vai trò hiện tại nên ẩn nút đổi vai trò. */}
+          {adding || accountId ? null : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5 px-3"
+              hitSlop={4}
+              disabled={adding || Boolean(accountId) || isPending || needsOtp}
+              accessibilityLabel={t('Đổi vai trò đăng nhập, đang chọn {role}', {
+                role: t(roleLabel(role)),
+              })}
+              onPress={() => {
+                Keyboard.dismiss();
+                setRoleSheetOpen(true);
+              }}>
+              <Icon
+                as={parent ? UsersRound : GraduationCap}
+                size={14}
+                className="text-foreground"
+              />
+              <Text className="text-xs font-semibold">{t(roleLabel(role))}</Text>
+              <Icon as={ChevronDown} size={14} className="text-muted-foreground" />
+            </Button>
+          )}
         </View>
         {/* Tiêu đề theo vai trò như Figma (Phụ huynh / Giáo viên), thay khung thương hiệu cũ. */}
         <View className="gap-1 pt-2">
           <Text role="heading" className="text-xl font-semibold tracking-tight">
-            {t(parent ? 'Phụ huynh' : 'Giáo viên')}
+            {t(
+              adding
+                ? 'Thêm tài khoản'
+                : accountId
+                  ? 'Đăng nhập lại'
+                  : parent
+                    ? 'Phụ huynh'
+                    : 'Giáo viên'
+            )}
           </Text>
           <Text className="text-sm text-muted-foreground">
-            {t(parent ? 'Nhập mã học sinh của con.' : 'Nhập tài khoản được cấp.')}
+            {t(
+              adding
+                ? 'Nhập mã học sinh và mật khẩu của bé cần thêm.'
+                : parent
+                  ? 'Nhập mã học sinh của con.'
+                  : 'Nhập tài khoản được cấp.'
+            )}
           </Text>
         </View>
         {needsOtp ? (
@@ -275,25 +291,28 @@ function LoginFlow({ role, adding, accountId }) {
                   </Button>
                 </View>
               </View>
-              <View className="flex-row items-start gap-2.5 pt-0.5">
-                <Checkbox
-                  className="mt-0.5"
-                  checked={remember}
-                  onCheckedChange={setRemember}
-                  disabled={adding || Boolean(accountId) || isPending}
-                  hitSlop={8}
-                  accessibilityLabel={t('Ghi nhớ phiên đăng nhập')}
-                  aria-labelledby="remember-label"
-                />
-                <View className="flex-1 gap-0.5">
-                  <Label
-                    nativeID="remember-label"
+              {/* Thêm tài khoản / đăng nhập lại luôn ghi nhớ phiên nên không hiện ô bị khóa. */}
+              {adding || accountId ? null : (
+                <View className="flex-row items-start gap-2.5 pt-0.5">
+                  <Checkbox
+                    className="mt-0.5"
+                    checked={remember}
+                    onCheckedChange={setRemember}
                     disabled={adding || Boolean(accountId) || isPending}
-                    onPress={() => !adding && !accountId && setRemember((value) => !value)}>
-                    {t('Ghi nhớ phiên đăng nhập')}
-                  </Label>
+                    hitSlop={8}
+                    accessibilityLabel={t('Duy trì đăng nhập')}
+                    aria-labelledby="remember-label"
+                  />
+                  <View className="flex-1 gap-0.5">
+                    <Label
+                      nativeID="remember-label"
+                      disabled={adding || Boolean(accountId) || isPending}
+                      onPress={() => !adding && !accountId && setRemember((value) => !value)}>
+                      {t('Duy trì đăng nhập')}
+                    </Label>
+                  </View>
                 </View>
-              </View>
+              )}
               <LoginError message={error} />
               <AuthSubmitButton
                 label={t('Đăng nhập')}
@@ -315,6 +334,10 @@ function LoginFlow({ role, adding, accountId }) {
       <RoleSheet
         visible={roleSheetOpen}
         onClose={() => setRoleSheetOpen(false)}
+        onOpenDocument={(doc) => {
+          setRoleSheetOpen(false);
+          router.push({ pathname: '/legal/[doc]', params: { doc } });
+        }}
         onSelect={(nextRole) => {
           setRoleSheetOpen(false);
           if (nextRole !== role) router.setParams({ role: nextRole });

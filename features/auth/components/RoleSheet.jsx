@@ -11,7 +11,7 @@ import { AUTH_ROLES, WEB_ACCOUNT_NOTICE } from '../utils/auth-roles';
 
 // Chọn loại tài khoản như Figma (Welcome/login flow): hai nút "Tiếp tục với tài khoản …" và dòng
 // điều khoản. Đây chỉ là lối vào nên không đánh dấu vai trò đang chọn (dấu tích dễ hiểu nhầm).
-export function RoleSheet({ visible, onClose, onSelect }) {
+export function RoleSheet({ visible, onClose, onSelect, onOpenDocument }) {
   const t = useTranslation();
   return (
     <BottomSheet
@@ -33,12 +33,23 @@ export function RoleSheet({ visible, onClose, onSelect }) {
           onPress={() => onSelect(AUTH_ROLES.teacher)}
         />
         <Text className="pt-1 text-center text-2xs leading-4 text-muted-foreground">
-          {t(
-            'Bằng việc tiếp tục, bạn đồng ý với Điều khoản sử dụng và Chính sách bảo mật của Sorak.'
-          )}
+          {t('Bằng việc tiếp tục, bạn đồng ý với')}{' '}
+          <DocLink label={t('Điều khoản sử dụng')} onPress={() => onOpenDocument?.('terms')} />{' '}
+          {t('và')}{' '}
+          <DocLink label={t('Chính sách bảo mật')} onPress={() => onOpenDocument?.('privacy')} />{' '}
+          {t('của Sorak.')}
         </Text>
       </View>
     </BottomSheet>
+  );
+}
+
+// Liên kết trong dòng điều khoản: chữ xanh đậm (không gạch dưới), mở trang tài liệu trong mục Giới thiệu.
+function DocLink({ label, onPress }) {
+  return (
+    <Text accessibilityRole="link" onPress={onPress} className="text-2xs font-medium text-primary">
+      {label}
+    </Text>
   );
 }
 
@@ -49,7 +60,7 @@ function RoleButton({ label, icon, onPress }) {
       accessibilityLabel={label}
       onPress={onPress}
       className="h-12 justify-start gap-3 px-4">
-      <Icon as={icon} size={18} className="text-primary" />
+      <Icon as={icon} size={18} className="text-foreground" />
       <Text className="min-w-0 flex-1 text-sm font-semibold">{label}</Text>
     </Button>
   );

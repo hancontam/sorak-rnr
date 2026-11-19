@@ -146,7 +146,7 @@ export const english = {
   'Nhập mật khẩu': 'Enter password',
   'Ẩn mật khẩu': 'Hide password',
   'Hiện mật khẩu': 'Show password',
-  'Ghi nhớ phiên đăng nhập': 'Remember this session',
+  'Duy trì đăng nhập': 'Stay signed in',
   'Giữ phiên trên thiết bị này khi mở lại ứng dụng.':
     'Keep this session on this device when you reopen the app.',
   'Phụ huynh vui lòng liên hệ giáo viên chủ nhiệm để được hỗ trợ.':
@@ -1038,7 +1038,11 @@ export const english = {
   'Trường Mầm Non Hòn Tre · Sorak. Cập nhật lần cuối {date}.': 'Hon Tre Preschool · Sorak. Last updated {date}.',
   'Nhà trường chưa công bố phiếu đánh giá tháng này.': 'The school has not published this month’s report yet.',
   'Quay lại danh sách đơn': 'Back to requests',
+  'Bằng việc tiếp tục, bạn đồng ý với': 'By continuing, you agree to the',
+  'và': 'and',
+  'của Sorak.': 'of Sorak.',
   'Giáo viên chủ nhiệm': 'Homeroom teacher',
   'Gọi giáo viên': 'Call teacher',
   'Email': 'Email',
+  'Nhập mã học sinh và mật khẩu của bé cần thêm.': 'Enter the student code and password of the child to add.',
 };

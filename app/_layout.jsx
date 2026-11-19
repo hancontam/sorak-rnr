@@ -126,6 +126,8 @@ function AuthStack() {
         <Stack.Protected guard={status === 'signed-in'}>
           <Stack.Screen name="settings" options={{ headerShown: false }} />
         </Stack.Protected>
+        {/* Điều khoản / Chính sách mở được cả khi chưa đăng nhập (từ sheet chọn vai trò). */}
+        <Stack.Screen name="legal/[doc]" options={{ title: '', headerTitleAlign: 'center' }} />
       </Stack>
     </SessionGate>
   );

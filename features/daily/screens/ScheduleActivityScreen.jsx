@@ -51,6 +51,7 @@ export default function ScheduleActivityScreen() {
       {error || noClass || query.isPending || query.isError || !activity ? (
         <ScheduleState
           loading={!error && !noClass && query.isPending}
+          skeleton="cards"
           error={error || (query.isError ? timetableError(query.error) : '')}
           onRetry={query.isError ? query.refetch : undefined}
           title={noClass ? 'Chưa được phân công lớp' : 'Không tìm thấy hoạt động trong ngày này'}

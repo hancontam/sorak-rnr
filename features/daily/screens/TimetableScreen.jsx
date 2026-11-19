@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { Badge } from '@/components/ui/badge';
 import { Text } from '@/components/ui/text';
@@ -105,12 +106,7 @@ export default function TimetableScreen() {
               />
             ) : null}
             {ready && placeholder && !lock ? (
-              <View className="flex-row items-center gap-2 px-1 py-2">
-                <ActivityIndicator size="small" />
-                <Text className="text-xs text-muted-foreground">
-                  {t('Đang tải số liệu trong ngày…')}
-                </Text>
-              </View>
+              <LoadingSkeleton variant="cards" rows={1} label={t('Đang tải số liệu trong ngày…')} />
             ) : null}
             {ready && !placeholder && !lock ? (
               <DayOverviewCard
@@ -174,6 +170,7 @@ export default function TimetableScreen() {
           lock?.kind === 'weekend' ? null : (
             <ScheduleState
               loading={query.isPending}
+              skeleton="timetable"
               error={query.isError ? timetableError(query.error) : ''}
               onRetry={query.isError ? query.refetch : undefined}
               title={noParentClass ? 'Chưa có lớp học của con' : 'Chưa có lịch cho ngày này'}

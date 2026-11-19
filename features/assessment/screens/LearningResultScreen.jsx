@@ -1,9 +1,10 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { ActionNotice } from '@/components/shared/ActionNotice';
 import { ChipTabs } from '@/components/shared/ChipTabs';
@@ -212,9 +213,7 @@ export default function LearningResultScreen() {
         </View>
       );
     if (query.isPending)
-      return (
-        <ActivityIndicator className="py-10" accessibilityLabel={t('Đang tải kết quả học tập')} />
-      );
+      return <LoadingSkeleton variant="cards" rows={3} label={t('Đang tải kết quả học tập')} />;
     if (monthNotEnded)
       return <Empty text={t('Kết quả tháng sẽ hiển thị sau khi tháng kết thúc.')} />;
     if (semesterNotStarted) return <Empty text={t('Học kỳ này chưa bắt đầu.')} />;

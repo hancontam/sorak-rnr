@@ -162,7 +162,7 @@ export function PickupRequestForm({
             <Image
               source={{ uri: photo.asset.uri }}
               accessibilityLabel={t('Ảnh người được ủy quyền')}
-              style={{ width: 80, height: 80, borderRadius: 8 }}
+              style={{ width: 80, height: 80, borderRadius: 0 }}
             />
           ) : null}
           <View className="flex-row flex-wrap gap-2">

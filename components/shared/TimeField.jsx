@@ -52,7 +52,7 @@ export function TimeField({ label, value, disabled, onChange, now }) {
     enableScrollByTapOnItem: true,
     itemTextStyle: { fontFamily: FONT_FAMILY.mono.medium, fontSize: 20, color: theme.foreground },
     // Lớp nổi nằm trên chữ nên phải mờ, nếu không sẽ che giá trị đang chọn.
-    overlayItemStyle: { backgroundColor: theme.foreground, borderRadius: 12, opacity: 0.06 },
+    overlayItemStyle: { backgroundColor: theme.foreground, borderRadius: 0, opacity: 0.06 },
   };
 
   return (

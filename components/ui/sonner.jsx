@@ -27,7 +27,7 @@ function Toaster(props) {
       }}
       toastOptions={{
         style: {
-          borderRadius: 16,
+          borderRadius: 0,
           borderWidth: 1,
           borderColor: theme.border,
           backgroundColor: theme.popover,
@@ -43,7 +43,7 @@ function Toaster(props) {
           lineHeight: 17,
           color: theme.mutedForeground,
         },
-        actionButtonStyle: { borderRadius: 10, backgroundColor: theme.primary },
+        actionButtonStyle: { borderRadius: 0, backgroundColor: theme.primary },
         actionButtonTextStyle: {
           fontFamily: FONT_FAMILY.sans.semibold,
           fontSize: 12,

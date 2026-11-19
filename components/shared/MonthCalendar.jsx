@@ -82,10 +82,7 @@ export function MonthCalendar({ monthId, onMonthChange, ranges, minDateId, onDay
           return {
             container: {
               backgroundColor: edge ? theme.primary : theme.muted,
-              borderTopLeftRadius: isStartOfRange ? 10 : 0,
-              borderBottomLeftRadius: isStartOfRange ? 10 : 0,
-              borderTopRightRadius: isEndOfRange ? 10 : 0,
-              borderBottomRightRadius: isEndOfRange ? 10 : 0,
+              borderRadius: 0,
             },
             content: {
               fontFamily: edge ? FONT_FAMILY.mono.semibold : FONT_FAMILY.mono.regular,

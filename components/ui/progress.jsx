@@ -54,7 +54,7 @@ function NativeIndicator({ value, className }) {
   }
   return (
     <ProgressPrimitive.Indicator asChild>
-      <Animated.View style={indicator} className={cn('h-full bg-foreground', className)} />
+      <Animated.View style={indicator} className={cn('h-full bg-primary', className)} />
     </ProgressPrimitive.Indicator>
   );
 }

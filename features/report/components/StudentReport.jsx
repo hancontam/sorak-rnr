@@ -46,6 +46,7 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
         {!error ? <SemesterPicker value={semester} onChange={onSemesterChange} /> : null}
         <ReportState
           loading={!error && query.isPending}
+          skeleton="cards"
           error={error || (query.error && reportError(query.error))}
           onRetry={!error ? query.refetch : undefined}
         />

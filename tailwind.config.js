@@ -62,10 +62,16 @@ module.exports = {
       fontSize: {
         '2xs': ['11px', { lineHeight: '14px' }],
       },
+      // Góc vuông như web (radius 0) cho mọi mức bo; chỉ rounded-full giữ tròn (avatar, chấm, switch).
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        none: '0px',
+        sm: '0px',
+        DEFAULT: '0px',
+        md: '0px',
+        lg: '0px',
+        xl: '0px',
+        '2xl': '0px',
+        '3xl': '0px',
       },
       borderWidth: {
         hairline: hairlineWidth(),

@@ -1,8 +1,9 @@
 import { Bell, BellOff, CheckCheck, RefreshCw } from 'lucide-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, View } from 'react-native';
+import { FlatList, Pressable, View } from 'react-native';
 import { toast } from 'sonner-native';
 
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { ActionNotice } from '@/components/shared/ActionNotice';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -96,7 +97,7 @@ export default function NotificationInboxScreen() {
         }
         ListEmptyComponent={
           query.isPending ? (
-            <ActivityIndicator className="py-10" accessibilityLabel={t('Đang tải thông báo')} />
+            <LoadingSkeleton rows={6} label={t('Đang tải thông báo')} />
           ) : !error ? (
             <View className="items-center gap-2 rounded-2xl border border-dashed border-border px-5 py-8">
               <View className="mb-1 size-10 items-center justify-center rounded-xl bg-muted">

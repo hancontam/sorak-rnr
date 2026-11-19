@@ -79,8 +79,8 @@ function BottomSheet({
       backdropComponent={renderBackdrop}
       backgroundStyle={{
         backgroundColor: theme.popover,
-        borderTopLeftRadius: 28,
-        borderTopRightRadius: 28,
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
       }}
       handleIndicatorStyle={{ width: 40, height: 6, backgroundColor: theme.border }}
       enableContentPanningGesture={enableContentPanningGesture}

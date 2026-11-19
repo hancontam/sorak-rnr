@@ -998,4 +998,9 @@ export const english = {
   'Th{month}': 'M{month}',
   hoa: 'flowers',
   'Bông Sen Cháu ngoan Bác Hồ': "Uncle Ho's Good Child Lotus",
+  'Học kỳ': 'Semester',
+  'Hoa hồng, hoa sen và nhận xét.': 'Roses, lotus and comments.',
+  'Đã đón {pickedUp}/{total} bé': '{pickedUp}/{total} children picked up',
+  'Vắng / chưa điểm danh': 'Absent / not marked',
+  Vắng: 'Absent',
 };

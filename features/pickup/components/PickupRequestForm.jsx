@@ -94,7 +94,12 @@ export function PickupRequestForm({
     }
     setError('');
     body.pickup_person_phone = body.pickup_person_phone.replace(/[ .-]/g, '');
-    onSend(isParent ? body : { ...body, studentId, photoUrl: photo?.url || null });
+    // Phụ huynh gửi /parent/requests/pickup với photo_url (snake_case như web); giáo viên gửi photoUrl.
+    onSend(
+      isParent
+        ? { ...body, photo_url: photo?.url || null }
+        : { ...body, studentId, photoUrl: photo?.url || null }
+    );
   }
 
   function renderField({ name, label, date, ...props }) {

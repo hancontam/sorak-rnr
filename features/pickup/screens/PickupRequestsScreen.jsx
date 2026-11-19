@@ -162,7 +162,7 @@ export default function PickupRequestsScreen() {
               isParent={isParent}
               date={date}
               selectedStudentId={typeof params.studentId === 'string' ? params.studentId : ''}
-              photo={isParent ? undefined : photo}
+              photo={photo}
               disabled={disabled}
               closingDisabled={saving || photo.busy}
               onDirtyChange={setDirty}

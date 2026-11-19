@@ -1028,4 +1028,10 @@ export const english = {
   'Đã đón lúc {time}': 'Picked up at {time}',
   'Học sinh đã chuyển lớp': 'Transferred children',
   'Ngày của bé': "Your child's day",
+  'Mở chi tiết thông báo': 'Open notification details',
+  'Không có nội dung chi tiết.': 'No details.',
+  'Hình ảnh đính kèm ({count})': 'Attached images ({count})',
+  'Ảnh đính kèm {index}': 'Attachment {index}',
+  'Lớp': 'Class',
+  'Người gửi': 'Sender',
 };

@@ -8,14 +8,16 @@ import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { statusBadgeVariant } from '@/lib/status-badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 const STATUS = {
-  PENDING: ['Chờ duyệt', 'default'],
-  APPROVED: ['Đã duyệt', 'secondary'],
-  REJECTED: ['Đã từ chối', 'outline'],
-  CANCELLED: ['Đã hủy', 'outline'],
+  PENDING: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  REJECTED: 'Đã từ chối',
+  CANCELLED: 'Đã hủy',
+  EXPIRED: 'Hết hạn',
 };
 
 function Field({ label, value, mono, danger }) {
@@ -51,7 +53,8 @@ export function PickupRequestCard({
     else setReason('');
   }, [rejecting, reason, onDirtyChange]);
   const pending = request.status === 'PENDING';
-  const [label, variant] = STATUS[request.status] || ['Chưa rõ trạng thái', 'outline'];
+  const label = STATUS[request.status] || 'Chưa rõ trạng thái';
+  const variant = statusBadgeVariant('authorization', request.status);
   const person = request.pickupPersonName || t('Người đón trẻ');
   const dmy = (value) =>
     /^\d{4}-\d{2}-\d{2}$/.test(value || '') ? value.split('-').reverse().join('/') : value;

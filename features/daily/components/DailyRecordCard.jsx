@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { statusBadgeVariant } from '@/lib/status-badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
@@ -219,7 +220,7 @@ function LockedRecord({ kind, row, first, options, absent }) {
       <Text>{t('Chưa ghi nhận')}</Text>
     </Badge>
   ) : kind !== 'health' ? (
-    <Badge variant="secondary">
+    <Badge variant={statusBadgeVariant(kind, value.status)}>
       <Text>{statusLabel ? t(statusLabel) : value.status}</Text>
     </Badge>
   ) : (

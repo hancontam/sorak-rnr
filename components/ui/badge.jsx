@@ -41,6 +41,10 @@ const badgeVariants = cva(
         ),
         // Chip mã/trạng thái phụ dạng mono (ví dụ OFF trong showcase).
         code: 'rounded-md bg-muted px-1.5',
+        // Trạng thái trung tính theo design system (không xanh lá/vàng): xám cho việc đã đóng
+        // (đã hủy, hết hạn, vắng có phép), navy cho kết quả tiêu cực (từ chối, chưa đạt).
+        neutral: 'border-transparent bg-muted',
+        dark: 'border-transparent bg-foreground',
       },
     },
     defaultVariants: {
@@ -57,6 +61,8 @@ const badgeTextVariants = cva('text-2xs font-semibold', {
       destructive: 'text-white',
       outline: 'text-foreground',
       code: 'font-mono font-medium text-muted-foreground',
+      neutral: 'text-muted-foreground',
+      dark: 'text-background',
     },
   },
   defaultVariants: {

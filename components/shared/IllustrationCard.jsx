@@ -5,7 +5,7 @@ import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 
 // Banner minh họa màu (mascot Sorak) tỉ lệ 2:1: ảnh phủ khung, lớp sáng từ trái để chữ navy đọc rõ.
-// Khác HeroCard (ảnh grayscale, chữ trắng); dùng cho các màn cần cảm giác thân thiện như Đón trẻ.
+// Dùng cho banner Tổng quan lớp, Đón trẻ và Kết quả học tập.
 export function IllustrationCard({ source, eyebrow, title, subtitle, className }) {
   return (
     <View

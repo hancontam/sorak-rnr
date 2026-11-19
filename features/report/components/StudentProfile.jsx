@@ -7,17 +7,14 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
-import { formatDate, formatGender, schoolYearValue } from '../utils/report-format';
-import { HeroCard } from '@/components/shared/HeroCard';
+import { formatDate, formatGender } from '../utils/report-format';
 import { ReportFields } from './ReportFields';
 import { ReportState } from './ReportState';
-
-const CHILD_HERO = require('@/assets/images/hero-child.jpg');
 
 export function StudentProfile({ report }) {
   const t = useTranslation();
   const locale = useLocale();
-  const { student, classInfo } = report;
+  const { student } = report;
   const [callError, setCallError] = useState('');
   const parents = student.parents;
   const call = async (phone) => {
@@ -35,17 +32,6 @@ export function StudentProfile({ report }) {
   };
   return (
     <View className="gap-4">
-      {/* Lớp và năm học của bé trên card ảnh (thay cho khối "Lớp học" cũ). */}
-      <HeroCard
-        source={CHILD_HERO}
-        tag={
-          classInfo.schoolYear
-            ? t('Năm học {year}', { year: schoolYearValue(classInfo.schoolYear) })
-            : null
-        }
-        title={classInfo.name}
-        subtitle={t('Lớp học')}
-      />
       <ReportFields
         title={t('Thông tin cá nhân')}
         fields={[

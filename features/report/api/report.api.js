@@ -18,6 +18,28 @@ export async function getClassStudents(classId, signal) {
   return data;
 }
 
+// Học sinh đã chuyển khỏi lớp (đơn chuyển lớp chiều OUT đã duyệt). Danh sách lớp hiện tại không còn
+// các bé này nên Tổng quan lớp hiện riêng ở mục thu gọn; báo cáo vẫn mở được theo studentId.
+export async function getTransferredStudents(classId, signal) {
+  const data = readData(
+    await apiClient.get(`/classes/${encodeURIComponent(classId)}/transfers`, {
+      params: { direction: 'OUT', status: 'APPROVED' },
+      signal,
+    })
+  );
+  if (!Array.isArray(data.items) || data.items.some((item) => !item?.studentId)) {
+    throw new Error('Danh sách chuyển lớp chưa đúng định dạng.');
+  }
+  return data.items.map((item) => ({
+    id: String(item.studentId),
+    fullName: item.studentName || '',
+    studentCode: item.studentCode || '',
+    avatarUrl: item.studentAvatar || '',
+    toClassName: item.toClassName || '',
+    transferDate: item.transferDate || '',
+  }));
+}
+
 function readReport(data, expectedStudentId) {
   if (data.student === null) return data;
   if (!data.student?.id || !data.classInfo || !data.semesterInfo) {

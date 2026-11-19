@@ -996,4 +996,6 @@ export const english = {
   'Xem chi tiết {name}': 'Show details for {name}',
   'PH đã phản hồi': 'Parent replied',
   'Th{month}': 'M{month}',
+  hoa: 'flowers',
+  'Bông Sen Cháu ngoan Bác Hồ': "Uncle Ho's Good Child Lotus",
 };

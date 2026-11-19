@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Image, Pressable, View } from 'react-native';
 
 import { AccountAvatar } from '@/components/shared/AccountAvatar';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,50 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
+
+const ROSE = require('@/assets/images/rose.webp');
+const LOTUS = require('@/assets/images/lotus.webp');
+
+// Hoa hồng và hoa sen dùng đúng ảnh của web (rose.webp, lotus.webp).
+function RoseCount({ count, max }) {
+  const t = useTranslation();
+  return (
+    <View className="flex-row items-center gap-1 border border-border bg-muted/40 px-2 py-0.5">
+      <Image source={ROSE} style={{ width: 14, height: 14 }} resizeMode="contain" />
+      <Text className="font-mono text-xs font-semibold">
+        {count}/{max} {t('hoa')}
+      </Text>
+    </View>
+  );
+}
+
+function LotusMark() {
+  const t = useTranslation();
+  return (
+    <Image
+      source={LOTUS}
+      accessibilityLabel={t('Bông Sen Cháu ngoan Bác Hồ')}
+      style={{ width: 26, height: 26 }}
+      resizeMode="contain"
+    />
+  );
+}
+
+function WeekRose({ given }) {
+  const t = useTranslation();
+  if (!given)
+    return (
+      <Badge variant="outline">
+        <Text>{t('Chưa được tặng hoa')}</Text>
+      </Badge>
+    );
+  return (
+    <View className="flex-row items-center gap-1 border border-border bg-muted/40 px-2 py-0.5">
+      <Image source={ROSE} style={{ width: 14, height: 14 }} resizeMode="contain" />
+      <Text className="text-xs font-semibold">{t('Được tặng hoa')}</Text>
+    </View>
+  );
+}
 
 const DOMAINS = [
   ['physical', 'Thể chất'],
@@ -49,7 +93,7 @@ function Collapsible({ compact, title, code, avatarUrl, badge, value, summary, c
   if (!compact)
     return (
       <Card className="gap-0 py-0">
-        <Header title={title} code={code} avatarUrl={avatarUrl} badge={badge} />
+        <Header title={title} code={code} avatarUrl={avatarUrl} badge={badge} right={value} />
         {children}
       </Card>
     );
@@ -69,7 +113,7 @@ function Collapsible({ compact, title, code, avatarUrl, badge, value, summary, c
           badge={badge}
           right={
             <View className="flex-row items-center gap-1.5">
-              {value ? <Text className="font-mono text-xs font-semibold">{value}</Text> : null}
+              {value}
               <Icon
                 as={open ? ChevronUp : ChevronDown}
                 size={16}
@@ -146,10 +190,17 @@ export function MonthlyResultCard({
         : null
       : record?.[`week${week}Rose`]
     : null;
-  const roseLabel = rose === true ? 'Được tặng hoa' : rose === false ? 'Chưa được tặng hoa' : null;
-  const badge = week ? roseLabel && t(roseLabel) : record?.isLotus === true ? t('Hoa sen') : null;
-  const roses =
-    Number.isInteger(record?.rosesCount) && maxRoses > 0 ? `${record.rosesCount}/${maxRoses}` : '';
+  const hasRoses = Number.isInteger(record?.rosesCount) && maxRoses > 0;
+  const marks = week ? (
+    rose === true || rose === false ? (
+      <WeekRose given={rose} />
+    ) : null
+  ) : (
+    <View className="flex-row items-center gap-2">
+      {record?.isLotus === true ? <LotusMark /> : null}
+      {hasRoses ? <RoseCount count={record.rosesCount} max={maxRoses} /> : null}
+    </View>
+  );
   const summary = week
     ? [
         stats?.attendanceRate !== undefined && `${t('Chuyên cần')} ${stats.attendanceRate}%`,
@@ -170,8 +221,7 @@ export function MonthlyResultCard({
       title={title}
       code={code}
       avatarUrl={avatarUrl}
-      badge={badge}
-      value={week ? '' : roses}
+      value={marks}
       summary={summary}>
       {week ? (
         <>
@@ -193,11 +243,7 @@ export function MonthlyResultCard({
         <>
           <Metric
             label="Hoa hồng"
-            value={
-              Number.isInteger(record?.rosesCount) && maxRoses > 0
-                ? `${record.rosesCount}/${maxRoses}`
-                : ''
-            }
+            value={hasRoses ? `${record.rosesCount}/${maxRoses} ${t('hoa')}` : ''}
           />
           <Notes
             label="Nhận xét của giáo viên"
@@ -243,7 +289,11 @@ export function SemesterResultCard({ title, code, avatarUrl, record, parent, com
       title={title}
       code={code}
       avatarUrl={avatarUrl}
-      value={Number.isFinite(record.attendance?.rate) ? `${record.attendance.rate}%` : ''}
+      value={
+        Number.isFinite(record.attendance?.rate) ? (
+          <Text className="font-mono text-xs font-semibold">{record.attendance.rate}%</Text>
+        ) : null
+      }
       summary={record.teacherNotes || t('Chưa có nhận xét.')}>
       {!parent ? <Metric label="Chuyên cần" value={attendance} /> : null}
       {domains

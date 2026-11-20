@@ -13,21 +13,10 @@ function attachmentsOf(item) {
   );
 }
 
-function Meta({ label, value }) {
-  if (!value) return null;
-  return (
-    <View className="flex-row gap-2">
-      <Text className="w-20 text-xs text-muted-foreground">{label}</Text>
-      <Text className="min-w-0 flex-1 text-xs font-medium">{value}</Text>
-    </View>
-  );
-}
-
-// Chi tiết một thông báo như modal của web: tiêu đề, thời gian, toàn bộ nội dung, ảnh đính kèm và
-// học sinh/lớp/người gửi khi backend có. Nội dung do nhà trường gửi giữ nguyên, không dịch.
+// Chi tiết một thông báo: tiêu đề, thời gian, toàn bộ nội dung và ảnh đính kèm. Nội dung đã nêu học
+// sinh/lớp nên không lặp khối thông tin phụ và nút chuyển màn như web. Nội dung giữ nguyên, không dịch.
 export function NotificationDetailSheet({ item, onClose }) {
   const t = useTranslation();
-  const data = item?.data || {};
   const attachments = attachmentsOf(item);
   return (
     <BottomSheet
@@ -59,13 +48,6 @@ export function NotificationDetailSheet({ item, onClose }) {
                   <Image source={{ uri: url }} style={{ aspectRatio: 16 / 9 }} resizeMode="cover" />
                 </Pressable>
               ))}
-            </View>
-          ) : null}
-          {data.studentName || data.className || data.senderName ? (
-            <View className="gap-1.5 border-t border-border pt-3">
-              <Meta label={t('Học sinh')} value={data.studentName} />
-              <Meta label={t('Lớp')} value={data.className} />
-              <Meta label={t('Người gửi')} value={data.senderName} />
             </View>
           ) : null}
         </>

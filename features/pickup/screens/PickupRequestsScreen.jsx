@@ -1,9 +1,10 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, CircleAlert, Plus } from 'lucide-react-native';
+import { CircleAlert, Plus } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { BackHandler, FlatList, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
+import { HeaderBackButton } from '@/components/shared/AppHeader';
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { ChipTabs } from '@/components/shared/ChipTabs';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -159,14 +160,11 @@ export default function PickupRequestsScreen() {
             // Nút quay lại đóng form về danh sách đơn (thay nút "Đóng form" cuối form).
             headerBackVisible: false,
             headerLeft: () => (
-              <Button
-                size="icon"
-                variant="ghost"
-                accessibilityLabel={t('Quay lại danh sách đơn')}
+              <HeaderBackButton
+                label={t('Quay lại danh sách đơn')}
                 disabled={saving || photo.busy}
-                onPress={leaveForm}>
-                <Icon as={ArrowLeft} size={20} />
-              </Button>
+                onPress={leaveForm}
+              />
             ),
           }}
         />
@@ -215,11 +213,11 @@ export default function PickupRequestsScreen() {
             ? () => (
                 <Button
                   variant="ghost"
-                  size="icon-sm"
+                  size="icon"
                   accessibilityLabel={t('Tạo đơn ủy quyền')}
                   disabled={disabled}
                   onPress={() => setCreating(true)}>
-                  <Icon as={Plus} size={20} />
+                  <Icon as={Plus} size={22} className="text-primary" />
                 </Button>
               )
             : () => null,

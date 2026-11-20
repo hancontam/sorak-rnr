@@ -1,4 +1,4 @@
-import { Bell, BellOff, CheckCheck, RefreshCw } from 'lucide-react-native';
+import { BellOff, CheckCheck, RefreshCw } from 'lucide-react-native';
 import { useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 import { toast } from 'sonner-native';
@@ -15,20 +15,29 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 import { NotificationDetailSheet } from '../components/NotificationDetailSheet';
+import { NotificationTypeIcon } from '../components/NotificationTypeIcon';
 import { useNotificationInbox, useNotificationReadActions } from '../hooks/useNotifications';
+import { isSchoolNews } from '../utils/notification-kind';
+
+// Hai tab như web: Bản tin trường (Ban giám hiệu gửi) và Hoạt động lớp (thông báo tự động).
+const TABS = [
+  ['news', 'Bản tin trường'],
+  ['class', 'Hoạt động lớp'],
+];
 
 export default function NotificationInboxScreen() {
   const t = useTranslation();
-  const [tab, setTab] = useState('unread');
+  const [tab, setTab] = useState('news');
   const [confirm, setConfirm] = useState(null);
   const [selected, setSelected] = useState(null);
   const query = useNotificationInbox();
   const actions = useNotificationReadActions(query);
   const pull = usePullToRefresh(actions.busy ? undefined : actions.reload);
   const all = query.data?.notifications || [];
-  const rows = all.filter((item) => item.isRead === (tab === 'read'));
+  const inTab = (key, item) => isSchoolNews(item) === (key === 'news');
+  const rows = all.filter((item) => inTab(tab, item));
   const unread = query.data?.unreadCount;
-  const readCount = all.filter((item) => item.isRead).length;
+  const unreadOf = (key) => all.filter((item) => !item.isRead && inTab(key, item)).length;
   const error =
     actions.error || (query.isError ? t('Chưa tải được thông báo. Vui lòng thử lại.') : '');
 
@@ -36,7 +45,7 @@ export default function NotificationInboxScreen() {
     if (await actions.markRead('all')) toast.success(t('Đã đánh dấu tất cả là đã đọc'));
   }
 
-  // Mở chi tiết giữ bản thông báo đang chọn, nên sheet vẫn mở khi dòng chuyển sang tab Đã đọc.
+  // Mở chi tiết giữ bản thông báo đang chọn, nên sheet vẫn mở khi danh sách tải lại sau khi đọc.
   function open(item) {
     setSelected(item);
     if (!item.isRead) actions.markRead(item.id);
@@ -65,18 +74,15 @@ export default function NotificationInboxScreen() {
             <View className="flex-row items-center gap-2">
               <Tabs value={tab} onValueChange={setTab} className="flex-1">
                 <TabsList className="w-full">
-                  <TabsTrigger value="unread" className="flex-1">
-                    <Text>{t('Chưa đọc')}</Text>
-                    {Number.isInteger(unread) ? (
-                      <Text className="font-mono text-2xs text-muted-foreground">{unread}</Text>
-                    ) : null}
-                  </TabsTrigger>
-                  <TabsTrigger value="read" className="flex-1">
-                    <Text>{t('Đã đọc')}</Text>
-                    {query.isSuccess ? (
-                      <Text className="font-mono text-2xs text-muted-foreground">{readCount}</Text>
-                    ) : null}
-                  </TabsTrigger>
+                  {TABS.map(([key, label]) => (
+                    <TabsTrigger key={key} value={key} className="flex-1">
+                      <Text>{t(label)}</Text>
+                      {/* Số chưa đọc của từng tab, như huy hiệu trên web. */}
+                      {query.isSuccess && unreadOf(key) ? (
+                        <Text className="font-mono text-2xs text-primary">{unreadOf(key)}</Text>
+                      ) : null}
+                    </TabsTrigger>
+                  ))}
                 </TabsList>
               </Tabs>
               <Button
@@ -89,7 +95,7 @@ export default function NotificationInboxScreen() {
                 <Icon as={RefreshCw} size={16} />
               </Button>
             </View>
-            {tab === 'unread' && query.isSuccess && unread > 0 ? (
+            {query.isSuccess && unread > 0 ? (
               <Button
                 size="sm"
                 variant="ghost"
@@ -112,9 +118,7 @@ export default function NotificationInboxScreen() {
                 <Icon as={BellOff} size={20} className="text-muted-foreground" />
               </View>
               <Text className="text-center text-sm font-semibold">
-                {tab === 'unread'
-                  ? t('Không có thông báo chưa đọc.')
-                  : t('Chưa có thông báo đã đọc.')}
+                {tab === 'news' ? t('Chưa có bản tin trường.') : t('Chưa có thông báo hoạt động lớp.')}
               </Text>
             </View>
           ) : null
@@ -124,7 +128,10 @@ export default function NotificationInboxScreen() {
           const content = (
             <>
               <View className="size-9 items-center justify-center bg-muted">
-                <Icon as={Bell} size={16} className={item.isRead ? 'text-muted-foreground' : ''} />
+                <NotificationTypeIcon
+                  item={item}
+                  className={item.isRead ? 'text-muted-foreground' : 'text-primary'}
+                />
                 {!item.isRead ? (
                   <View className="absolute -right-0.5 -top-0.5 size-2.5 border-2 border-card bg-brand" />
                 ) : null}

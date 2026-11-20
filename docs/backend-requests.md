@@ -104,6 +104,18 @@ Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: resp
 
 **Nghiệm thu:** phiên từ app hiện "Ứng dụng Sorak · Android · <model>" trên cả web và mobile; phiên trình duyệt không đổi.
 
+## BE-09 — Hộp thông báo PH bị cắt ở 30 mục
+
+**Trạng thái:** đề xuất ngày 20/11; mobile GV đã tự lấy nhiều trang, PH chờ backend.
+
+**Cần gì/vì sao:** `GET /parent/notifications` (`parent.service.js` `getNotifications`) cố định `take: 30` và đếm `unreadCount` trong 30 mục đó. Bản tin trường (`data.batch_id`) thường cũ hơn thông báo hoạt động lớp nên bị đẩy khỏi 30 mục; số chưa đọc cũng thấp hơn thực tế. Mobile tách hai tab Bản tin trường / Hoạt động lớp như web, nên tab bản tin của PH thiếu mục.
+
+**Đề xuất:** nhận `page`/`limit` và trả `pagination` như `GET /notifications/my`, hoặc `unreadCount` đếm trên toàn bộ hộp thư.
+
+**Bằng chứng:** test2, 20/11, HS26011: `/notifications/my?limit=50` trả 33 mục, 5 bản tin, `unreadCount` 33; `/parent/notifications` trả 30 mục, 3 bản tin, `unreadCount` 30.
+
+**Nghiệm thu:** PH thấy đủ 5 bản tin và `unreadCount` 33 với cùng dữ liệu.
+
 ## Mẫu yêu cầu mới
 
 Vai trò/flow bị chặn; cần gì/vì sao; bằng chứng ngày/môi trường; endpoint hiện có và phần thiếu; request/response đề xuất; quyền/empty/error; dữ liệu test; nghiệm thu; ảnh hưởng thời hạn; phản hồi BE. Không ghi bug client, nghiệp vụ đã bỏ (xin nghỉ/ghi học kỳ GV) hoặc điều chưa điều tra thành lỗi BE chắc chắn.

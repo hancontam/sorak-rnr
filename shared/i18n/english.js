@@ -1082,4 +1082,7 @@ export const english = {
   'Chưa nhận xét': 'No comment yet',
   'Có phản hồi phụ huynh': 'Has parent feedback',
   '{count} bé chưa lưu': '{count} not saved yet',
+  'Bản tin trường': 'School news',
+  'Chưa có bản tin trường.': 'No school news yet.',
+  'Chưa có thông báo hoạt động lớp.': 'No class activity notifications yet.',
 };

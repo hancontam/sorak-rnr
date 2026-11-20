@@ -126,6 +126,10 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 
 `POST /auth/login` với `username/password/role`, header `X-Client-Platform: android` và không có `captchaToken` trả 200 cùng cặp token JSON trên test2 (đã dùng nhiều lần cho script GET từ 09/11). Code `sorak-api` (`auth.service.js` `verifyCaptchaToken`): mobile không gửi token thì được bỏ qua khi `NODE_ENV !== 'production'` hoặc `ALLOW_MOBILE_BYPASS === 'true'`; ngoài ra mọi client gửi `sorak-mobile-bypass`, `sorak-mobile-test`, `test-token-playwright`, `sorak-link-child-bypass` đều qua. App đã bỏ WebView `GET /auth/mobile-challenge` và không gửi các token cố định này. Production cần BE-07 trước khi phát hành.
 
+### Bản tin trường trong hộp thông báo (test2, 20/11/2026)
+
+Đọc bằng PH HS26011 (chỉ GET). Bản tin Ban giám hiệu gửi có `type: SCHOOL_ANNOUNCEMENT` và `data` gồm `batch_id`, `is_master`, `target_scope`, `target_grade`, `target_class_ids`, `attachments` (mảng URL ảnh). Web tách tab Bản tin trường / Hoạt động lớp theo `data.batch_id`; mobile tách cùng cách. `GET /notifications/my` nhận `page`/`limit`, trả `pagination {page, limit, total, totalPages}`: limit 30 trả 30/33 mục và chỉ 3/5 bản tin, limit 50 trả đủ 33 mục và 5 bản tin. Mobile GV đổi sang lấy trang 50 mục cho tới `totalPages` (tối đa 4 trang). `GET /parent/notifications` cố định 30 mục (BE-09). GV CB26001 (Lá 1) cùng ngày: `total` 93, 28 chưa đọc, 6 bản tin; limit 30 trả 0 bản tin (lỗi mobile cũ), limit 50 trả 1 (web), limit 100 trả đủ 6.
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

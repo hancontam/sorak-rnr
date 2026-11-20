@@ -58,13 +58,14 @@ export default function TimetableScreen() {
   const frames = ready ? dayFrames(data, date, isParent) : [];
   const items = timelineItems(frames);
   const activityCount = frames.reduce((sum, frame) => sum + frame.activities.length, 0);
-  const now = date === today ? clock : '';
   // Đang hiện lịch của ngày trước trong cùng tuần trong lúc tải ngày mới: slot đúng nhưng số liệu
   // trong ngày (điểm danh, sức khỏe, đón trẻ) chưa phải của ngày này nên ẩn card và làm mờ lịch.
   const placeholder = query.isPlaceholderData;
   // Ngày nghỉ/cuối tuần chỉ phụ thuộc lịch năm học và slot của tuần nên vẫn đúng với lịch tạm.
   const calendar = ready ? dayCalendar(data, date, isParent) : null;
   const lock = calendar?.lock;
+  // Ngày nghỉ/cuối tuần không có khung nào "Đang diễn ra".
+  const now = date === today && !lock ? clock : '';
   const dayLocks = ready
     ? Object.fromEntries(
         weekDates(date)
@@ -197,7 +198,7 @@ export default function TimetableScreen() {
                   />
                 </View>
               ) : null}
-              <ChildDayResults results={childDayResults(data, date)} />
+              {lock ? null : <ChildDayResults results={childDayResults(data, date)} />}
             </View>
           ) : null
         }

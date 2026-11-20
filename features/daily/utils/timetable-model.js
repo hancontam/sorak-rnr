@@ -103,8 +103,8 @@ function saturdayMakeup(entries, date) {
 //   làm ngày dạy bù không bị khóa. Ngày nghỉ có makeupDate cho biết lịch dạy dời sang Thứ Bảy đó.
 // - Thứ Bảy dạy bù là ngày học kể cả khi chưa có slot; makeupOf là ngày nghỉ được bù.
 // - T7/CN khác không có hoạt động là ngày nghỉ cuối tuần; có hoạt động thì như ngày thường.
-// - Sự kiện vẫn cho dạy chỉ để hiện nhãn. Lịch PH chưa trả holidays (BE-06) nên PH chỉ thấy khóa
-//   cuối tuần.
+// - Sự kiện vẫn cho dạy chỉ để hiện nhãn. Lịch PH (/parent/schedule) trả cùng holidays như GV từ
+//   20/11/2026 nên phụ huynh thấy ngày nghỉ/học bù giống giáo viên.
 export function dayCalendar(data, date, isParent) {
   const entries = calendarEntries(data);
   const covering = entries.filter((item) => item.startDate <= date && date <= item.endDate);

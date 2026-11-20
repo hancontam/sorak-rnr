@@ -1081,4 +1081,5 @@ export const english = {
   'Đã nhận xét': 'Commented',
   'Chưa nhận xét': 'No comment yet',
   'Có phản hồi phụ huynh': 'Has parent feedback',
+  '{count} bé chưa lưu': '{count} not saved yet',
 };

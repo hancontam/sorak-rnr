@@ -351,7 +351,10 @@ export function useDailyRecords({ kind, date, slotId }) {
     isSaving,
     hasChangesToSave: rows.some((row) => row.changed),
     hasRecorded: rows.some((row) => row.recorded),
-    changedCount: rows.filter((row) => row.changed).length,
+    // Hai loại cần lưu: giáo viên đã sửa (edited), và bé chưa có ghi nhận nên được chọn sẵn mặc định
+    // (Có mặt / Đạt) — chưa ai chỉnh nhưng vẫn phải lưu mới thành ghi nhận.
+    editedCount: rows.filter((row) => row.edited).length,
+    prefilledCount: rows.filter((row) => row.changed && !row.edited).length,
     hasUserEdits: rows.some((row) => row.edited),
     loading: Boolean(
       valid &&

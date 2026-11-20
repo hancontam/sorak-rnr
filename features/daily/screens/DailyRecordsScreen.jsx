@@ -208,10 +208,18 @@ function DailyRecordsForm({ kind, date, slotId }) {
         <KeyboardStickyView offset={{ opened: insets.bottom }}>
           <SafeAreaView edges={['bottom']} className="border-t border-border bg-background">
             <View className="mx-auto w-full max-w-xl gap-1.5 px-4 py-3">
-              {/* Số thay đổi nằm trên nút; nhãn nút giữ ngắn (Lưu / Cập nhật). */}
-              {form.changedCount && !form.isSaving ? (
+              {/* Số cần lưu nằm trên nút; nhãn nút giữ ngắn (Lưu / Cập nhật). Bé chưa ghi nhận được
+                  chọn sẵn mặc định nên đếm riêng là "chưa lưu", không gọi là thay đổi. */}
+              {(form.editedCount || form.prefilledCount) && !form.isSaving ? (
                 <Text className="text-center text-2xs text-muted-foreground">
-                  {t('{count} thay đổi', { count: form.changedCount })}
+                  {[
+                    form.editedCount ? t('{count} thay đổi', { count: form.editedCount }) : null,
+                    form.prefilledCount
+                      ? t('{count} bé chưa lưu', { count: form.prefilledCount })
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </Text>
               ) : null}
               <Button disabled={!canChange || !form.hasChangesToSave} onPress={() => form.save()}>

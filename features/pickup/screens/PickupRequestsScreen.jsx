@@ -207,6 +207,10 @@ export default function PickupRequestsScreen() {
         options={{
           title: t(isParent ? 'Ủy quyền đón con' : 'Ủy quyền đón trẻ'),
           headerRight: () => null,
+          // Options được ghép thêm chứ không thay hẳn: trả lại nút quay lại mặc định, nếu không nút
+          // "đóng form" của chế độ tạo đơn vẫn còn và bấm không rời được màn.
+          headerLeft: undefined,
+          headerBackVisible: true,
         }}
       />
       <FlatList

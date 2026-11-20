@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Text } from '@/components/ui/text';
+import { statusBadgeVariant } from '@/lib/status-badge';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import {
@@ -43,7 +44,12 @@ export function ReportRecord({ section, record }) {
     return (
       <ReportFields
         title={dateLabel(record.date)}
-        badge={<ResultBadge text={t(attendanceStatus(record.status))} />}
+        badge={
+          <ResultBadge
+            text={t(attendanceStatus(record.status))}
+            variant={statusBadgeVariant('attendance', record.status)}
+          />
+        }
         fields={[
           ['Có mặt', record.checkInTime, MONO],
           ['Đón về', record.checkOutTime, MONO],
@@ -63,7 +69,12 @@ export function ReportRecord({ section, record }) {
     return (
       <ReportFields
         title={record.activityTitle || t('Hoạt động giáo dục')}
-        badge={<ResultBadge text={t(assessmentStatus(record.status))} />}
+        badge={
+          <ResultBadge
+            text={t(assessmentStatus(record.status))}
+            variant={statusBadgeVariant('assessment', record.status)}
+          />
+        }
         fields={[
           ['Ngày', dateLabel(record.date)],
           ['Hoạt động', record.routineSlotLabel],
@@ -76,7 +87,12 @@ export function ReportRecord({ section, record }) {
   return (
     <ReportFields
       title={record.pickupPersonName || t('Người được ủy quyền')}
-      badge={<ResultBadge text={t(authorizationStatus(record.status))} />}
+      badge={
+        <ResultBadge
+          text={t(authorizationStatus(record.status))}
+          variant={statusBadgeVariant('authorization', record.status)}
+        />
+      }
       fields={[
         ['Quan hệ', record.relationship],
         ['Số điện thoại', record.pickupPersonPhone, MONO],
@@ -104,9 +120,9 @@ function GrowthBadge({ evaluation }) {
   );
 }
 
-function ResultBadge({ text }) {
+function ResultBadge({ text, variant }) {
   return (
-    <Badge variant="secondary">
+    <Badge variant={variant}>
       <Text>{text}</Text>
     </Badge>
   );

@@ -11,7 +11,7 @@ export async function getDeviceSessions(signal) {
   const data = readData(
     await apiClient.get('/auth/sessions', { identifyCurrentSession: true, signal })
   );
-  if (!Array.isArray(data.sessions)) throw new Error('Thiếu danh sách phiên đăng nhập.');
+  if (!Array.isArray(data.sessions)) throw new Error('Thiếu danh sách thiết bị đăng nhập.');
 
   // Context API có thể trả một phiên ảo khi tài khoản không còn refresh token.
   return data.sessions.filter(

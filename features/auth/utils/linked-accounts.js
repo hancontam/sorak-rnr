@@ -1,3 +1,5 @@
+import { studentAvatarUrl } from '@/lib/student-avatar';
+
 import { AUTH_ROLES } from './auth-roles';
 
 export function describeAccount(user) {
@@ -7,7 +9,15 @@ export function describeAccount(user) {
     role: user.role,
     username: user.username || student?.studentCode || user.employeeCode || '',
     fullName: student?.fullName || student?.name || user.fullName || user.name || '',
-    avatarUrl: student?.avatarUrl || student?.avatar || user.avatarUrl || user.avatar || '',
+    // Tài khoản PH hiển thị avatar của bé; chưa có ảnh thì theo cùng quy tắc DiceBear của backend.
+    avatarUrl:
+      student?.avatarUrl ||
+      student?.avatar ||
+      user.avatarUrl ||
+      user.avatar ||
+      (student
+        ? studentAvatarUrl({ studentCode: student.studentCode, fullName: student.fullName })
+        : ''),
     student: student
       ? { id: student.id, publicId: student.publicId, studentCode: student.studentCode }
       : null,

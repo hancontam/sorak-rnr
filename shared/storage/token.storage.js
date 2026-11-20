@@ -4,7 +4,7 @@ const TOKEN_KEY = 'sorak.session.tokens.v1';
 
 async function requireSecureStore() {
   if (!(await SecureStore.isAvailableAsync())) {
-    throw new Error('Lưu phiên bảo mật chỉ được hỗ trợ trên thiết bị iOS/Android.');
+    throw new Error('Chỉ lưu được đăng nhập trên iOS/Android.');
   }
 }
 
@@ -15,7 +15,7 @@ function validateTokens(tokens) {
     typeof tokens?.refreshToken !== 'string' ||
     !tokens.refreshToken.trim()
   ) {
-    throw new Error('Cặp token phiên không hợp lệ.');
+    throw new Error('Thông tin đăng nhập đã lưu không hợp lệ.');
   }
 }
 
@@ -29,7 +29,7 @@ export async function readTokens() {
     tokens = JSON.parse(value);
   } catch {
     // Không đưa nội dung token hỏng vào message/log.
-    throw new Error('Không đọc được dữ liệu phiên đã lưu.');
+    throw new Error('Không đọc được thông tin đăng nhập đã lưu.');
   }
 
   validateTokens(tokens);

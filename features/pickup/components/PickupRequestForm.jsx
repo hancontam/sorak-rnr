@@ -36,9 +36,7 @@ export function PickupRequestForm({
   date,
   photo,
   disabled,
-  closingDisabled,
   onSend,
-  onClose,
   onDirtyChange,
 }) {
   const t = useTranslation();
@@ -94,7 +92,12 @@ export function PickupRequestForm({
     }
     setError('');
     body.pickup_person_phone = body.pickup_person_phone.replace(/[ .-]/g, '');
-    onSend(isParent ? body : { ...body, studentId, photoUrl: photo?.url || null });
+    // Phụ huynh gửi /parent/requests/pickup với photo_url (snake_case như web); giáo viên gửi photoUrl.
+    onSend(
+      isParent
+        ? { ...body, photo_url: photo?.url || null }
+        : { ...body, studentId, photoUrl: photo?.url || null }
+    );
   }
 
   function renderField({ name, label, date, ...props }) {
@@ -114,7 +117,6 @@ export function PickupRequestForm({
 
   return (
     <Card className="gap-3 p-4 shadow-none">
-      <Text className="text-sm font-semibold">{t('Tạo đơn ủy quyền đón trẻ')}</Text>
       {student?.fullName ? (
         <Text className="text-xs">{t('Học sinh {name}', { name: student.fullName })}</Text>
       ) : null}
@@ -137,9 +139,6 @@ export function PickupRequestForm({
               setError('');
             }}
           />
-          <Text className="text-xs text-muted-foreground">
-            {t('Đơn do giáo viên tạo được duyệt ngay. Người đón xuất hiện theo thời hạn hiệu lực.')}
-          </Text>
         </View>
       ) : null}
       {FIELDS.filter((field) => !field.date && field.name !== 'note').map(renderField)}
@@ -162,7 +161,7 @@ export function PickupRequestForm({
             <Image
               source={{ uri: photo.asset.uri }}
               accessibilityLabel={t('Ảnh người được ủy quyền')}
-              style={{ width: 80, height: 80, borderRadius: 8 }}
+              style={{ width: 80, height: 80, borderRadius: 0 }}
             />
           ) : null}
           <View className="flex-row flex-wrap gap-2">
@@ -196,7 +195,7 @@ export function PickupRequestForm({
               <Text className="text-xs text-destructive">{t(photo.error)}</Text>
               {photo.asset && !photo.url ? (
                 <Button size="sm" variant="outline" disabled={disabled} onPress={photo.retry}>
-                  <Text>{t('Tải ảnh lại')}</Text>
+                  <Text>{t('Tải lại')}</Text>
                 </Button>
               ) : null}
             </>
@@ -205,10 +204,7 @@ export function PickupRequestForm({
       ) : null}
       {error ? <Text className="text-xs text-destructive">{t(error)}</Text> : null}
       <Button size="sm" disabled={disabled || (photo && !photo.ready)} onPress={send}>
-        <Text>{isParent ? t('Gửi đơn chờ duyệt') : t('Tạo ủy quyền đã duyệt')}</Text>
-      </Button>
-      <Button size="sm" disabled={closingDisabled} variant="outline" onPress={onClose}>
-        <Text>{t('Đóng form')}</Text>
+        <Text>{isParent ? t('Gửi đơn') : t('Tạo đơn')}</Text>
       </Button>
     </Card>
   );

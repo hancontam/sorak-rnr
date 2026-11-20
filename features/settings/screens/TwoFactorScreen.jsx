@@ -111,7 +111,7 @@ export default function TwoFactorScreen() {
                   ? t('Gửi lại sau {seconds}s', { seconds })
                   : sent
                     ? t('Gửi lại mã')
-                    : t('Gửi mã xác thực')}
+                    : t('Gửi mã')}
               </Text>
             )}
           </Button>
@@ -138,7 +138,7 @@ export default function TwoFactorScreen() {
           {update.isPending ? (
             <ActivityIndicator size="small" />
           ) : (
-            <Text>{enabled ? t('Tắt xác thực hai bước') : t('Bật xác thực hai bước')}</Text>
+            <Text>{enabled ? t('Tắt') : t('Bật')}</Text>
           )}
         </Button>
       ) : null}

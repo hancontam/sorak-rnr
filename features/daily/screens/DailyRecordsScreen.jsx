@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { CircleAlert, Search, ShieldCheck } from 'lucide-react-native';
+import { CircleAlert, Search } from 'lucide-react-native';
 import { useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
@@ -9,22 +9,23 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useActionToast } from '@/components/shared/useActionToast';
 import { useUnsavedChanges } from '@/components/shared/useUnsavedChanges';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
 import { Text } from '@/components/ui/text';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { usePickupRequests } from '@/features/pickup/hooks/usePickupRequests';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { DailyRecordCard } from '../components/DailyRecordCard';
+import { DateHeader } from '../components/DateHeader';
 import { PickupRecordCard } from '../components/PickupRecordCard';
+import { PickupSummary } from '../components/PickupSummary';
+import { RecordDetailSheet } from '../components/RecordDetailSheet';
 import { ScheduleState } from '../components/ScheduleState';
 import { useDailyRecords } from '../hooks/useDailyRecords';
-import { DAILY_ACTIONS, isAbsent, pickupOptions } from '../utils/daily-records';
-import { dayTitle } from '../utils/schedule-date';
+import { DAILY_ACTIONS, isAbsent } from '../utils/daily-records';
+import { schoolClock, shortDate } from '../utils/schedule-date';
 import { timetableError } from '../utils/timetable-model';
 
 export default function DailyRecordsScreen() {
@@ -48,9 +49,13 @@ function DailyRecordsForm({ kind, date, slotId }) {
   const router = useRouter();
   const locale = useLocale();
   const form = useDailyRecords({ kind, date, slotId });
+  // Đơn ủy quyền nằm trong màn Đón trẻ: lấy số chờ duyệt để dòng lối vào có trạng thái.
+  const requests = usePickupRequests({ date, enabled: kind === 'pickup' });
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
-  const [confirm, setConfirm] = useState(null);
+  // Một sheet chi tiết cho cả màn; hàng gọn chỉ mở sheet theo id học sinh.
+  const [detailId, setDetailId] = useState(null);
+  const detailRow = detailId ? form.rows.find((row) => row.id === detailId) || null : null;
   const unsaved = useUnsavedChanges(form.hasUserEdits, form.isSaving);
   const confirmDiscard = unsaved.confirmDiscard;
   useActionToast(form.message, t);
@@ -70,114 +75,60 @@ function DailyRecordsForm({ kind, date, slotId }) {
   ).length;
   const showSaveBar = kind !== 'pickup' && form.canEdit && !form.error && form.rows.length > 0;
 
-  function confirmPickup(row) {
-    const person = pickupOptions(row.student).find((item) => item.key === row.value.personKey);
-    setConfirm({
-      title: t('Xác nhận đón {name}?', { name: row.student.name }),
-      description: [person?.name, dayTitle(date, locale), row.value.time]
-        .filter(Boolean)
-        .join(' · '),
-      cancelLabel: t('Hủy'),
-      confirmLabel: t('Xác nhận'),
-      onConfirm: () => form.save(row.id),
-    });
-  }
-
+  // Ngày không còn sửa được (đã qua, chưa tới, ngày nghỉ): ô ngày xám và nhãn Chỉ xem/Ngày nghỉ.
+  const readOnly = !form.canEdit && !form.error && !form.loading;
   const header = (
-    <View className="gap-3 pb-1">
-      <View className="gap-1">
-        <View className="flex-row flex-wrap items-center gap-2">
-          <Text className="text-sm font-semibold">{dayTitle(date, locale)}</Text>
-          {!form.canEdit && !form.error && !form.loading ? (
-            <Badge variant="outline">
-              <Text>{t(form.lock ? 'Ngày nghỉ' : 'Chỉ xem')}</Text>
-            </Badge>
-          ) : null}
-        </View>
-        {!form.canEdit && !form.error && !form.loading ? (
+    <View className="gap-3 pb-3">
+      <View className="gap-2">
+        <DateHeader
+          date={date}
+          tone={readOnly ? 'locked' : form.canEdit ? 'today' : 'past'}
+          badges={
+            readOnly
+              ? [[t(form.lock ? 'Ngày nghỉ' : 'Chỉ xem'), form.lock ? 'destructive' : 'outline']]
+              : form.canEdit
+                ? [[t('Hôm nay'), 'secondary']]
+                : []
+          }
+          subtitle={form.slot ? form.slot.title || t('Hoạt động chưa có tên') : undefined}
+        />
+        {readOnly && form.lock ? (
           <Text className="text-2xs leading-4 text-muted-foreground">
-            {form.lock?.kind === 'holiday'
-              ? t('Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.', {
+            {form.lock.kind === 'holiday'
+              ? `${t('Ngày nghỉ: {name}. Không ghi nhận trong ngày nghỉ.', {
                   name: form.lock.name || t('Ngày nghỉ'),
-                })
-              : form.lock
-                ? t('Cuối tuần không có lịch học nên không ghi nhận trong ngày này.')
-                : form.isFuture
-                  ? t('Chưa tới ngày ghi nhận. Bạn ghi nhận vào đúng ngày này.')
-                  : t('Ghi nhận chỉ làm và cập nhật trong ngày (đến 23:59). Ngày này chỉ xem lại.')}
-          </Text>
-        ) : null}
-        {form.slot ? (
-          <Text className="text-xs text-muted-foreground">
-            {form.slot.title || t('Hoạt động chưa có tên')}
+                })}${
+                  form.lock.makeupDate
+                    ? ` ${t('Lịch dạy được bù vào Thứ Bảy {date}.', { date: shortDate(form.lock.makeupDate, locale) })}`
+                    : ''
+                }`
+              : t('Cuối tuần không có lịch học nên không ghi nhận trong ngày này.')}
           </Text>
         ) : null}
       </View>
       {kind === 'pickup' && !form.loading && !form.error ? (
-        <Card className="gap-2.5 px-4 py-3.5">
-          <View className="flex-row items-center justify-between gap-2">
-            <Text className="text-sm font-semibold">{t('Đón trẻ')}</Text>
-            <Text className="font-mono text-xs font-medium text-muted-foreground">
-              {dismissed}/{form.rows.length}
-            </Text>
-          </View>
-          {form.rows.length ? (
-            <Progress
-              value={Math.round((dismissed / form.rows.length) * 100)}
-              className="h-1.5 bg-muted"
-              accessibilityLabel={t('Đã đón {pickedUp}/{total} học sinh', {
-                pickedUp: dismissed,
-                total: form.rows.length,
-              })}
-            />
-          ) : null}
-          <Text className="text-2xs text-muted-foreground">
-            {t('{awaiting} chưa đón · {absent} vắng · {unrecorded} chưa điểm danh', {
-              awaiting: awaitingPickup,
-              absent,
-              unrecorded,
-            })}
-          </Text>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={form.isSaving}
-            onPress={() =>
-              router.push({ pathname: '/(teacher)/pickup-requests', params: { date } })
-            }>
-            <Icon as={ShieldCheck} size={14} />
-            <Text>{t('Yêu cầu ủy quyền')}</Text>
-          </Button>
-        </Card>
+        <PickupSummary
+          total={form.rows.length}
+          dismissed={dismissed}
+          awaiting={awaitingPickup}
+          absent={absent}
+          unrecorded={unrecorded}
+          busy={form.isSaving}
+          pendingCount={requests.query.data?.stats?.pendingCount}
+          onOpenRequests={() =>
+            router.push({ pathname: '/(teacher)/pickup-requests', params: { date } })
+          }
+        />
       ) : null}
       {form.needsReload ? (
         <Alert variant="destructive" icon={CircleAlert}>
           <AlertDescription className="text-xs">
-            {t('Cần tải lại để đối chiếu với máy chủ trước khi thao tác tiếp.')}
+            {t('Cần tải lại dữ liệu mới nhất trước khi làm tiếp.')}
           </AlertDescription>
           <Button size="sm" variant="outline" className="ml-6 mt-1 self-start" onPress={reload}>
-            <Text>{t('Tải lại dữ liệu')}</Text>
+            <Text>{t('Tải lại')}</Text>
           </Button>
         </Alert>
-      ) : null}
-      {canChange && kind !== 'pickup' ? (
-        <Text className="text-2xs leading-4 text-muted-foreground">
-          {kind === 'health'
-            ? t(
-                'Nhập đủ chiều cao và cân nặng cho tất cả học sinh có mặt. Học sinh vắng không được gửi số đo mới.'
-              )
-            : t(
-                '{status} được chọn sẵn cho dòng chưa ghi. Kiểm tra đủ {count} học sinh rồi bấm Lưu; tìm kiếm không giới hạn danh sách gửi.',
-                { status: t(kind === 'attendance' ? 'Có mặt' : 'Đạt'), count: form.rows.length }
-              )}
-        </Text>
-      ) : null}
-      {kind === 'pickup' && canChange ? (
-        <Text className="text-2xs leading-4 text-muted-foreground">
-          {t(
-            'Chọn người đón và xác nhận từng bé. Tạo ủy quyền chỉ bổ sung người vào danh sách, chưa ghi nhận đã đón.'
-          )}
-        </Text>
       ) : null}
       {form.rows.length > 0 ? (
         <View className="justify-center">
@@ -201,9 +152,12 @@ function DailyRecordsForm({ kind, date, slotId }) {
       <Stack.Screen options={{ title: t(DAILY_ACTIONS[kind] || 'Ghi nhận') }} />
       <FlatList
         className="flex-1"
-        contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8"
+        contentContainerClassName="mx-auto w-full max-w-xl p-4 pb-8"
         keyboardShouldPersistTaps="handled"
         // Cuộn ô đang gõ lên trên bàn phím và trên thanh Lưu (~76 dp).
+        // FlatList trên Android mặc định ẩn hàng ngoài màn hình; KeyboardAwareScrollView cần đo hàng
+        // đang nhập để cuộn lên trên bàn phím, nếu không app treo (ANR) khi focus ô ở cuối danh sách.
+        removeClippedSubviews={false}
         renderScrollComponent={(props) => (
           <KeyboardAwareScrollView {...props} bottomOffset={showSaveBar ? 88 : 16} />
         )}
@@ -225,28 +179,27 @@ function DailyRecordsForm({ kind, date, slotId }) {
             title={text ? 'Không tìm thấy học sinh' : 'Chưa có học sinh'}
           />
         }
-        renderItem={({ item }) =>
+        renderItem={({ item, index }) =>
           kind === 'pickup' ? (
             <PickupRecordCard
               row={item}
-              editable={canChange}
+              first={index === 0}
+              // Ngày còn ghi được thì luôn hiện ô "Đón"; lúc đang lưu/tải lại chỉ tạm khóa bấm
+              // để ô không nhấp nháy sang "Chưa đón".
+              editable={form.canEdit && !form.error}
+              busy={!canChange}
               locked={!form.canEdit}
-              onChange={(patch) => form.update(item.id, patch)}
-              onPickup={() => confirmPickup(item)}
-              onCreateAuthorization={() =>
-                router.push({
-                  pathname: '/(teacher)/pickup-requests',
-                  params: { date, studentId: item.id, create: '1' },
-                })
-              }
+              onOpenDetail={() => setDetailId(item.id)}
             />
           ) : (
             <DailyRecordCard
               kind={kind}
               row={item}
+              first={index === 0}
               editable={canChange}
               locked={!form.canEdit}
               onChange={(patch) => form.update(item.id, patch)}
+              onOpenDetail={() => setDetailId(item.id)}
             />
           )
         }
@@ -254,25 +207,39 @@ function DailyRecordsForm({ kind, date, slotId }) {
       {showSaveBar ? (
         <KeyboardStickyView offset={{ opened: insets.bottom }}>
           <SafeAreaView edges={['bottom']} className="border-t border-border bg-background">
-            <View className="mx-auto w-full max-w-xl px-4 py-3">
+            <View className="mx-auto w-full max-w-xl gap-1.5 px-4 py-3">
+              {/* Số thay đổi nằm trên nút; nhãn nút giữ ngắn (Lưu / Cập nhật). */}
+              {form.changedCount && !form.isSaving ? (
+                <Text className="text-center text-2xs text-muted-foreground">
+                  {t('{count} thay đổi', { count: form.changedCount })}
+                </Text>
+              ) : null}
               <Button disabled={!canChange || !form.hasChangesToSave} onPress={() => form.save()}>
                 <Text>
-                  {form.isSaving
-                    ? t('Đang lưu và kiểm tra…')
-                    : form.hasRecorded
-                      ? form.changedCount
-                        ? t('Cập nhật ghi nhận · {count} thay đổi', { count: form.changedCount })
-                        : t('Cập nhật ghi nhận')
-                      : form.changedCount
-                        ? t('Lưu ghi nhận · {count} thay đổi', { count: form.changedCount })
-                        : t('Lưu ghi nhận')}
+                  {form.isSaving ? t('Đang lưu…') : form.hasRecorded ? t('Cập nhật') : t('Lưu')}
                 </Text>
               </Button>
             </View>
           </SafeAreaView>
         </KeyboardStickyView>
       ) : null}
-      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
+      <RecordDetailSheet
+        kind={kind}
+        row={detailRow}
+        editable={canChange}
+        onChange={(patch) => detailRow && form.update(detailRow.id, patch)}
+        onClose={() => setDetailId(null)}
+        onPickup={(personKey) => {
+          setDetailId(null);
+          // Bấm lại đúng người đã đón thì không gửi lại.
+          if (!detailRow || (detailRow.student.isDismissed && personKey === detailRow.value.personKey))
+            return;
+          form.save(detailRow.id, {
+            personKey,
+            time: detailRow.value.time || schoolClock(new Date()),
+          });
+        }}
+      />
       <ConfirmDialog {...unsaved.dialog} />
     </View>
   );

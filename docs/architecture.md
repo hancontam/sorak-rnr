@@ -136,7 +136,7 @@ Nền dùng chung có API nhỏ để các feature sử dụng:
 ### Cách đọc Auth 2A
 
 1. `package.json` khai báo `expo-router/entry`. `app/_layout.jsx` dựng các provider và gọi `useSessionBootstrap` để khôi phục phiên trước khi mở route.
-2. `app/index.jsx` mở Welcome. `app/auth/login.jsx` mở form theo vai trò được chọn trong sheet. Shell WebView hiển thị host và tiến trình tải thật. Khi Turnstile trả token, nút **Cho phép & Tiếp tục vào Sorak** xuất hiện. Chỉ khi bấm nút, form nhận token để đăng nhập.
+2. `app/index.jsx` mở Welcome. `app/auth/login.jsx` mở form theo vai trò được chọn trong sheet. Bấm **Đăng nhập** gửi thẳng `/auth/login` (không WebView Turnstile, xem AGENTS.md mục API và phiên); tài khoản bật 2FA chuyển sang bước OTP.
 3. `useLogin` gửi dữ liệu qua `auth.api.js` và Axios. Nếu server yêu cầu OTP, hook giữ `tempToken` và lựa chọn ghi nhớ của lần đăng nhập đó. Lỗi request được trả về form để hiện RNR Alert.
 4. Khi server trả user và token, `features/auth/session.js` kiểm tra vai trò rồi cập nhật Zustand. Cặp token giữ trong RAM. Khi chọn **Ghi nhớ phiên đăng nhập**, cặp token cũng được lưu vào SecureStore và cập nhật sau refresh. Phiên chỉ lưu trong RAM vẫn refresh được khi app còn chạy.
 5. Từ bước 4, guard mở nhóm `(teacher)` hoặc `(parent)` theo vai trò backend. Home hiện toast đăng nhập (sonner) và giữ lối vào Settings ở avatar trên header. Khi đăng xuất, session dọn cache, xóa token và đổi số phiên để bỏ phản hồi cũ.
@@ -147,13 +147,13 @@ Nền dùng chung có API nhỏ để các feature sử dụng:
 
 Từ form giáo viên, `LoginScreen` mở `PasswordRecoveryScreen` với mã cán bộ điền sẵn. Screen dùng `usePasswordRecovery` để gửi OTP qua email liên kết. Người dùng nhập OTP và mật khẩu mới trên cùng màn. Hook gọi verify trước rồi mới gọi reset. Nếu lưu thất bại sau khi OTP đã đúng, hook giữ reset token trong RAM để thử lại. Nếu server báo mã hoặc phiên hết hiệu lực, người dùng yêu cầu OTP mới.
 
-Sau khi server xác nhận đổi mật khẩu, app trở lại form giáo viên với mã đã dùng và ô mật khẩu trống. Đăng nhập tiếp qua Turnstile của 2A. OTP, mật khẩu và reset token thuộc luồng recovery đang mở. Phụ huynh xem hướng dẫn liên hệ giáo viên chủ nhiệm.
+Sau khi server xác nhận đổi mật khẩu, app trở lại form giáo viên với mã đã dùng và ô mật khẩu trống. Đăng nhập tiếp bằng form của 2A. OTP, mật khẩu và reset token thuộc luồng recovery đang mở. Phụ huynh xem hướng dẫn liên hệ giáo viên chủ nhiệm.
 
 ## Ma trận phạm vi
 
 | Flow | GV | PH | Điều kiện kiểm chứng |
 | --- | --- | --- | --- |
-| Auth | Login, Turnstile, OTP/2FA; quên MK theo mã cán bộ | Login; quên MK liên hệ GVCN | Restore/refresh/logout/đổi tài khoản không lẫn dữ liệu |
+| Auth | Login, OTP/2FA; quên MK theo mã cán bộ | Login; quên MK liên hệ GVCN | Restore/refresh/logout/đổi tài khoản không lẫn dữ liệu |
 | Báo cáo/Hồ sơ trẻ | List đúng lớp -> detail | Thẳng con mình | Hồ sơ, sức khỏe/WHO, điểm danh, HĐGD, ủy quyền đúng dữ liệu/quyền |
 | Thời khóa biểu | Lịch; điểm danh/đón trẻ/sức khỏe; đánh giá HĐGD từ slot | Chỉ xem con mình | Ngày/slot đúng; khung trống không giả hoạt động/ID |
 | Đánh giá giai đoạn | Sổ bé ngoan/học kỳ chỉ xem | Xem; phản hồi Sổ bé ngoan | Không có tặng hoa/ghi học kỳ ở mobile; không phản hồi học kỳ |
@@ -177,7 +177,7 @@ Hiển thị phiên hiện tại và các phiên khác theo dữ liệu API. Có
 | --- | --- | --- |
 | 0 Quy ước | AGENTS, kiến trúc, audit, yêu cầu BE | Chỉ docs, người dùng hiểu ranh giới/dependency |
 | 1 Nền | Package cần thiết; env test2; Axios/QueryClient; storage; RNR/theme | Đúng phiên bản Expo hiện tại; import/bundle phù hợp; không dựng feature giả |
-| 2 Auth | API/hook/store, WebView Turnstile, restore/refresh/logout, guard | Native GV/PH; OTP cùng người dùng; lỗi mạng/403/401; đổi tài khoản; không bypass |
+| 2 Auth | API/hook/store, đăng nhập mobile không Turnstile, restore/refresh/logout, guard | Native GV/PH; OTP cùng người dùng; lỗi mạng/403/401; đổi tài khoản; không gửi token bypass cố định |
 | 3 Shell/Settings | Màn Tài khoản tạm mở Settings bằng stack toàn màn hình; theme lưu trên thiết bị; hồ sơ chỉ xem; quản lý tài khoản và phiên | Back về Tài khoản; GV 0 lớp vẫn vào Settings; theme giữ sau mở lại; dữ liệu và thao tác đúng contract. Tabs Home triển khai ở bước sau |
 | 4 Báo cáo | GV list/detail, PH own-report, WHO | Đúng HS; dữ liệu/nguồn chart/đơn vị/giới hạn tuổi rõ; native scroll/loading/error/empty |
 | 5 Thời khóa biểu/ủy quyền | Lịch ngày, HĐGD slot, tác vụ GV, PH xem, đơn đón trẻ | Đọc lại sau ghi; ngày/slot đúng; quyền PH; tác động test được duyệt |

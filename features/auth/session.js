@@ -136,7 +136,7 @@ async function hydrate() {
 function refreshAccount(id) {
   if (refreshing.has(id)) return refreshing.get(id);
   const entry = accounts.get(id);
-  if (!entry?.pair) return Promise.reject(new Error('Phiên đã hết hạn. Vui lòng đăng nhập lại.'));
+  if (!entry?.pair) return Promise.reject(new Error('Đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'));
   const previous = entry.pair;
   const promise = refreshTokens(previous.refreshToken)
     .then(async (pair) => {
@@ -146,7 +146,7 @@ function refreshAccount(id) {
           try {
             await writeAccountTokens(id, pair);
           } catch {
-            setAuth({ notice: 'Chưa lưu được phiên mới trên thiết bị.' });
+            setAuth({ notice: 'Chưa lưu được đăng nhập trên máy này.' });
           }
         }
         accounts.get(id).pair = pair;
@@ -169,7 +169,7 @@ async function refreshSession(expectedVersion) {
     if (version === expectedVersion && error.response?.status === 401) {
       await clearAccountData('signing-out');
       await expireAccount(id);
-      signedOut('Phiên đã hết hạn. Vui lòng đăng nhập lại.');
+      signedOut('Đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
     }
     throw error;
   }
@@ -186,7 +186,7 @@ async function expireAccount(id) {
   } catch (error) {
     if (id === activeId) {
       await clearAccountData('restore-error');
-      setAuth({ error: 'Chưa xóa được phiên đã lưu. Hãy thử lại.' });
+      setAuth({ error: 'Chưa đăng xuất được. Hãy thử lại.' });
     }
     throw error;
   }
@@ -195,7 +195,7 @@ async function expireAccount(id) {
 // Inactive requests always receive explicit credentials, never the active child's token.
 export async function withAccountSession(id, request) {
   const entry = accounts.get(id);
-  if (!entry?.pair) throw new Error('Phiên đã hết hạn. Vui lòng đăng nhập lại.');
+  if (!entry?.pair) throw new Error('Đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
   const pair = entry.pair;
   try {
     return await request(pair.accessToken);
@@ -212,7 +212,7 @@ export async function withAccountSession(id, request) {
         if (endActive) await clearAccountData('signing-out');
         await expireAccount(id);
         if (endActive) {
-          signedOut('Phiên đã hết hạn. Vui lòng đăng nhập lại.');
+          signedOut('Đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
         }
       }
       throw failure;
@@ -222,11 +222,11 @@ export async function withAccountSession(id, request) {
 
 async function activate(id) {
   const entry = accounts.get(id);
-  if (!entry?.pair) throw new Error('Phiên đã hết hạn. Vui lòng đăng nhập lại.');
+  if (!entry?.pair) throw new Error('Đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
   const user = await withAccountSession(id, getCurrentUser);
   if (accounts.get(id) !== entry || !entry.pair) throw new CanceledError();
   if (user.id !== id || !isMobileRole(user.role) || user.role !== entry.account.role) {
-    throw new Error('Thông tin tài khoản không khớp với phiên đã lưu.');
+    throw new Error('Thông tin tài khoản không khớp. Vui lòng đăng nhập lại.');
   }
   entry.account = describeAccount(user);
   await queueStorage(() => writeAccountIndex(descriptors(), entry.remember ? id : null));
@@ -277,7 +277,7 @@ export function restoreSession() {
       await activate(activeId);
     } catch (error) {
       if (error.response?.status === 401) {
-        signedOut('Phiên đã hết hạn. Vui lòng đăng nhập lại.');
+        signedOut('Đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
         return;
       }
       setAuth({
@@ -285,7 +285,7 @@ export function restoreSession() {
         error:
           error.response?.status === 403
             ? 'Tài khoản chưa được phép truy cập. Bạn có thể thoát để đổi tài khoản.'
-            : 'Chưa khôi phục được phiên. Kiểm tra kết nối rồi thử lại.',
+            : 'Chưa mở được tài khoản. Kiểm tra mạng rồi thử lại.',
       });
     }
   });
@@ -387,7 +387,7 @@ async function removeSession(id, { revoke = true, notice = '' } = {}) {
       try {
         if (entry.pair) await revokeSession(entry.pair);
       } catch {
-        notice ||= 'Đã thoát trên thiết bị. Chưa xác nhận được thu hồi phiên trên máy chủ.';
+        notice ||= 'Đã đăng xuất trên máy này. Hệ thống chưa xác nhận, bạn có thể đăng xuất lại trong Quản lý tài khoản.';
       }
     }
     await queueStorage(async () => {
@@ -423,8 +423,8 @@ async function removeSession(id, { revoke = true, notice = '' } = {}) {
     signedOut(notice);
   } catch {
     if (wasActive || !id)
-      setAuth({ status: 'restore-error', error: 'Chưa xóa được phiên đã lưu. Hãy thử lại.' });
-    else throw new Error('Chưa xóa được phiên đã lưu. Hãy thử lại.');
+      setAuth({ status: 'restore-error', error: 'Chưa đăng xuất được. Hãy thử lại.' });
+    else throw new Error('Chưa đăng xuất được. Hãy thử lại.');
   } finally {
     setPushRegistrationPaused(entry?.account, false);
   }

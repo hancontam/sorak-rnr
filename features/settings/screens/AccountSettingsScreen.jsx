@@ -44,14 +44,31 @@ function sessionTime(session, locale) {
     : '';
 }
 
+// Phiên từ app Sorak (User-Agent "Sorak/x (Android 16; Pixel 7)") hiện "Ứng dụng Sorak · Android 16 ·
+// Pixel 7"; backend chỉ nhận trình duyệt nên tự ghi "Trình duyệt Web" cho các phiên này.
+const APP_AGENT = /^Sorak\/[\w.]+ \(([^)]*)\)/;
+
+function sessionLabel(session, t) {
+  const app = APP_AGENT.exec(session.deviceInfo || '');
+  if (app) {
+    const parts = app[1]
+      .split(';')
+      .map((part) => part.trim())
+      .filter((part) => part && part !== 'iPhone' && part !== 'iPad');
+    return [t('Ứng dụng Sorak'), ...parts].join(' · ');
+  }
+  return session.deviceDisplay || session.deviceInfo || t('Thiết bị đăng nhập');
+}
+
 function SessionRow({ session, current }) {
   const t = useTranslation();
   const locale = useLocale();
   const time = sessionTime(session, locale);
+  const mobile = session.deviceType === 'mobile' || APP_AGENT.test(session.deviceInfo || '');
   return (
     <SettingsRow
-      icon={session.deviceType === 'mobile' ? Smartphone : Monitor}
-      label={session.deviceDisplay || session.deviceInfo || t('Thiết bị đăng nhập')}
+      icon={mobile ? Smartphone : Monitor}
+      label={sessionLabel(session, t)}
       detail={time ? t('Hoạt động {time}', { time }) : undefined}
       right={
         current ? (
@@ -72,7 +89,7 @@ export default function AccountSettingsScreen() {
   const current = sessions.data?.find((session) => session.isCurrent === true);
   const others = sessions.data?.filter((session) => session !== current) ?? [];
   const canUseTwoFactor = user?.role === AUTH_ROLES.teacher && Boolean(user.email);
-  const loadError = settingsError(sessions.error, t('Chưa tải được danh sách phiên đăng nhập.'));
+  const loadError = settingsError(sessions.error, t('Chưa tải được danh sách thiết bị đăng nhập.'));
   const [confirmRevoke, setConfirmRevoke] = useState(false);
 
   return (
@@ -91,7 +108,7 @@ export default function AccountSettingsScreen() {
           <SettingsRow
             icon={ShieldCheck}
             label={t('Xác thực hai bước qua email')}
-            detail={t('Yêu cầu mã OTP ở phiên đăng nhập mới')}
+            detail={t('Yêu cầu mã OTP mỗi lần đăng nhập mới')}
             value={user.is_2fa_enabled ? t('Đang bật') : t('Đang tắt')}
             onPress={() => router.push('/settings/two-factor')}
           />
@@ -101,7 +118,7 @@ export default function AccountSettingsScreen() {
       <View className="gap-2">
         <View className="flex-row items-center justify-between gap-2 px-1">
           <Text className="text-2xs font-medium uppercase tracking-wider text-muted-foreground">
-            {t('Phiên đăng nhập')}
+            {t('Thiết bị đang đăng nhập')}
           </Text>
           <Button
             size="sm"
@@ -132,8 +149,8 @@ export default function AccountSettingsScreen() {
             {!others.length ? (
               <Text className="px-1 text-2xs text-muted-foreground">
                 {current
-                  ? t('Không có phiên đăng nhập khác.')
-                  : t('Chưa có phiên đăng nhập nào trong danh sách.')}
+                  ? t('Không có thiết bị nào khác đang đăng nhập.')
+                  : t('Chưa có thiết bị nào đang đăng nhập.')}
               </Text>
             ) : null}
           </>
@@ -153,7 +170,7 @@ export default function AccountSettingsScreen() {
             <AlertDialogHeader>
               <AlertDialogTitle>{t('Đăng xuất tất cả thiết bị?')}</AlertDialogTitle>
               <AlertDialogDescription>
-                {t('Tất cả phiên của tài khoản sẽ bị thu hồi, kể cả trên thiết bị này.')}
+                {t('Tài khoản sẽ bị đăng xuất trên mọi thiết bị, kể cả máy này.')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

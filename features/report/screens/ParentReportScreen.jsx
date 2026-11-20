@@ -6,5 +6,7 @@ import { useParentReport } from '../hooks/useStudentReport';
 export default function ParentReportScreen() {
   const [semester, setSemester] = useState(undefined);
   const report = useParentReport(semester);
-  return <StudentReport {...report} semester={semester} onSemesterChange={setSemester} />;
+  return (
+    <StudentReport {...report} parentView semester={semester} onSemesterChange={setSemester} />
+  );
 }

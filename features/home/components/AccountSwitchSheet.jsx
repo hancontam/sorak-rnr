@@ -24,7 +24,6 @@ export function AccountSwitchSheet({
       open={open}
       onOpenChange={onOpenChange}
       title={t('Chuyển tài khoản')}
-      description={t('Chọn bé để xem hồ sơ, thời khóa biểu và thông báo của bé đó.')}
       closeLabel={t('Đóng')}
       scrollable>
       <View className="gap-1">

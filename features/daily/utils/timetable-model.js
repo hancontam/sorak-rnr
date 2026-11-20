@@ -43,8 +43,13 @@ export function dayFrames(data, date, isParent) {
   const activities = dayActivities(data, date, isParent);
   const weekday = calendarDate(date)?.getUTCDay();
   // Do not invent a school day from routine templates on an empty weekend.
-  // Real weekend activities remain available to both roles.
-  if ((weekday === 0 || weekday === 6) && activities.length === 0) return [];
+  // Real weekend activities and Saturday make-up days remain available to both roles.
+  if (
+    (weekday === 0 || weekday === 6) &&
+    activities.length === 0 &&
+    !(weekday === 6 && saturdayMakeup(calendarEntries(data), date))
+  )
+    return [];
   const routines = isParent
     ? data.timetable.routineSlots.map((slot) => {
         const [start = '', end = ''] = plainText(slot.time).split(/\s*[–—]\s*/);
@@ -70,34 +75,76 @@ export function dayFrames(data, date, isParent) {
   return frames;
 }
 
-// Lịch năm học của ngày: ngày nghỉ khóa ghi nhận, sự kiện vẫn cho dạy chỉ để hiện nhãn.
-// Ngày nghỉ (isTeachingAllowed = false) áp cho cả trường khi targetGrades rỗng, hoặc cho mọi lớp
-// thuộc khối có trong targetGrades; slot đã sắp vẫn hiện nhưng không ghi nhận/đánh giá.
-// T7/CN không có hoạt động là ngày nghỉ cuối tuần; có hoạt động (học bù) thì như ngày thường.
-// Lịch PH chưa trả holidays (BE-06) nên PH chỉ thấy khóa cuối tuần.
-export function dayCalendar(data, date, isParent) {
+// Mục lịch năm học áp cho lớp: targetGrades rỗng là toàn trường, có giá trị thì cho mọi lớp thuộc khối.
+function calendarEntries(data) {
   const grade = data?.classInfo?.ageGroup;
-  const entries = (Array.isArray(data?.holidays) ? data.holidays : []).filter(
+  return (Array.isArray(data?.holidays) ? data.holidays : []).filter(
     (item) =>
       typeof item?.startDate === 'string' &&
       typeof item?.endDate === 'string' &&
-      item.startDate <= date &&
-      date <= item.endDate &&
       (!item.targetGrades?.length || !grade || item.targetGrades.includes(grade))
   );
-  const holiday = entries.find((item) => item.isTeachingAllowed === false);
-  const events = entries
+}
+
+// Thứ Bảy là ngày học khi BGH đặt làm ngày dạy bù (makeupDate của một ngày nghỉ) hoặc có sự kiện
+// cho dạy phủ ngày đó (cách đánh dấu học bù cũ), giống điều kiện xếp lịch T7 của backend.
+function saturdayMakeup(entries, date) {
+  return (
+    entries.find((item) => item.makeupDate === date) ||
+    entries.find(
+      (item) => item.isTeachingAllowed === true && item.startDate <= date && date <= item.endDate
+    ) ||
+    null
+  );
+}
+
+// Lịch năm học của ngày (theo backend/web):
+// - Ngày nghỉ (isTeachingAllowed = false) khóa ghi nhận; slot đã sắp vẫn hiện để xem. Ngày được đặt
+//   làm ngày dạy bù không bị khóa. Ngày nghỉ có makeupDate cho biết lịch dạy dời sang Thứ Bảy đó.
+// - Thứ Bảy dạy bù là ngày học kể cả khi chưa có slot; makeupOf là ngày nghỉ được bù.
+// - T7/CN khác không có hoạt động là ngày nghỉ cuối tuần; có hoạt động thì như ngày thường.
+// - Sự kiện vẫn cho dạy chỉ để hiện nhãn. Lịch PH (/parent/schedule) trả cùng holidays như GV từ
+//   20/11/2026 nên phụ huynh thấy ngày nghỉ/học bù giống giáo viên.
+export function dayCalendar(data, date, isParent) {
+  const entries = calendarEntries(data);
+  const covering = entries.filter((item) => item.startDate <= date && date <= item.endDate);
+  const isMakeupDate = entries.some((item) => item.makeupDate === date);
+  const holiday = isMakeupDate ? null : covering.find((item) => item.isTeachingAllowed === false);
+  const events = covering
     .filter((item) => item.isTeachingAllowed === true)
     .map((item) => plainText(item.name))
     .filter(Boolean);
   if (holiday) {
-    return { lock: { kind: 'holiday', name: plainText(holiday.name) }, events };
+    return {
+      lock: {
+        kind: 'holiday',
+        name: plainText(holiday.name),
+        makeupDate: typeof holiday.makeupDate === 'string' ? holiday.makeupDate : '',
+      },
+      events,
+      makeupOf: '',
+    };
   }
   const weekday = calendarDate(date)?.getUTCDay();
-  if ((weekday === 0 || weekday === 6) && dayActivities(data, date, isParent).length === 0) {
-    return { lock: { kind: 'weekend', name: '' }, events };
+  const makeup = weekday === 6 ? saturdayMakeup(entries, date) : null;
+  // Ngày nghỉ gốc là mục nghỉ (không cho dạy) ở ngày khác có makeupDate trỏ tới Thứ Bảy này. Mục học
+  // bù riêng của chính Thứ Bảy cũng có makeupDate = date nên không dùng startDate của nó (từng hiện
+  // "Bù cho 21/11" cho chính ngày 21/11).
+  const original = makeup
+    ? entries.find(
+        (item) =>
+          item.makeupDate === date && item.isTeachingAllowed === false && item.startDate !== date
+      )
+    : null;
+  const makeupOf = original ? original.startDate : '';
+  if (
+    (weekday === 0 || weekday === 6) &&
+    !makeup &&
+    dayActivities(data, date, isParent).length === 0
+  ) {
+    return { lock: { kind: 'weekend', name: '', makeupDate: '' }, events, makeupOf };
   }
-  return { lock: null, events };
+  return { lock: null, events, makeupOf, makeup: Boolean(makeup) };
 }
 
 export function routineTitle(frame, isParent, t) {
@@ -131,16 +178,24 @@ export function dayOverview(data, date, isParent) {
   }
   const attendance = data.attendance.records.find((record) => record.isoDate === date);
   const health = data.health.history.filter((record) => record.rawDate?.slice(0, 10) === date);
+  const measured = health[health.length - 1];
   return {
     attendance: {
       state: attendance ? 'done' : 'todo',
       label: ATTENDANCE_LABELS[attendance?.rawStatus] || '',
       rawLabel: attendance?.statusLabel || '',
+      present: attendance?.rawStatus === 'PRESENT',
+      checkIn: plainText(attendance?.checkInTime),
     },
-    health: { state: health.length ? 'done' : 'todo' },
+    health: {
+      state: health.length ? 'done' : 'todo',
+      height: Number.isFinite(measured?.height) && measured.height > 0 ? measured.height : null,
+      weight: Number.isFinite(measured?.weight) && measured.weight > 0 ? measured.weight : null,
+    },
     pickup: {
       state: attendance?.checkOutTime ? 'done' : 'todo',
       time: attendance?.checkOutTime || '',
+      person: plainText(attendance?.pickupPersonName),
     },
   };
 }
@@ -186,10 +241,10 @@ export function childDayResults(data, date, routineSlot) {
 export function timetableError(error) {
   if (error?.response?.status === 403)
     return 'Tài khoản chưa được cấp quyền xem thời khóa biểu này.';
-  if (error?.response?.status === 401) return 'Phiên đăng nhập không còn hợp lệ.';
+  if (error?.response?.status === 401) return 'Đăng nhập đã hết hạn.';
   if (error?.isAxiosError)
     return error.response
       ? 'Chưa tải được lịch từ nhà trường. Vui lòng thử lại.'
-      : 'Chưa kết nối được máy chủ. Kiểm tra mạng rồi thử lại.';
+      : 'Chưa kết nối được. Kiểm tra mạng rồi thử lại.';
   return error?.message || 'Chưa tải được thời khóa biểu.';
 }

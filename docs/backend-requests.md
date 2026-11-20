@@ -70,7 +70,7 @@ Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: resp
 
 ## BE-06 — Chặn ghi nhận ngày nghỉ/ngoài ngày và trả ngày nghỉ cho PH
 
-**Trạng thái:** đề xuất ngày 15/11; mobile đã chặn phía app, chờ BE báo xong để kiểm chứng lại.
+**Trạng thái:** đề xuất ngày 15/11; mobile đã chặn phía app, chờ BE báo xong để kiểm chứng lại. Ngày 19/11: backend mới thêm `makeupDate` (Thứ Bảy dạy bù) nhưng bốn API lưu vẫn chưa kiểm tra ngày nghỉ/ngày hiện tại và `/parent/schedule` vẫn chưa trả `holidays`; khi chặn, ngày dạy bù phải được phép lưu. Ngày 20/11: mục 2 xong — `GET /parent/schedule` (test2, HS26019 lớp Lá, chỉ GET) trả `holidays[]` cùng shape lịch GV (20/11 HOLIDAY không cho dạy; 21/11 mục học bù có `makeupDate` = chính ngày 21/11); mobile dùng chung `dayCalendar` nên PH thấy ngày nghỉ/học bù mà không đổi logic. Mục 1 (chặn lưu) chưa kiểm chứng lại.
 
 **Nghiệp vụ đã chốt:** điểm danh, sức khỏe, đón trẻ và đánh giá HĐGD không có xóa, chỉ tạo/cập nhật trong đúng ngày (đến 23:59 giờ trường). Ngày thuộc `SchoolHoliday` có `is_teaching_allowed = false` và `target_grades` rỗng hoặc chứa khối của lớp thì không ghi nhận gì, kể cả khi GV đã sắp slot; lịch vẫn hiện slot. T7/CN không thuộc ngày nghỉ và có slot (học bù) thì ghi nhận bình thường.
 
@@ -81,6 +81,28 @@ Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: resp
 2. `GET /parent/schedule` trả `holidays[]` cùng shape với lịch GV (đã lọc theo khối của con) để PH thấy nhãn ngày nghỉ.
 
 **Nghiệm thu:** lưu vào 16/11 (Lá 1) bị từ chối, đọc lại không đổi dữ liệu; ngày nghỉ chỉ áp cho khối khác thì lớp Lá vẫn lưu được; T7 học bù có slot lưu được; ngày hôm qua bị từ chối. Lịch PH của bé lớp Lá có mục 16/11.
+
+## BE-07 — Đăng nhập mobile không Turnstile ở production
+
+**Trạng thái:** đề xuất ngày 19/11; app đã bỏ WebView Turnstile theo quyết định của nhóm.
+
+**Cần gì/vì sao:** app gửi `/auth/login` không có `captchaToken`, kèm `X-Client-Platform: android|ios`. Backend chỉ bỏ qua Turnstile cho trường hợp này khi `NODE_ENV !== 'production'` hoặc `ALLOW_MOBILE_BYPASS=true`, nên môi trường production phải bật biến này trước khi phát hành bản mobile mới, nếu không đăng nhập sẽ trả 400 `botBlocked`.
+
+**Rủi ro cần BE xem lại:** `verifyCaptchaToken` chấp nhận các token cố định (`sorak-mobile-bypass`, `sorak-mobile-test`, `test-token-playwright`, `sorak-link-child-bypass`) ở mọi môi trường và mọi client, kể cả web; header `X-Client-Platform` cũng do client tự đặt. Đề xuất giới hạn token cố định ngoài production và thay Turnstile bằng giới hạn tần suất đăng nhập theo tài khoản/IP cho mobile.
+
+**Nghiệm thu:** trên môi trường phát hành, login mobile không token trả 200; web không token vẫn bị chặn; token cố định bị từ chối ở production.
+
+## BE-08 — Nhận diện phiên đăng nhập từ app Sorak
+
+**Trạng thái:** đề xuất ngày 20/11; mobile đã tự xử lý phần hiển thị trong app.
+
+**Cần gì/vì sao:** `_parseUserAgent` (auth.service.js) chỉ nhận trình duyệt và hệ điều hành; User-Agent mặc định của React Native (`okhttp/...`) không khớp gì nên phiên trên điện thoại hiện "Trình duyệt Web · Thiết bị". Từ 20/11 app gửi `User-Agent: Sorak/<version> (Android <ver>; <model>)` hoặc `(iPhone; iOS <ver>; <model>)`, nên backend đã nhận đúng Android/iOS và loại thiết bị di động, nhưng `browser` vẫn là "Trình duyệt Web". Mobile tự đổi nhãn thành "Ứng dụng Sorak · Android 17 · <model>" từ `deviceInfo`; web (danh sách thiết bị của tài khoản) vẫn hiện "Trình duyệt Web · Android".
+
+**Đề xuất:** khi User-Agent bắt đầu bằng `Sorak/`, trả `browser: 'Ứng dụng Sorak'` và `deviceDisplay: 'Ứng dụng Sorak · <hệ điều hành> · <model>'`.
+
+**Bằng chứng:** test2, 20/11, đăng nhập HS26019 trên emulator Android 17 sau khi đổi User-Agent; `GET /auth/sessions` trả `deviceType: 'mobile'`, `os: 'Android'`.
+
+**Nghiệm thu:** phiên từ app hiện "Ứng dụng Sorak · Android · <model>" trên cả web và mobile; phiên trình duyệt không đổi.
 
 ## Mẫu yêu cầu mới
 

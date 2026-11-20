@@ -1,8 +1,9 @@
 import { Bell, BellOff, CheckCheck, RefreshCw } from 'lucide-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, View } from 'react-native';
+import { FlatList, Pressable, View } from 'react-native';
 import { toast } from 'sonner-native';
 
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { ActionNotice } from '@/components/shared/ActionNotice';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -13,12 +14,14 @@ import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
+import { NotificationDetailSheet } from '../components/NotificationDetailSheet';
 import { useNotificationInbox, useNotificationReadActions } from '../hooks/useNotifications';
 
 export default function NotificationInboxScreen() {
   const t = useTranslation();
   const [tab, setTab] = useState('unread');
   const [confirm, setConfirm] = useState(null);
+  const [selected, setSelected] = useState(null);
   const query = useNotificationInbox();
   const actions = useNotificationReadActions(query);
   const pull = usePullToRefresh(actions.busy ? undefined : actions.reload);
@@ -33,11 +36,17 @@ export default function NotificationInboxScreen() {
     if (await actions.markRead('all')) toast.success(t('Đã đánh dấu tất cả là đã đọc'));
   }
 
+  // Mở chi tiết giữ bản thông báo đang chọn, nên sheet vẫn mở khi dòng chuyển sang tab Đã đọc.
+  function open(item) {
+    setSelected(item);
+    if (!item.isRead) actions.markRead(item.id);
+  }
+
   function confirmReadAll() {
     setConfirm({
       title: t('Đánh dấu tất cả thông báo là đã đọc?'),
-      cancelLabel: t('Quay lại'),
-      confirmLabel: t('Đánh dấu đã đọc'),
+      cancelLabel: t('Hủy'),
+      confirmLabel: t('Đồng ý'),
       onConfirm: readAll,
     });
   }
@@ -73,7 +82,7 @@ export default function NotificationInboxScreen() {
               <Button
                 size="icon"
                 variant="outline"
-                className="size-9 rounded-xl"
+                className="size-9"
                 accessibilityLabel={t('Làm mới thông báo')}
                 disabled={actions.busy || query.isFetching}
                 onPress={actions.reload}>
@@ -88,7 +97,7 @@ export default function NotificationInboxScreen() {
                 disabled={actions.busy}
                 onPress={confirmReadAll}>
                 <Icon as={CheckCheck} size={14} />
-                <Text>{t('Đánh dấu tất cả đã đọc')}</Text>
+                <Text>{t('Đọc tất cả')}</Text>
               </Button>
             ) : null}
             <ActionNotice message={error ? { error: true, text: t(error) } : null} />
@@ -96,10 +105,10 @@ export default function NotificationInboxScreen() {
         }
         ListEmptyComponent={
           query.isPending ? (
-            <ActivityIndicator className="py-10" accessibilityLabel={t('Đang tải thông báo')} />
+            <LoadingSkeleton rows={6} label={t('Đang tải thông báo')} />
           ) : !error ? (
-            <View className="items-center gap-2 rounded-2xl border border-dashed border-border px-5 py-8">
-              <View className="mb-1 size-10 items-center justify-center rounded-xl bg-muted">
+            <View className="items-center gap-2 border border-dashed border-border px-5 py-8">
+              <View className="mb-1 size-10 items-center justify-center bg-muted">
                 <Icon as={BellOff} size={20} className="text-muted-foreground" />
               </View>
               <Text className="text-center text-sm font-semibold">
@@ -111,14 +120,13 @@ export default function NotificationInboxScreen() {
           ) : null
         }
         renderItem={({ item, index }) => {
-          const first = index === 0;
           const last = index === rows.length - 1;
           const content = (
             <>
-              <View className="size-9 items-center justify-center rounded-lg bg-muted">
+              <View className="size-9 items-center justify-center bg-muted">
                 <Icon as={Bell} size={16} className={item.isRead ? 'text-muted-foreground' : ''} />
                 {!item.isRead ? (
-                  <View className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border-2 border-card bg-brand" />
+                  <View className="absolute -right-0.5 -top-0.5 size-2.5 border-2 border-card bg-brand" />
                 ) : null}
               </View>
               <View className="min-w-0 flex-1 gap-1">
@@ -130,7 +138,7 @@ export default function NotificationInboxScreen() {
                   {item.title || t('Thông báo')}
                 </Text>
                 {item.body ? (
-                  <Text numberOfLines={3} className="text-xs leading-5 text-muted-foreground">
+                  <Text numberOfLines={2} className="text-xs leading-5 text-muted-foreground">
                     {item.body}
                   </Text>
                 ) : null}
@@ -140,26 +148,22 @@ export default function NotificationInboxScreen() {
               </View>
             </>
           );
-          // Danh sách trong một Card: bo góc ở dòng đầu/cuối, đường kẻ mảnh giữa các dòng.
-          const rowClass = cn(
-            'flex-row items-start gap-3 border-x border-t border-border bg-card px-4 py-3.5',
-            first && 'rounded-t-2xl',
-            last && 'rounded-b-2xl border-b'
-          );
-          return item.isRead ? (
-            <View className={rowClass}>{content}</View>
-          ) : (
+          // Danh sách liền khối: đường kẻ mảnh giữa các dòng, góc vuông như web.
+          return (
             <Pressable
               accessibilityRole="button"
-              accessibilityHint={t('Đánh dấu thông báo này đã đọc')}
-              disabled={actions.busy || !query.isSuccess}
-              onPress={() => actions.markRead(item.id)}
-              className={cn(rowClass, 'active:bg-muted/60')}>
+              accessibilityHint={t('Mở chi tiết thông báo')}
+              onPress={() => open(item)}
+              className={cn(
+                'flex-row items-start gap-3 border-x border-t border-border bg-card px-4 py-3.5 active:bg-muted/60',
+                last && 'border-b'
+              )}>
               {content}
             </Pressable>
           );
         }}
       />
+      <NotificationDetailSheet item={selected} onClose={() => setSelected(null)} />
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </View>
   );

@@ -5,8 +5,8 @@ import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 
 /**
- * Hàng chip cuộn ngang (chip của showcase) để lọc hoặc chuyển mục.
- * options: [{ value, label, count? }]. Chip đang chọn được cuộn vào khung khi đổi lựa chọn.
+ * Hàng tab gạch chân cuộn ngang để lọc hoặc chuyển mục (phẳng, không viền viên thuốc).
+ * options: [{ value, label, count? }]. Tab đang chọn được cuộn vào khung khi đổi lựa chọn.
  */
 export function ChipTabs({ options, value, onChange, disabled }) {
   const scroll = useRef(null);
@@ -22,7 +22,8 @@ export function ChipTabs({ options, value, onChange, disabled }) {
       ref={scroll}
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerClassName="gap-2"
+      className="border-b border-border"
+      contentContainerClassName="gap-5"
       accessibilityRole="tablist">
       {options.map((option) => {
         const selected = option.value === value;
@@ -40,16 +41,17 @@ export function ChipTabs({ options, value, onChange, disabled }) {
               if (selected) scroll.current?.scrollTo({ x: Math.max(0, x - 16), animated: false });
             }}
             onPress={() => onChange(option.value)}
+            // Viền dưới 2 dp luôn có, chỉ đổi màu để chữ không nhảy khi chọn.
             className={cn(
-              'h-9 shrink-0 flex-row items-center gap-1.5 rounded-full border px-3.5 active:opacity-70',
-              selected ? 'border-primary bg-primary' : 'border-border bg-background',
+              '-mb-px h-10 shrink-0 flex-row items-center gap-1.5 border-b-2 active:opacity-70',
+              selected ? 'border-primary' : 'border-transparent',
               disabled && 'opacity-50'
             )}>
             <Text
               numberOfLines={1}
               className={cn(
-                'text-xs font-medium',
-                selected ? 'text-primary-foreground' : 'text-foreground'
+                'text-sm',
+                selected ? 'font-semibold text-primary' : 'text-muted-foreground'
               )}>
               {option.label}
             </Text>
@@ -57,7 +59,7 @@ export function ChipTabs({ options, value, onChange, disabled }) {
               <Text
                 className={cn(
                   'font-mono text-2xs',
-                  selected ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                  selected ? 'text-primary' : 'text-muted-foreground'
                 )}>
                 {option.count}
               </Text>

@@ -1,22 +1,26 @@
 import { CalendarDays, CircleAlert } from 'lucide-react-native';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
-export function ScheduleState({ loading, error, title, description, onRetry, loadingLabel }) {
+export function ScheduleState({
+  loading,
+  error,
+  title,
+  description,
+  onRetry,
+  loadingLabel,
+  skeleton = 'list',
+}) {
   const t = useTranslation();
   if (loading)
     return (
-      <View className="items-center gap-3 py-10">
-        <ActivityIndicator />
-        <Text className="text-xs text-muted-foreground">
-          {loadingLabel || t('Đang tải thời khóa biểu…')}
-        </Text>
-      </View>
+      <LoadingSkeleton variant={skeleton} label={loadingLabel || t('Đang tải thời khóa biểu…')} />
     );
   if (error)
     return (

@@ -11,8 +11,8 @@ export const english = {
   'Đăng xuất tài khoản này?': 'Sign out of this account?',
   'Chọn bé để xem hồ sơ, thời khóa biểu và thông báo của bé đó.':
     'Choose a child to view their profile, timetable and notifications.',
-  'Đăng xuất chỉ xóa phiên của tài khoản được chọn trên thiết bị này.':
-    'Signing out only removes the selected account’s session from this device.',
+  'Đăng xuất chỉ áp dụng cho tài khoản đang chọn trên máy này.':
+    'Signing out only affects the selected account on this device.',
   'Các tài khoản được ghi nhớ bảo mật trên thiết bị này.':
     'These accounts are securely remembered on this device.',
   'Chuyển sang {name}': 'Switch to {name}',
@@ -22,8 +22,8 @@ export const english = {
   'Chưa chuyển được tài khoản. Kiểm tra kết nối hoặc đăng nhập lại tài khoản đã chọn.':
     'Could not switch accounts. Check your connection or sign in to the selected account again.',
   'Hãy đăng nhập đúng tài khoản đã chọn.': 'Sign in to the selected account.',
-  'Thông tin tài khoản không khớp với phiên đã lưu.':
-    'The account does not match the saved session.',
+  'Thông tin tài khoản không khớp. Vui lòng đăng nhập lại.':
+    'Account details do not match. Please sign in again.',
   'Ảnh đại diện của {name}': '{name}’s avatar',
   'Bỏ thay đổi chưa lưu?': 'Discard unsaved changes?',
   'Thay đổi chưa lưu': 'Unsaved changes',
@@ -36,7 +36,7 @@ export const english = {
   'Đăng nhập': 'Sign in',
   'Kết quả học tập': 'Learning results',
   'Thông báo': 'Notifications',
-  'Đơn ủy quyền đón trẻ': 'Pickup authorization requests',
+  'Ủy quyền đón trẻ': 'Pickup authorizations',
   'Hoạt động của con': "Your child's activity",
   'Báo cáo học sinh': 'Student report',
   'Hoạt động trong ngày': 'Daily activity',
@@ -50,11 +50,11 @@ export const english = {
   'Xác thực hai bước': 'Two-step verification',
   'Giới thiệu': 'About',
   'Phản hồi xác thực không hợp lệ.': 'Invalid authentication response.',
-  'Máy chủ chưa trả đủ thông tin tài khoản.':
+  'Hệ thống chưa trả đủ thông tin tài khoản.':
     'The server did not return complete account information.',
-  'Máy chủ chưa trả đủ token cho ứng dụng.':
-    'The server did not return the required session tokens.',
-  'Thiếu mã phiên xác thực.': 'The verification session is missing.',
+  'Chưa đăng nhập được. Vui lòng thử lại.':
+    'Could not sign in. Please try again.',
+  'Thiếu thông tin xác thực. Vui lòng đăng nhập lại.': 'Verification details are missing. Please sign in again.',
   'Phản hồi gửi mã xác thực không hợp lệ.': 'Invalid response when requesting a verification code.',
   'Phản hồi thiếu mã đặt lại mật khẩu.': 'The password reset code is missing from the response.',
   'Tắt thông báo': 'Dismiss notification',
@@ -74,35 +74,17 @@ export const english = {
   'Mã học sinh': 'Student code',
   'Xem hoạt động, hồ sơ và kết quả đánh giá của con.':
     "View your child's activities, profile and learning results.",
-  'Chưa thể mở phiên': 'Unable to restore your session',
+  'Chưa thể đăng nhập': 'Could not sign in',
   'Thử lại': 'Try again',
-  'Thoát phiên trên thiết bị': 'Sign out on this device',
-  'Đang khôi phục phiên': 'Restoring session',
+  'Đăng xuất': 'Sign out',
+  'Đang mở Sorak…': 'Opening Sorak…',
   'Đang đăng xuất': 'Signing out',
   'Trường Mầm Non': 'Preschool',
   'Mã xác minh đã hết hạn. Tải lại để xác minh tiếp.':
     'The verification expired. Reload to try again.',
-  'Chưa nhận được kết quả xác minh. Kiểm tra kết nối rồi thử lại.':
-    'Verification did not finish. Check your connection and try again.',
-  'Xác minh bảo mật chưa thành công. Vui lòng thử lại.':
-    'Security verification failed. Please try again.',
-  'Tiến trình tải trang xác minh': 'Verification page loading progress',
-  'Xác nhận quyền truy cập': 'Confirm access',
   'Tài khoản': 'Account',
   Trường: 'School',
-  'MN Hòn Tre': 'Hòn Tre Preschool',
-  'Cho phép & Tiếp tục vào Sorak': 'Allow and continue to Sorak',
-  'Chưa xác minh được': 'Unable to verify',
-  'Không tải được trang xác minh. Vui lòng thử lại.':
-    'The verification page could not load. Please try again.',
-  'Máy chủ xác minh chưa phản hồi thành công.':
-    'The verification server did not respond successfully.',
-  'Đóng xác minh': 'Close verification',
   Đóng: 'Close',
-  'Tải lại trang xác minh': 'Reload verification page',
-  'Xác minh bảo mật': 'Security verification',
-  'Cổng xác thực Trường Mầm Non Hòn Tre': 'Hòn Tre Preschool verification portal',
-  'Xác minh trên điện thoại': 'Verify on your phone',
   'Mở ứng dụng Sorak trên iOS hoặc Android để tiếp tục.':
     'Open Sorak on iOS or Android to continue.',
   'Hoạt động lớp': 'Class activities',
@@ -121,19 +103,17 @@ export const english = {
   'Ảnh tiếp theo': 'Next photo',
   'Ảnh trước': 'Previous photo',
   'Mã xác thực không hợp lệ hoặc đã hết hạn.': 'The verification code is invalid or has expired.',
-  'Kiểm tra lại thông tin và thử xác minh bảo mật mới.':
-    'Check your details and try security verification again.',
-  'Mã hoặc phiên xác thực không còn hợp lệ.':
-    'The code or verification session is no longer valid.',
+  'Mã xác thực không còn hiệu lực. Hãy lấy mã mới.':
+    'The code is no longer valid. Request a new one.',
   'Kiểm tra lại tài khoản, mật khẩu và loại tài khoản.':
     'Check your account, password and account type.',
   'Tài khoản chưa được phép đăng nhập. Vui lòng liên hệ nhà trường.':
     'This account cannot sign in. Contact the school for help.',
   'Bạn đã thử quá nhiều lần. Vui lòng chờ rồi thử lại.':
     'Too many attempts. Wait before trying again.',
-  'Máy chủ chưa xử lý được yêu cầu. Vui lòng thử lại.':
+  'Hệ thống chưa xử lý được yêu cầu. Vui lòng thử lại.':
     'The server could not complete the request. Please try again.',
-  'Không kết nối được với máy chủ. Kiểm tra mạng rồi thử lại.':
+  'Không kết nối được. Kiểm tra mạng rồi thử lại.':
     'Could not reach the server. Check your connection and try again.',
   'Đăng nhập chưa thành công.': 'Could not sign in.',
   'Tài khoản chưa được phép thao tác. Vui lòng liên hệ nhà trường.':
@@ -148,8 +128,8 @@ export const english = {
   'Vui lòng nhập mã cán bộ của giáo viên.': 'Enter a teacher staff code.',
   'Tài khoản chưa có email nhận mã. Vui lòng liên hệ Ban giám hiệu để được hỗ trợ.':
     'There is no email linked to this account. Contact school administration for help.',
-  'Phiên đặt lại đã hết hạn. Hãy yêu cầu mã OTP mới.':
-    'The reset session expired. Request a new code.',
+  'Yêu cầu đặt lại mật khẩu đã hết hạn. Hãy lấy mã OTP mới.':
+    'The password reset request expired. Request a new code.',
   'Mã OTP đã hết hiệu lực. Hãy yêu cầu mã mới.':
     'The verification code is no longer valid. Request a new code.',
   'Chọn loại tài khoản': 'Choose an account type',
@@ -159,8 +139,6 @@ export const english = {
   'Quay lại màn hình đầu': 'Back to the start screen',
   'Đổi vai trò': 'Change role',
   'Đăng nhập tài khoản': 'Sign in to your account',
-  'Nhập thông tin tài khoản để xác minh bảo mật qua WebView.':
-    'Enter your account details for security verification in WebView.',
   'Nhập mã học sinh': 'Enter student code',
   'Nhập mã cán bộ': 'Enter staff code',
   'Mật khẩu': 'Password',
@@ -168,10 +146,9 @@ export const english = {
   'Nhập mật khẩu': 'Enter password',
   'Ẩn mật khẩu': 'Hide password',
   'Hiện mật khẩu': 'Show password',
-  'Ghi nhớ phiên đăng nhập': 'Remember this session',
-  'Giữ phiên trên thiết bị này khi mở lại ứng dụng.':
-    'Keep this session on this device when you reopen the app.',
-  'Đăng nhập (WebView)': 'Sign in (WebView)',
+  'Duy trì đăng nhập': 'Stay signed in',
+  'Không cần đăng nhập lại khi mở ứng dụng.':
+    'Stay signed in when you reopen the app.',
   'Phụ huynh vui lòng liên hệ giáo viên chủ nhiệm để được hỗ trợ.':
     'Parents can contact the homeroom teacher for help.',
   'Giáo viên tìm lại mật khẩu': 'Reset your teacher password',
@@ -201,22 +178,22 @@ export const english = {
   'Không nhận được mã OTP?': "Didn't receive the code?",
   'Kiểm tra hộp thư đến và thư rác. Nếu chưa liên kết email, hãy liên hệ Ban giám hiệu.':
     'Check your inbox and spam folder. If no email is linked, contact school administration.',
-  'Phiên đăng nhập': 'Sign-in sessions',
+  'Thiết bị đang đăng nhập': 'Signed-in devices',
   'Đăng nhập trên điện thoại': 'Sign in on mobile',
   'Tiếp tục': 'Continue',
-  'Đã thoát trên thiết bị. Chưa xác nhận được thu hồi phiên trên máy chủ.':
-    'Signed out on this device. The server session could not be confirmed as revoked.',
-  'Chưa xóa được phiên đã lưu. Hãy thử lại.':
-    'Could not clear the saved session. Please try again.',
+  'Đã đăng xuất trên máy này. Hệ thống chưa xác nhận, bạn có thể đăng xuất lại trong Quản lý tài khoản.':
+    'Signed out on this device. The system has not confirmed it yet; you can sign out again in Account management.',
+  'Chưa đăng xuất được. Hãy thử lại.':
+    'Could not sign out. Please try again.',
   'Đã đăng xuất khỏi tất cả thiết bị.': 'Signed out on all devices.',
-  'Chưa lưu được phiên mới trên thiết bị.': 'Could not save the new session on this device.',
-  'Phiên đã hết hạn. Vui lòng đăng nhập lại.': 'Your session expired. Please sign in again.',
+  'Chưa lưu được đăng nhập trên máy này.': 'Could not keep you signed in on this device.',
+  'Đăng nhập đã hết hạn. Vui lòng đăng nhập lại.': 'Your sign-in expired. Please sign in again.',
   'Tài khoản chưa được phép truy cập. Bạn có thể thoát để đổi tài khoản.':
     'This account does not have access. Sign out to use another account.',
-  'Chưa khôi phục được phiên. Kiểm tra kết nối rồi thử lại.':
-    'Could not restore your session. Check your connection and try again.',
+  'Chưa mở được tài khoản. Kiểm tra mạng rồi thử lại.':
+    'Could not open your account. Check your connection and try again.',
   'Tài khoản không thuộc loại đã chọn.': 'The account does not match the selected role.',
-  'Chưa xóa được phiên vừa hủy.': 'Could not clear the canceled session.',
+  'Chưa đăng xuất được thiết bị vừa chọn.': 'Could not sign out the selected device.',
   'Phụ huynh': 'Parent',
   'Tài khoản Ban giám hiệu vui lòng sử dụng Sorak trên web.':
     'School administrators should use Sorak on the web.',
@@ -227,7 +204,7 @@ export const english = {
   'Thông tin phân lớp thiếu mã lớp. Vui lòng liên hệ nhà trường.':
     'The class ID is missing. Contact the school.',
   'Phản hồi cài đặt không hợp lệ.': 'Invalid settings response.',
-  'Thiếu danh sách phiên đăng nhập.': 'The list of sign-in sessions is missing.',
+  'Thiếu danh sách thiết bị đăng nhập.': 'The signed-in device list is missing.',
   'Chưa xác nhận được trạng thái xác thực hai bước.':
     'Could not confirm two-step verification status.',
   'Tài khoản Sorak': 'Sorak account',
@@ -237,23 +214,22 @@ export const english = {
     'For teachers and parents at Hòn Tre Preschool.',
   'Thiết bị đăng nhập': 'Signed-in device',
   'Thiết bị này': 'This device',
-  'Chưa tải được danh sách phiên đăng nhập.': 'Could not load sign-in sessions.',
+  'Chưa tải được danh sách thiết bị đăng nhập.': 'Could not load signed-in devices.',
   'Bảo mật': 'Security',
   'Xác thực hai bước qua email': 'Email two-step verification',
   'Đang bật': 'On',
   'Đang tắt': 'Off',
   'Thiết bị và lần hoạt động gần nhất': 'Devices and most recent activity',
   'Làm mới': 'Refresh',
-  'Phiên hiện tại': 'Current session',
-  'Các phiên đăng nhập khác': 'Other sign-in sessions',
-  'Các phiên đăng nhập': 'Sign-in sessions',
-  'Không có phiên đăng nhập khác.': 'No other sign-in sessions.',
-  'Chưa có phiên đăng nhập nào trong danh sách.': 'There are no sign-in sessions in the list.',
+  'Máy đang dùng': 'This device',
+  'Thiết bị khác': 'Other devices',
+  'Không có thiết bị nào khác đang đăng nhập.': 'No other devices are signed in.',
+  'Chưa có thiết bị nào đang đăng nhập.': 'No devices are signed in.',
   'Bao gồm thiết bị đang sử dụng.': 'Includes the device you are using.',
   'Đăng xuất tất cả thiết bị': 'Sign out on all devices',
   'Đăng xuất tất cả thiết bị?': 'Sign out on all devices?',
-  'Tất cả phiên của tài khoản sẽ bị thu hồi, kể cả trên thiết bị này.':
-    'All sessions for this account will be revoked, including on this device.',
+  'Tài khoản sẽ bị đăng xuất trên mọi thiết bị, kể cả máy này.':
+    'The account will be signed out on every device, including this one.',
   Hủy: 'Cancel',
   'Đăng xuất tất cả': 'Sign out everywhere',
   'Chưa đăng xuất được tất cả thiết bị.': 'Could not sign out on all devices.',
@@ -282,7 +258,6 @@ export const english = {
   'Tùy chọn': 'Preferences',
   'Ngôn ngữ': 'Language',
   'Tài khoản và hỗ trợ': 'Account and support',
-  'Đăng xuất': 'Sign out',
   'Tài khoản chưa hỗ trợ xác thực hai bước qua email.':
     'This account does not support email two-step verification.',
   'Chưa gửi được mã. Nếu vừa yêu cầu mã, hãy chờ rồi thử lại.':
@@ -298,12 +273,12 @@ export const english = {
   'Mã xác thực': 'Verification code',
   'Tắt xác thực hai bước': 'Turn off two-step verification',
   'Bật xác thực hai bước': 'Turn on two-step verification',
-  'Phiên không còn hợp lệ. Hãy đăng nhập lại.':
-    'Your session is no longer valid. Please sign in again.',
+  'Đăng nhập đã hết hạn. Hãy đăng nhập lại.':
+    'Your sign-in expired. Please sign in again.',
   'Tài khoản chưa được phép thực hiện thao tác này.':
     'This account does not have permission to perform this action.',
   'Bạn đã thử quá nhiều lần. Hãy chờ rồi thử lại.': 'Too many attempts. Wait before trying again.',
-  'Chưa kết nối được máy chủ. Hãy thử lại.': 'Could not reach the server. Please try again.',
+  'Chưa kết nối được. Hãy thử lại.': 'Could not reach the server. Please try again.',
   'Trường Mầm Non Hòn Tre': 'Hòn Tre Preschool',
   'Mở cài đặt tài khoản': 'Open account settings',
   'Hồ sơ trẻ': 'Child profile',
@@ -311,9 +286,9 @@ export const english = {
   'Thời khóa biểu': 'Timetable',
   'Đăng nhập hoàn tất!': 'Signed in!',
   'Bạn đã kết nối với Sorak.': 'You are connected to Sorak.',
-  'Máy chủ chưa trả danh sách thông báo hợp lệ.':
+  'Hệ thống chưa trả danh sách thông báo hợp lệ.':
     'The server did not return a valid notification list.',
-  'Máy chủ chưa xác nhận đã đánh dấu thông báo.':
+  'Hệ thống chưa xác nhận đã đánh dấu thông báo.':
     'The server did not confirm that the notification was marked as read.',
   'Chưa tải lại được trạng thái thông báo. Hãy làm mới danh sách.':
     'Could not reload the notification status. Refresh the list to try again.',
@@ -444,21 +419,21 @@ export const english = {
   'Chưa tải được kết quả học tập. Vui lòng thử lại.': 'Could not load learning results. Try again.',
   'Phiếu tháng đã thay đổi. Hãy mở lại form để xem phản hồi mới nhất.':
     'The monthly report changed. Reopen the form to see the latest feedback.',
-  'Chưa đối chiếu được phản hồi vừa gửi. Hãy tải lại phiếu tháng.':
-    'Could not verify your submitted feedback. Refresh the monthly report.',
+  'Chưa kiểm tra được phản hồi vừa gửi. Hãy tải lại phiếu tháng.':
+    'Could not check the reply you just sent. Reload the monthly report.',
   'Đã lưu phản hồi cho tháng đang xem.': 'Feedback saved for the selected month.',
-  'Máy chủ chưa xác nhận lưu phản hồi. Hãy tải lại phiếu tháng.':
+  'Hệ thống chưa xác nhận lưu phản hồi. Hãy tải lại phiếu tháng.':
     'The server has not confirmed your feedback was saved. Refresh the monthly report.',
   'Mục kết quả không hợp lệ.': 'Invalid results section.',
   'Tài khoản chưa liên kết với hồ sơ trẻ.': 'This account is not linked to a child profile.',
   'Bạn chưa được phân công lớp.': 'You have not been assigned to a class.',
-  'Máy chủ chưa trả dữ liệu kết quả học tập hợp lệ.':
+  'Hệ thống chưa trả dữ liệu kết quả học tập hợp lệ.':
     'The server returned invalid learning results.',
   'Danh sách kết quả không khớp lớp được phân công.':
     'The results do not match your assigned class.',
-  'Máy chủ trả kết quả cho kỳ khác.': 'The server returned results for a different term.',
+  'Hệ thống trả kết quả cho kỳ khác.': 'The server returned results for a different term.',
   'Kết quả không khớp hồ sơ của con.': 'The results do not match your child’s profile.',
-  'Máy chủ trả thiếu kết quả hoặc trả sai tháng đã chọn.':
+  'Hệ thống trả thiếu kết quả hoặc trả sai tháng đã chọn.':
     'The server returned incomplete results or results for a different month.',
   'Theo dõi hồ sơ và quá trình học của trẻ': 'Track student profiles and learning progress',
   'Danh sách học sinh': 'Student list',
@@ -506,18 +481,18 @@ export const english = {
   'Bạn chưa được cấp quyền xem dữ liệu này.':
     'You do not have permission to view this information.',
   'Chưa tìm thấy hồ sơ hoặc lớp học này.': 'This student profile or class could not be found.',
-  'Phiên đăng nhập không còn hợp lệ.': 'Your session is no longer valid.',
+  'Đăng nhập đã hết hạn.': 'Your sign-in expired.',
   'Chưa tải được dữ liệu từ nhà trường. Hãy thử lại.':
     'Could not load data from the school. Try again.',
-  'Chưa kết nối được máy chủ. Kiểm tra mạng rồi thử lại.':
+  'Chưa kết nối được. Kiểm tra mạng rồi thử lại.':
     'Could not connect to the server. Check your connection and try again.',
   'Không thể tải báo cáo. Hãy thử lại.': 'Could not load the report. Try again.',
-  'Máy chủ chưa trả đủ dữ liệu báo cáo.': 'The server returned incomplete report data.',
+  'Hệ thống chưa trả đủ dữ liệu báo cáo.': 'The server returned incomplete report data.',
   'Danh sách học sinh chưa đúng định dạng.': 'The student list has an invalid format.',
   'Báo cáo chưa có đủ thông tin học sinh và học kỳ.':
     'The report is missing student or semester information.',
   'Báo cáo trả về không khớp học sinh đã chọn.': 'The report does not match the selected student.',
-  'Máy chủ trả thiếu một phần báo cáo.': 'The server returned an incomplete report.',
+  'Hệ thống trả thiếu một phần báo cáo.': 'The server returned an incomplete report.',
   'Thiếu mã học sinh.': 'Student ID is missing.',
   'Tài khoản chưa được liên kết với hồ sơ trẻ. Vui lòng liên hệ nhà trường.':
     'This account is not linked to a child profile. Contact the school.',
@@ -592,7 +567,6 @@ export const english = {
   'Bảng tham chiếu WHO': 'WHO reference chart',
   'Nhà trường sẽ cập nhật lớp phụ trách. Bạn vẫn có thể mở hồ sơ và cài đặt tài khoản.':
     'The school will update your class assignment. Your profile and account settings are still available.',
-  'Ủy quyền đón trẻ': 'Pickup authorization',
   '{count} chờ duyệt': '{count} pending',
   'Lịch sắp tới': 'Upcoming schedule',
   'Chưa có lớp học của con': 'No class assigned to your child',
@@ -648,11 +622,11 @@ export const english = {
   'Đang lưu và kiểm tra…': 'Saving and verifying…',
   'Lưu ghi nhận': 'Save records',
   'Vắng — không ghi số đo mới.': 'Absent. No new measurements can be recorded.',
-  'Máy chủ đang có số đo cho ngày này: {height} cm · {weight} kg. Cần đối chiếu với nhà trường.':
+  'Hệ thống đang có số đo cho ngày này: {height} cm · {weight} kg. Hãy kiểm tra lại với nhà trường.':
     'The server has measurements for this day: {height} cm · {weight} kg. Please check with the school.',
   'Chiều cao (cm)': 'Height (cm)',
   'Cân nặng (kg)': 'Weight (kg)',
-  'Trạng thái máy chủ chưa hỗ trợ: {status}. Cần kiểm tra lại trước khi lưu.':
+  'Trạng thái chưa hỗ trợ: {status}. Cần kiểm tra lại trước khi lưu.':
     'Unsupported server status: {status}. Verify it before saving.',
   'Đã đón': 'Picked up',
   'Chưa đón': 'Not picked up',
@@ -670,8 +644,8 @@ export const english = {
   'Dặn dò phụ huynh': 'Notes for parents',
   'Cập nhật ghi nhận đón trẻ': 'Update pickup record',
   'Xác nhận đã đón trẻ': 'Confirm pickup',
-  'Thay đổi chưa lưu. Trạng thái Đã đón chỉ cập nhật sau khi máy chủ xác nhận.':
-    'Unsaved changes. Pickup status updates after the server confirms.',
+  'Thay đổi chưa lưu.':
+    'Changes not saved.',
   'Tạo ủy quyền cho học sinh này': 'Create authorization for this student',
   'Tất cả': 'All',
   'Gửi đơn ủy quyền chờ duyệt?': 'Submit pickup authorization for approval?',
@@ -744,7 +718,7 @@ export const english = {
   'Chơi ngoài trời': 'Outdoor play',
   'Hoạt động chiều': 'Afternoon activities',
   'Trả trẻ': 'Dismissal',
-  'Máy chủ chưa xác nhận thao tác.': 'The server did not confirm the action.',
+  'Hệ thống chưa xác nhận thao tác.': 'The server did not confirm the action.',
   'Danh sách học sinh thiếu hoặc trùng mã. Không thể ghi nhận an toàn.':
     'The student list contains missing or duplicate IDs. Records cannot be saved safely.',
   'Danh sách đón trẻ không khớp lớp hoặc ngày đã chọn.':
@@ -759,9 +733,9 @@ export const english = {
   'Danh sách kết quả đánh giá chưa đúng định dạng.': 'The assessment results are invalid.',
   'Kết quả đánh giá thiếu hoặc trùng mã học sinh.':
     'The assessment results contain missing or duplicate student IDs.',
-  'Máy chủ chưa xác nhận đủ số bản ghi. Hãy tải lại để đối chiếu trước khi lưu tiếp.':
+  'Hệ thống chưa xác nhận đủ các mục vừa lưu. Hãy tải lại để kiểm tra trước khi lưu tiếp.':
     'The server did not confirm all records. Reload and verify them before saving again.',
-  'Máy chủ chưa trả đủ dữ liệu thời khóa biểu.': 'The server returned incomplete timetable data.',
+  'Hệ thống chưa trả đủ dữ liệu thời khóa biểu.': 'The server returned incomplete timetable data.',
   'Dữ liệu hoạt động chưa đúng định dạng.': 'The activity data is invalid.',
   'Dữ liệu khung sinh hoạt chưa đúng định dạng.': 'The routine data is invalid.',
   'Dữ liệu điểm danh chưa đúng định dạng.': 'The attendance data is invalid.',
@@ -771,7 +745,7 @@ export const english = {
   'Chưa có lớp được phân công.': 'No class is assigned.',
   'Lịch trả về không khớp lớp được phân công.':
     'The returned timetable does not match the assigned class.',
-  'Máy chủ trả trạng thái cho ngày khác. Vui lòng tải lại lịch.':
+  'Hệ thống trả trạng thái cho ngày khác. Vui lòng tải lại lịch.':
     'The server returned the status for a different day. Reload the timetable.',
   'Hoạt động chưa có mã hoặc ngày đầy đủ để hiển thị chính xác.':
     'An activity is missing its ID or full date.',
@@ -784,10 +758,10 @@ export const english = {
   'Kết quả hoạt động thiếu hoặc trùng khóa ngày/khung. Chưa thể ghép nhận xét chính xác.':
     'The activity results contain missing or duplicate dates and slots. Notes could not be matched.',
   'Không có học sinh có mặt cần ghi số đo.': 'No present students need measurements.',
-  'Dữ liệu đã thay đổi trên máy chủ. Bản nháp vẫn còn; tải lại để đối chiếu trước khi lưu.':
-    'The data changed on the server. Your draft is still here. Reload and verify before saving.',
+  'Dữ liệu vừa được cập nhật ở nơi khác. Thay đổi của bạn vẫn còn; tải lại để xem trước khi lưu.':
+    'The data was just updated elsewhere. Your changes are kept; reload to review before saving.',
   'Đã lưu và kiểm tra lại {count} bản ghi.': 'Saved and verified {count} records.',
-  'Máy chủ đã nhận yêu cầu nhưng dữ liệu đọc lại chưa khớp. Hãy tải lại để kiểm tra.':
+  'Hệ thống đã nhận yêu cầu nhưng dữ liệu đọc lại chưa khớp. Hãy tải lại để kiểm tra.':
     'The server received the request, but the saved data did not match. Reload and check.',
   'Chưa xác nhận được kết quả lưu. Hãy tải lại để kiểm tra trước khi thử lại.':
     'The save could not be confirmed. Reload and check before trying again.',
@@ -810,15 +784,15 @@ export const english = {
     'Could not load the school schedule. Try again.',
   'Chưa tải được thời khóa biểu.': 'Could not load the timetable.',
   'Chưa đọc được tệp ảnh đã chọn.': 'Could not read the selected image file.',
-  'Máy chủ chưa trả đường dẫn ảnh. Hãy thử tải lại.':
+  'Hệ thống chưa trả đường dẫn ảnh. Hãy thử tải lại.':
     'The server did not return an image URL. Try uploading again.',
-  'Máy chủ chưa xác nhận yêu cầu ủy quyền.':
+  'Hệ thống chưa xác nhận yêu cầu ủy quyền.':
     'The server did not confirm the authorization request.',
   'Danh sách ủy quyền không khớp học sinh của tài khoản.':
     'The authorizations do not match the student linked to this account.',
   'Danh sách ủy quyền thiếu mã đơn hoặc chưa đúng định dạng.':
     'The authorization list is invalid or missing request IDs.',
-  'Máy chủ chưa trả mã đơn mới. Hãy tải lại danh sách.':
+  'Hệ thống chưa trả mã đơn mới. Hãy tải lại danh sách.':
     'The server did not return a new request ID. Reload the list.',
   'Tài khoản không có quyền thực hiện thao tác này.': 'This account cannot perform this action.',
   'Ảnh quá lớn. Hãy chọn ảnh dưới 2 MB.': 'The image is too large. Choose one under 2 MB.',
@@ -841,7 +815,7 @@ export const english = {
   'Đơn không còn ở trạng thái chờ duyệt. Hãy tải lại.':
     'The request is no longer pending. Reload the list.',
   'Đã cập nhật và kiểm tra lại trạng thái đơn.': 'Updated and verified the request status.',
-  'Máy chủ đã nhận yêu cầu nhưng chưa đối chiếu được trạng thái. Hãy tải lại danh sách.':
+  'Hệ thống đã nhận yêu cầu nhưng chưa xác nhận trạng thái. Hãy tải lại danh sách.':
     'The server received the request, but the status could not be verified. Reload the list.',
   'Chưa xác nhận được thao tác. Hãy tải lại danh sách trước khi gửi lại.':
     'The action could not be confirmed. Reload the list before trying again.',
@@ -863,7 +837,7 @@ export const english = {
     'Couldn’t turn on notifications. Try again in Settings.',
   'Chưa bật được thông báo. Hãy thử lại.': 'Couldn’t turn on notifications. Try again.',
   'Chưa lưu được lựa chọn âm thanh.': 'Couldn’t save the sound setting.',
-  'Chưa tắt được thông báo trên máy chủ. Hãy thử lại.':
+  'Chưa tắt được thông báo. Hãy thử lại.':
     'Couldn’t turn off notifications on the server. Try again.',
   'Chế độ hiển thị': 'Display mode',
   'Cá nhân': 'Personal',
@@ -896,7 +870,7 @@ export const english = {
   'Tùy chỉnh các thông báo bạn muốn nhận trong Sorak.':
     'Choose which notifications you get from Sorak.',
   'Vai trò': 'Role',
-  'Yêu cầu mã OTP ở phiên đăng nhập mới': 'Ask for an emailed code on new sign-ins',
+  'Yêu cầu mã OTP mỗi lần đăng nhập mới': 'Ask for a code at every new sign-in',
   'Áp dụng cho các tài khoản phụ huynh đã thêm trên máy này.':
     'Applies to every parent account added on this device.',
   'Âm thanh': 'Sound',
@@ -926,8 +900,8 @@ export const english = {
   'Chưa tải được dữ liệu': 'Could not load data',
   'Chỉ xem': 'View only',
   'Chọn ngày trên lịch tháng, đang xem {date}': 'Pick a date on the month calendar, viewing {date}',
-  'Cần tải lại để đối chiếu với máy chủ trước khi thao tác tiếp.':
-    'Reload to check against the server before continuing.',
+  'Cần tải lại dữ liệu mới nhất trước khi làm tiếp.':
+    'Reload the latest data before continuing.',
   'Lưu ghi nhận · {count} thay đổi': 'Save records · {count} changes',
   'Tạo ủy quyền': 'Add authorization',
   'Về hôm nay': 'Back to today',
@@ -946,7 +920,7 @@ export const english = {
   'Đã lưu số đo sức khỏe cho {count} học sinh.': 'Saved health measurements for {count} students.',
   'Đã lưu đánh giá cho {count} học sinh.': 'Saved assessments for {count} students.',
   'Đã ghi nhận đón {name}.': 'Recorded pickup for {name}.',
-  'Đã gửi đơn ủy quyền, đang chờ cô duyệt.':
+  'Đã gửi đơn ủy quyền, đang chờ giáo viên duyệt.':
     'Authorization sent, waiting for the teacher to approve.',
   'Đã tạo đơn ủy quyền đã duyệt.': 'Approved authorization created.',
   'Đã hủy đơn ủy quyền.': 'Authorization cancelled.',
@@ -994,4 +968,117 @@ export const english = {
   'Cuối tuần không có lịch học. Ngày có lịch học bù được ghi nhận như ngày thường.':
     'No classes on this weekend day. Make-up days with a schedule are recorded as usual.',
   Nghỉ: 'Off',
+  'Học bù': 'Make-up',
+  'Bù cho {date}': 'Make-up for {date}',
+  'Lịch dạy được bù vào Thứ Bảy {date}.': 'Classes are made up on Saturday {date}.',
+  'Xem ngày học bù': 'View make-up day',
+  'Nhập mã tài khoản và mật khẩu do nhà trường cấp.':
+    'Enter the account code and password provided by the school.',
+  'Đã đo': 'Measured',
+  'Ủy quyền': 'Pickup auth.',
+  '{count} chờ': '{count} pending',
+  'Xem đơn': 'Requests',
+  Cao: 'Height',
+  Nặng: 'Weight',
+  'Ghi chú cho {name}': 'Note for {name}',
+  'Chi tiết số đo và ghi chú của {name}': 'Measurements and note for {name}',
+  Xong: 'Done',
+  Đón: 'Pick up',
+  'Ghi nhận đón {name}': 'Record pickup for {name}',
+  'Chi tiết đón trẻ của {name}': 'Pickup details for {name}',
+  'Vắng trong ngày, không ghi nhận đón trẻ.': 'Absent today, no pickup is recorded.',
+  'Cần điểm danh Có mặt trước khi ghi nhận đón trẻ.':
+    'Mark the child present before recording pickup.',
+  'Thu gọn {name}': 'Collapse {name}',
+  'Xem chi tiết {name}': 'Show details for {name}',
+  'PH đã phản hồi': 'Parent replied',
+  'Th{month}': 'M{month}',
+  hoa: 'flowers',
+  'Bông Sen Cháu ngoan Bác Hồ': "Uncle Ho's Good Child Lotus",
+  'Học kỳ': 'Semester',
+  'Hoa hồng, hoa sen và nhận xét.': 'Roses, lotus and comments.',
+  'Đã đón {pickedUp}/{total} bé': '{pickedUp}/{total} children picked up',
+  'Vắng / chưa điểm danh': 'Absent / not marked',
+  Vắng: 'Absent',
+  'Tiếp tục với tài khoản Phụ huynh': 'Continue with a Parent account',
+  'Tiếp tục với tài khoản Giáo viên': 'Continue with a Teacher account',
+  'Đăng nhập bằng mã học sinh của con': "Sign in with your child's student code",
+  'Giáo viên đăng nhập bằng mã cán bộ': 'Teachers sign in with their staff code',
+  'Bằng việc tiếp tục, bạn đồng ý với Điều khoản sử dụng và Chính sách bảo mật của Sorak.':
+    "By continuing, you agree to Sorak's Terms of Use and Privacy Policy.",
+  'Đăng nhập bằng mã học sinh và mật khẩu của con.':
+    "Sign in with your child's student code and password.",
+  'Đăng nhập bằng mã cán bộ và mật khẩu được cấp.':
+    'Sign in with your staff code and the password provided.',
+  'Quên mật khẩu? Phụ huynh vui lòng liên hệ giáo viên chủ nhiệm để được hỗ trợ.':
+    "Forgot your password? Please contact your child's homeroom teacher.",
+  'Nhập mã học sinh của con.': "Enter your child's student code.",
+  'Nhập tài khoản được cấp.': 'Enter the account you were given.',
+  'Đã xử lý': 'Handled',
+  'Thời gian hiệu lực': 'Valid',
+  'Đến lớp': 'Arrival',
+  'Có mặt lúc {time}': 'Present at {time}',
+  'Đã điểm danh': 'Marked',
+  'Chưa đo': 'Not measured',
+  'Về nhà': 'Going home',
+  'Đã đón lúc {time}': 'Picked up at {time}',
+  'Học sinh đã chuyển lớp': 'Transferred children',
+  'Ngày của bé': "Your child's day",
+  'Mở chi tiết thông báo': 'Open notification details',
+  'Không có nội dung chi tiết.': 'No details.',
+  'Hình ảnh đính kèm ({count})': 'Attached images ({count})',
+  'Ảnh đính kèm {index}': 'Attachment {index}',
+  'Lớp': 'Class',
+  'Người gửi': 'Sender',
+  'Không có đơn chờ': 'Nothing pending',
+  'Trường Mầm Non Hòn Tre · Sorak. Cập nhật lần cuối {date}.': 'Hon Tre Preschool · Sorak. Last updated {date}.',
+  'Nhà trường chưa công bố phiếu đánh giá tháng này.': 'The school has not published this month’s report yet.',
+  'Quay lại danh sách đơn': 'Back to requests',
+  'Bằng việc tiếp tục, bạn đồng ý với': 'By continuing, you agree to the',
+  'và': 'and',
+  'của Sorak.': 'of Sorak.',
+  'Giáo viên chủ nhiệm': 'Homeroom teacher',
+  'Gọi giáo viên': 'Call teacher',
+  'Email': 'Email',
+  'Nhập mã học sinh và mật khẩu của bé cần thêm.': 'Enter the student code and password of the child to add.',
+  'Ủy quyền đón con': 'Pickup for my child',
+  'Ứng dụng Sorak': 'Sorak app',
+  'Đang lưu': 'Saving',
+  'Xác nhận đã đón': 'Confirm pickup',
+  'Cập nhật người đón': 'Update pickup person',
+  'Lưu': 'Save',
+  'Cập nhật': 'Update',
+  'Đang lưu…': 'Saving…',
+  '{count} thay đổi': '{count} changes',
+  'Bỏ': 'Discard',
+  'Tải lại': 'Reload',
+  'Gửi đơn': 'Send',
+  'Tạo đơn': 'Create',
+  'Kiểm tra lại': 'Check again',
+  'Đặt lại': 'Reset',
+  'Gửi mã': 'Send code',
+  'Đồng ý': 'OK',
+  'Đọc tất cả': 'Mark all read',
+  'Đánh giá': 'Assess',
+  'Xem đánh giá': 'View assessment',
+  'Không có': 'None',
+  'Nhập ghi chú (không bắt buộc)': 'Add a note (optional)',
+  '{present}/{total} buổi': '{present}/{total} sessions',
+  '{achieved}/{total} mục tiêu': '{achieved}/{total} goals',
+  '{present}/{total} ngày': '{present}/{total} days',
+  'Mục tiêu 5 lĩnh vực': 'Goals in 5 domains',
+  'Đi học đủ': 'Attendance',
+  'Phản hồi phụ huynh': 'Parent feedback',
+  'Chưa có': 'None yet',
+  'TC-KNXH': 'Social-emotional',
+  'Trạng thái': 'Status',
+  'Đơn ủy quyền': 'Authorization',
+  'Trạng thái đánh giá': 'Assessment status',
+  'Lọc theo trạng thái đánh giá': 'Filter by assessment status',
+  'Tất cả trạng thái': 'All statuses',
+  'Đạt Bông Sen Cháu ngoan Bác Hồ': 'Earned the Uncle Ho Lotus',
+  'Đang rèn luyện': 'In progress',
+  'Đã nhận xét': 'Commented',
+  'Chưa nhận xét': 'No comment yet',
+  'Có phản hồi phụ huynh': 'Has parent feedback',
 };

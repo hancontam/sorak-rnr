@@ -21,7 +21,7 @@ export async function uploadPickupPhoto(asset, signal) {
   const data = response.data?.data;
   const url = data?.url || data?.relativeUrl;
   if (response.data?.success !== true || typeof url !== 'string' || !url) {
-    throw new Error('Máy chủ chưa trả đường dẫn ảnh. Hãy thử tải lại.');
+    throw new Error('Hệ thống chưa trả đường dẫn ảnh. Hãy thử tải lại.');
   }
   return url;
 }

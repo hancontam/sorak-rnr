@@ -4,6 +4,7 @@ import {
   BottomSheetModalProvider,
   BottomSheetScrollView,
   BottomSheetView,
+  useBottomSheetInternal,
 } from '@gorhom/bottom-sheet';
 import { Check, X } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
@@ -12,6 +13,7 @@ import { Pressable, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/ui/icon';
+import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { THEME } from '@/lib/theme';
@@ -79,10 +81,10 @@ function BottomSheet({
       backdropComponent={renderBackdrop}
       backgroundStyle={{
         backgroundColor: theme.popover,
-        borderTopLeftRadius: 28,
-        borderTopRightRadius: 28,
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
       }}
-      handleIndicatorStyle={{ width: 40, height: 6, backgroundColor: theme.border }}
+      handleIndicatorStyle={{ width: 40, height: 5, borderRadius: 0, backgroundColor: theme.border }}
       enableContentPanningGesture={enableContentPanningGesture}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore">
@@ -111,7 +113,7 @@ function BottomSheet({
               accessibilityLabel={closeLabel}
               hitSlop={8}
               onPress={() => onOpenChange?.(false)}
-              className="size-8 items-center justify-center rounded-full bg-muted active:opacity-70">
+              className="size-8 items-center justify-center bg-muted active:opacity-70">
               <Icon as={X} size={16} className="text-muted-foreground" />
             </Pressable>
           </View>
@@ -155,3 +157,28 @@ function BottomSheetOption({
 }
 
 export { BottomSheet, BottomSheetModalProvider, BottomSheetOption, BottomSheetScrollView };
+
+// Ô nhập dùng trong sheet: Gorhom chỉ nâng sheet lên trên bàn phím khi ô đang focus được ghi làm
+// "target" (như BottomSheetTextInput); Input thường không báo nên bàn phím che mất sheet.
+function BottomSheetInput({ onFocus, onBlur, ...props }) {
+  const { animatedKeyboardState } = useBottomSheetInternal();
+  return (
+    <Input
+      {...props}
+      onFocus={(event) => {
+        const target = event.nativeEvent.target;
+        animatedKeyboardState.set((state) => ({ ...state, target }));
+        onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        const target = event.nativeEvent.target;
+        animatedKeyboardState.set((state) =>
+          state.target === target ? { ...state, target: undefined } : state
+        );
+        onBlur?.(event);
+      }}
+    />
+  );
+}
+
+export { BottomSheetInput };

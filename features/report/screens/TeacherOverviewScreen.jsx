@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ChevronRight, Search } from 'lucide-react-native';
+import { ChevronDown, ChevronRight, ChevronUp, Search } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 
@@ -12,7 +12,7 @@ import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
-import { HeroCard } from '@/components/shared/HeroCard';
+import { IllustrationCard } from '@/components/shared/IllustrationCard';
 import { ReportState } from '../components/ReportState';
 import { useClassStudents } from '../hooks/useClassStudents';
 import {
@@ -23,7 +23,7 @@ import {
   studentStatus,
 } from '../utils/report-format';
 
-const CLASS_HERO = require('@/assets/images/hero-class.jpg');
+const CLASS_ART = require('@/assets/images/illustration-class.webp');
 
 function searchText(value) {
   return String(value || '')
@@ -39,7 +39,8 @@ export default function TeacherOverviewScreen() {
   const locale = useLocale();
   const router = useRouter();
   const [search, setSearch] = useState('');
-  const { assignment, query } = useClassStudents();
+  const { assignment, query, transferred } = useClassStudents({ withTransferred: true });
+  const [showTransferred, setShowTransferred] = useState(false);
   const pull = usePullToRefresh(query.refetch);
   const students = useMemo(
     () =>
@@ -78,9 +79,9 @@ export default function TeacherOverviewScreen() {
               </Text>
             </View>
             {query.data ? (
-              <HeroCard
-                source={CLASS_HERO}
-                tag={year ? t('Năm học {year}', { year: schoolYearValue(year) }) : null}
+              <IllustrationCard
+                source={CLASS_ART}
+                eyebrow={year ? t('Năm học {year}', { year: schoolYearValue(year) }) : null}
                 title={query.data.class.name}
                 subtitle={t('{count} học sinh', { count: query.data.students.length })}
               />
@@ -118,6 +119,66 @@ export default function TeacherOverviewScreen() {
               }
             />
           )
+        }
+        ListFooterComponent={
+          transferred.data?.length ? (
+            // Bé đã chuyển khỏi lớp: thu gọn dưới danh sách, mở ra vẫn xem được báo cáo của bé.
+            <View className="mt-4 border border-border bg-card">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showTransferred }}
+                onPress={() => setShowTransferred(!showTransferred)}
+                className="flex-row items-center gap-2 px-4 py-3 active:bg-muted">
+                <Text className="min-w-0 flex-1 text-sm font-semibold">
+                  {t('Học sinh đã chuyển lớp')}
+                </Text>
+                <Badge variant="secondary">
+                  <Text>{transferred.data.length}</Text>
+                </Badge>
+                <Icon
+                  as={showTransferred ? ChevronUp : ChevronDown}
+                  size={16}
+                  className="text-muted-foreground"
+                />
+              </Pressable>
+              {showTransferred
+                ? transferred.data.map((item) => (
+                    <Pressable
+                      key={item.id}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('Xem hồ sơ {name}', {
+                        name: item.fullName || t('Học sinh'),
+                      })}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/(teacher)/student/[studentId]',
+                          params: { studentId: item.id },
+                        })
+                      }
+                      className="min-h-14 flex-row items-center gap-3 border-t border-border px-4 py-2.5 active:bg-muted/60">
+                      <AccountAvatar user={item} className="size-9 opacity-80" />
+                      <View className="min-w-0 flex-1 gap-0.5">
+                        <Text numberOfLines={1} className="text-sm font-medium">
+                          {item.fullName || t('Học sinh')}
+                        </Text>
+                        <Text numberOfLines={1} className="text-2xs text-muted-foreground">
+                          <Text className="font-mono text-2xs text-muted-foreground">
+                            {item.studentCode}
+                          </Text>
+                          {item.toClassName
+                            ? ` · ${t('Chuyển sang {name}', { name: item.toClassName })}`
+                            : ''}
+                          {item.transferDate
+                            ? ` · ${t(formatDate(item.transferDate, locale))}`
+                            : ''}
+                        </Text>
+                      </View>
+                      <Icon as={ChevronRight} size={16} className="text-muted-foreground" />
+                    </Pressable>
+                  ))
+                : null}
+            </View>
+          ) : null
         }
         renderItem={({ item, index }) => {
           const first = index === 0;

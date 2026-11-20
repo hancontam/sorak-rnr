@@ -1,10 +1,8 @@
 import { Stack, useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
 
-import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icon';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
+import { APP_HEADER, HeaderBackButton } from '@/components/shared/AppHeader';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
 export const unstable_settings = { initialRouteName: 'index' };
@@ -15,17 +13,15 @@ export default function SettingsLayout() {
   const role = useAuthStore((state) => state.user?.role);
 
   return (
-    <Stack screenOptions={{ headerTitleAlign: 'center' }}>
+    <Stack screenOptions={APP_HEADER}>
       <Stack.Screen
         name="index"
         options={{
           title: t('Cài đặt'),
           headerBackVisible: false,
           headerLeft: () => (
-            <Button
-              size="icon"
-              variant="ghost"
-              accessibilityLabel={t('Về trang chính')}
+            <HeaderBackButton
+              label={t('Về trang chính')}
               onPress={() => {
                 if (router.canGoBack()) router.back();
                 else
@@ -34,9 +30,8 @@ export default function SettingsLayout() {
                       ? '/(parent)/(tabs)/child-profile'
                       : '/(teacher)/(tabs)/overview'
                   );
-              }}>
-              <Icon as={ChevronLeft} size={20} />
-            </Button>
+              }}
+            />
           ),
         }}
       />

@@ -4,7 +4,7 @@ import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 // GV dùng hộp thư chung `/notifications/*`; PH dùng nhóm route riêng `/parent/notifications`.
 // Backend không chặn GV gọi route PH, nên chọn sai đường dẫn vẫn trả 200.
 const INBOX_LIMIT = 30;
-const INVALID_LIST = 'Máy chủ chưa trả danh sách thông báo hợp lệ.';
+const INVALID_LIST = 'Hệ thống chưa trả danh sách thông báo hợp lệ.';
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -73,5 +73,5 @@ export async function markNotificationRead(role, id) {
     throw new Error('Tài khoản này không có hộp thông báo trên mobile.');
   }
   const { data } = await apiClient.patch(path);
-  if (data?.success !== true) throw new Error('Máy chủ chưa xác nhận đã đánh dấu thông báo.');
+  if (data?.success !== true) throw new Error('Hệ thống chưa xác nhận đã đánh dấu thông báo.');
 }

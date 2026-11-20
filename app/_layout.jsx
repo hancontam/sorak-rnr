@@ -15,6 +15,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { AnimatedSplash } from '@/components/shared/AnimatedSplash';
 import { BottomSheetModalProvider } from '@/components/ui/bottom-sheet';
+import { APP_HEADER } from '@/components/shared/AppHeader';
 import { Toaster } from '@/components/ui/sonner';
 
 import { SessionGate } from '@/features/auth/components/SessionGate';
@@ -120,12 +121,14 @@ function AuthStack() {
         <Stack.Protected guard={status === 'signed-out' || role === AUTH_ROLES.parent}>
           <Stack.Screen
             name="accounts"
-            options={{ title: t('Chuyển tài khoản'), headerTitleAlign: 'center' }}
+            options={{ ...APP_HEADER, title: t('Chuyển tài khoản') }}
           />
         </Stack.Protected>
         <Stack.Protected guard={status === 'signed-in'}>
           <Stack.Screen name="settings" options={{ headerShown: false }} />
         </Stack.Protected>
+        {/* Điều khoản / Chính sách mở được cả khi chưa đăng nhập (từ sheet chọn vai trò). */}
+        <Stack.Screen name="legal/[doc]" options={{ ...APP_HEADER, title: '' }} />
       </Stack>
     </SessionGate>
   );

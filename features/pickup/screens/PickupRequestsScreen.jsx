@@ -1,8 +1,9 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { CircleAlert, Plus } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { BackHandler, FlatList, View } from 'react-native';
+import { BackHandler, FlatList, Pressable, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HeaderBackButton } from '@/components/shared/AppHeader';
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
@@ -14,18 +15,20 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { cn } from '@/lib/utils';
 import { ScheduleState } from '@/features/daily/components/ScheduleState';
 import { schoolToday, shortDate } from '@/features/daily/utils/schedule-date';
 import { timetableError } from '@/features/daily/utils/timetable-model';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
-import { PickupRequestCard } from '../components/PickupRequestCard';
 import { PickupRequestForm } from '../components/PickupRequestForm';
+import { PickupRequestSheet } from '../components/PickupRequestSheet';
+import { PickupRequestTable } from '../components/PickupRequestTable';
 import { usePickupPhoto } from '../hooks/usePickupPhoto';
 import { usePickupRequests } from '../hooks/usePickupRequests';
 
 // Ba nhóm thay cho năm trạng thái: đơn chờ duyệt cần xử lý, còn lại gom vào Đã xử lý (nhãn trạng thái
-// cụ thể vẫn hiện trên từng đơn).
+// cụ thể vẫn hiện ở cột Trạng thái của bảng).
 const FILTERS = [
   ['all', 'Tất cả'],
   ['PENDING', 'Chờ duyệt'],
@@ -38,13 +41,15 @@ const matches = (key, item) =>
 
 export default function PickupRequestsScreen() {
   const t = useTranslation();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const date = typeof params.date === 'string' ? params.date : schoolToday();
   const [creating, setCreating] = useState(params.create === '1');
   const requests = usePickupRequests({ date, creating });
   const photo = usePickupPhoto();
   const [dirty, setDirty] = useState(false);
-  const [rejectingId, setRejectingId] = useState(null);
+  // Đơn đang mở trong sheet chi tiết (theo id để luôn đọc bản mới nhất sau khi tải lại).
+  const [openId, setOpenId] = useState(null);
   const [filter, setFilter] = useState('all');
   const [confirmRequest, setConfirmRequest] = useState(null);
   const unsaved = useUnsavedChanges(dirty, requests.saving || photo.busy);
@@ -59,11 +64,13 @@ export default function PickupRequestsScreen() {
   const counts = Object.fromEntries(
     FILTERS.map(([key]) => [key, all.filter((item) => matches(key, item)).length])
   );
-  const canCreate = allowed && query.data && !rejectingId && !creating;
+  const canCreate = allowed && query.data && !creating;
+  const opened = openId ? all.find((item) => item.id === openId) || null : null;
 
   async function act(action, id, body) {
     if (await requests.act(action, id, body)) {
       closeForm();
+      setOpenId(null);
       setFilter('all');
     }
   }
@@ -84,7 +91,6 @@ export default function PickupRequestsScreen() {
 
   function closeForm() {
     setCreating(false);
-    setRejectingId(null);
     setDirty(false);
     photo.remove();
   }
@@ -93,26 +99,17 @@ export default function PickupRequestsScreen() {
     if (await requests.reload()) closeForm();
   }
 
-  function confirm(action, id, body) {
-    const labels = {
-      create: t(isParent ? 'Gửi đơn ủy quyền chờ duyệt?' : 'Tạo đơn ủy quyền đã duyệt?'),
-      cancel: t('Hủy đơn đang chờ duyệt?'),
-      approve: t('Duyệt đơn ủy quyền?'),
-      reject: t('Từ chối đơn ủy quyền?'),
-    };
+  // Hỏi lại trước khi gửi đơn mới. Duyệt, từ chối, hủy đơn đã xác nhận trong sheet chi tiết.
+  function confirmCreate(body) {
     const selected = isParent
       ? query.data?.student
       : requests.studentsQuery.data?.find((s) => String(s.id) === body?.studentId);
     setConfirmRequest({
-      title: labels[action],
-      description:
-        action === 'create'
-          ? `${selected?.fullName || selected?.name || ''}\n${t('Người đón')}: ${body.pickup_person_name}\n${fullDate(body.start_date)} – ${fullDate(body.end_date)}`
-          : undefined,
-      cancelLabel: t('Quay lại'),
+      title: t(isParent ? 'Gửi đơn ủy quyền chờ duyệt?' : 'Tạo đơn ủy quyền đã duyệt?'),
+      description: `${selected?.fullName || selected?.name || ''}\n${t('Người đón')}: ${body.pickup_person_name}\n${fullDate(body.start_date)} – ${fullDate(body.end_date)}`,
+      cancelLabel: t('Hủy'),
       confirmLabel: t('Xác nhận'),
-      destructive: action === 'reject' || action === 'cancel',
-      onConfirm: () => act(action, id, body),
+      onConfirm: () => act('create', null, body),
     });
   }
 
@@ -135,8 +132,8 @@ export default function PickupRequestsScreen() {
               {!needsReload
                 ? t('Thử lại')
                 : creating
-                  ? t('Kiểm tra lại đơn vừa gửi')
-                  : t('Tải lại danh sách')}
+                  ? t('Kiểm tra lại')
+                  : t('Tải lại')}
             </Text>
           </Button>
         ) : null}
@@ -196,7 +193,7 @@ export default function PickupRequestsScreen() {
               photo={photo}
               disabled={disabled}
               onDirtyChange={setDirty}
-              onSend={(body) => confirm('create', null, body)}
+              onSend={confirmCreate}
             />
           )}
         </KeyboardAwareScrollView>
@@ -209,29 +206,17 @@ export default function PickupRequestsScreen() {
       <Stack.Screen
         options={{
           title: t(isParent ? 'Ủy quyền đón con' : 'Ủy quyền đón trẻ'),
-          headerRight: canCreate
-            ? () => (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  accessibilityLabel={t('Tạo đơn ủy quyền')}
-                  disabled={disabled}
-                  onPress={() => setCreating(true)}>
-                  <Icon as={Plus} size={22} className="text-primary" />
-                </Button>
-              )
-            : () => null,
+          headerRight: () => null,
         }}
       />
       <FlatList
         className="flex-1"
-        contentContainerClassName="mx-auto w-full max-w-xl gap-2 p-4 pb-8"
-        data={rows}
+        contentContainerClassName="mx-auto w-full max-w-xl gap-2 p-4 pb-24"
+        // Cả danh sách là một bảng (một mục), giống bảng đơn ủy quyền trên web.
+        data={rows.length ? [{ id: 'table' }] : []}
         keyExtractor={(item) => String(item.id)}
         refreshing={pull.refreshing}
         onRefresh={pull.onRefresh}
-        keyboardShouldPersistTaps="handled"
-        renderScrollComponent={(props) => <KeyboardAwareScrollView {...props} bottomOffset={16} />}
         ListHeaderComponent={
           <View className="gap-3">
             {reloadNotice}
@@ -248,7 +233,7 @@ export default function PickupRequestsScreen() {
                   count: counts[key],
                 }))}
                 value={filter}
-                disabled={saving || Boolean(rejectingId)}
+                disabled={saving}
                 onChange={setFilter}
               />
             ) : null}
@@ -266,26 +251,39 @@ export default function PickupRequestsScreen() {
                     : 'Chưa có lớp hoặc hồ sơ học sinh để xem đơn'
                 }
               />
-              {canCreate && !query.isPending ? (
-                <Button variant="outline" disabled={disabled} onPress={() => setCreating(true)}>
-                  <Icon as={Plus} size={16} />
-                  <Text>{t('Tạo đơn ủy quyền')}</Text>
-                </Button>
-              ) : null}
             </View>
           )
         }
-        renderItem={({ item }) => (
-          <PickupRequestCard
-            request={item}
+        renderItem={() => (
+          <PickupRequestTable
+            requests={rows}
             isParent={isParent}
-            disabled={disabled || creating || Boolean(rejectingId && rejectingId !== item.id)}
-            rejecting={rejectingId === item.id}
-            onRejecting={(open) => (open ? setRejectingId(item.id) : confirmDiscard(closeForm))}
-            onDirtyChange={setDirty}
-            onAction={(action, body) => confirm(action, item.id, body)}
+            onOpen={(request) => setOpenId(request.id)}
           />
         )}
+      />
+      {/* Nút nổi góc dưới phải để tạo đơn (thay nút + trên thanh tiêu đề). */}
+      {canCreate ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('Tạo đơn ủy quyền')}
+          disabled={disabled}
+          onPress={() => setCreating(true)}
+          style={{ bottom: insets.bottom + 16, elevation: 6 }}
+          className={cn(
+            'absolute right-4 size-14 items-center justify-center rounded-full bg-primary shadow-lg shadow-black/20 active:opacity-80',
+            disabled && 'opacity-50'
+          )}>
+          <Icon as={Plus} size={24} className="text-primary-foreground" />
+        </Pressable>
+      ) : null}
+      <PickupRequestSheet
+        request={opened}
+        isParent={isParent}
+        disabled={disabled}
+        saving={saving}
+        onAction={(action, body) => act(action, openId, body)}
+        onClose={() => setOpenId(null)}
       />
       {dialog}
     </View>

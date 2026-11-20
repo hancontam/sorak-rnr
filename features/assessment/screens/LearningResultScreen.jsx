@@ -8,6 +8,7 @@ import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { ActionNotice } from '@/components/shared/ActionNotice';
 import { ChipTabs } from '@/components/shared/ChipTabs';
+import { FilterMenu } from '@/components/shared/FilterMenu';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useActionToast } from '@/components/shared/useActionToast';
 import { useUnsavedChanges } from '@/components/shared/useUnsavedChanges';
@@ -23,6 +24,8 @@ import { cn } from '@/lib/utils';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { MonthlyResultCard, SemesterResultCard } from '../components/ResultCards';
+import { MonthlySummaryTable, MonthlyWeekTable, SemesterTable } from '../components/ResultTables';
+import { matchesStatus, statusFilters } from '../utils/result-filters';
 import { SchoolMonthPicker } from '../components/SchoolMonthPicker';
 import { TeacherWebsiteNotice } from '../components/TeacherWebsiteNotice';
 import { useLearningResults } from '../hooks/useLearningResults';
@@ -49,6 +52,7 @@ export default function LearningResultScreen() {
   const [semester, setSemester] = useState(SEMESTERS[0][0]);
   const [week, setWeek] = useState(0);
   const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('all');
   const [feedback, setFeedback] = useState(null);
   const monthly = kind === 'monthly';
   const result = useLearningResults({ kind, period, semester });
@@ -94,8 +98,11 @@ export default function LearningResultScreen() {
   const students =
     parent || semesterNotStarted || monthNotEnded
       ? []
-      : (data?.students || []).filter((student) =>
-          `${student.name || ''} ${student.code || ''}`.toLocaleLowerCase('vi').includes(queryText)
+      : (data?.students || []).filter(
+          (student) =>
+            `${student.name || ''} ${student.code || ''}`
+              .toLocaleLowerCase('vi')
+              .includes(queryText) && matchesStatus(monthly, status, student)
         );
   const semesterResult =
     !monthly && parent && data?.semesterAssessments?.find((item) => item.semester === semester);
@@ -190,17 +197,26 @@ export default function LearningResultScreen() {
         </Text>
       ) : null}
       {!parent && data && !error ? (
-        <View className="justify-center">
-          <Input
-            value={search}
-            onChangeText={setSearch}
-            accessibilityLabel={t('Tìm học sinh')}
-            placeholder={t('Tìm theo tên hoặc mã học sinh')}
-            className="pl-9"
-          />
-          <View pointerEvents="none" className="absolute left-3">
-            <Icon as={Search} size={16} className="text-muted-foreground" />
+        <View className="flex-row items-center gap-2">
+          <View className="flex-1 justify-center">
+            <Input
+              value={search}
+              onChangeText={setSearch}
+              accessibilityLabel={t('Tìm học sinh')}
+              placeholder={t('Tìm theo tên hoặc mã học sinh')}
+              className="pl-9"
+            />
+            <View pointerEvents="none" className="absolute left-3">
+              <Icon as={Search} size={16} className="text-muted-foreground" />
+            </View>
           </View>
+          <FilterMenu
+            title={t('Trạng thái đánh giá')}
+            accessibilityLabel={t('Lọc theo trạng thái đánh giá')}
+            options={statusFilters(monthly).map(([value, label]) => ({ value, label: t(label) }))}
+            value={status}
+            onChange={setStatus}
+          />
         </View>
       ) : null}
       {result.message?.error ? (
@@ -229,7 +245,11 @@ export default function LearningResultScreen() {
     if (!parent)
       return (
         <Empty
-          text={t(queryText ? 'Không tìm thấy học sinh phù hợp.' : 'Chưa có kết quả cho lớp.')}
+          text={t(
+            queryText || status !== 'all'
+              ? 'Không tìm thấy học sinh phù hợp.'
+              : 'Chưa có kết quả cho lớp.'
+          )}
         />
       );
     if (!monthly)
@@ -342,16 +362,30 @@ export default function LearningResultScreen() {
       <FlatList
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-xl gap-2 p-4 pb-8"
-        data={error ? [] : students}
+        // Giáo viên xem cả lớp dạng bảng (một mục chứa cả bảng); phụ huynh vẫn là thẻ của một bé.
+        data={error ? [] : parent ? students : students.length ? [{ id: 'table' }] : []}
         keyExtractor={(student) => String(student.id)}
         keyboardShouldPersistTaps="handled"
+        // FlatList trên Android mặc định ẩn hàng ngoài màn hình; KeyboardAwareScrollView cần đo hàng
+        // đang nhập để cuộn lên trên bàn phím, nếu không app treo (ANR) khi focus ô ở cuối danh sách.
+        removeClippedSubviews={false}
         renderScrollComponent={(props) => <KeyboardAwareScrollView {...props} bottomOffset={16} />}
         ListHeaderComponent={header}
         ListEmptyComponent={renderEmpty()}
         refreshing={pull.refreshing}
         onRefresh={pull.onRefresh}
         renderItem={({ item }) =>
-          monthly ? (
+          !parent ? (
+            monthly ? (
+              shownWeek ? (
+                <MonthlyWeekTable rows={students} week={shownWeek} avatarOf={result.avatarOf} />
+              ) : (
+                <MonthlySummaryTable rows={students} maxRoses={weeks} avatarOf={result.avatarOf} />
+              )
+            ) : (
+              <SemesterTable rows={students} avatarOf={result.avatarOf} />
+            )
+          ) : monthly ? (
             <MonthlyResultCard
               title={item.name}
               code={item.code}

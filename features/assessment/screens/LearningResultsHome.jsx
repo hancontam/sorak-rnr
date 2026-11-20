@@ -54,7 +54,7 @@ export default function LearningResultsHome() {
       <Text className="text-lg font-semibold tracking-tight">{t('Kết quả học tập')}</Text>
       <IllustrationCard
         source={RESULTS_ART}
-        eyebrow={`${t('Sổ bé ngoan')} · ${t('Học kỳ')}`}
+        eyebrow={`${t('Sổ bé ngoan')} & ${t('Học kỳ')}`}
         title={t(parent ? 'Theo dõi kết quả của con' : 'Xem kết quả của lớp được phân công')}
       />
       <View className="flex-row gap-3">

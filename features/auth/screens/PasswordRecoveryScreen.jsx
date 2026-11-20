@@ -180,7 +180,7 @@ export function PasswordRecoveryScreen({ initialIdentifier, onBack, onComplete }
                 </View>
                 <LoginError message={passwordError || error} />
                 <AuthSubmitButton
-                  label={t('Đặt lại mật khẩu')}
+                  label={t('Đặt lại')}
                   pending={isPending}
                   disabled={!password || otpNeedsResend || (!otpVerified && otp.length !== 6)}
                   onPress={submit}
@@ -209,7 +209,7 @@ export function PasswordRecoveryScreen({ initialIdentifier, onBack, onComplete }
                 </View>
                 <LoginError message={error} />
                 <AuthSubmitButton
-                  label={secondsLeft > 0 ? resendLabel : t('Gửi mã xác thực OTP')}
+                  label={secondsLeft > 0 ? resendLabel : t('Gửi mã')}
                   pending={isPending}
                   disabled={!canSend}
                   onPress={sendCode}

@@ -45,8 +45,8 @@ export default function NotificationInboxScreen() {
   function confirmReadAll() {
     setConfirm({
       title: t('Đánh dấu tất cả thông báo là đã đọc?'),
-      cancelLabel: t('Quay lại'),
-      confirmLabel: t('Đánh dấu đã đọc'),
+      cancelLabel: t('Hủy'),
+      confirmLabel: t('Đồng ý'),
       onConfirm: readAll,
     });
   }
@@ -97,7 +97,7 @@ export default function NotificationInboxScreen() {
                 disabled={actions.busy}
                 onPress={confirmReadAll}>
                 <Icon as={CheckCheck} size={14} />
-                <Text>{t('Đánh dấu tất cả đã đọc')}</Text>
+                <Text>{t('Đọc tất cả')}</Text>
               </Button>
             ) : null}
             <ActionNotice message={error ? { error: true, text: t(error) } : null} />

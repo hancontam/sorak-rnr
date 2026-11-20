@@ -17,6 +17,7 @@ import { EmptyFrames, ScheduleFrame } from '../components/ScheduleFrame';
 import { ScheduleCalendar } from '../components/ScheduleCalendar';
 import { ScheduleState } from '../components/ScheduleState';
 import { useSchoolToday } from '../hooks/useSchoolToday';
+import { usePrefetchDailyRecords } from '../hooks/useDailyRecords';
 import { useTimetable } from '../hooks/useTimetable';
 import { dayTitle, schoolClock, schoolToday, shortDate, weekDates } from '../utils/schedule-date';
 import {
@@ -64,6 +65,12 @@ export default function TimetableScreen() {
   // Ngày nghỉ/cuối tuần chỉ phụ thuộc lịch năm học và slot của tuần nên vẫn đúng với lịch tạm.
   const calendar = ready ? dayCalendar(data, date, isParent) : null;
   const lock = calendar?.lock;
+  // Tải sẵn điểm danh/sức khỏe/đón trẻ của ngày đang xem để bấm thanh trạng thái là mở ngay.
+  usePrefetchDailyRecords({
+    date,
+    kinds: ['attendance', 'health', 'pickup'],
+    enabled: ready && !isParent && !lock,
+  });
   // Ngày nghỉ/cuối tuần không có khung nào "Đang diễn ra".
   const now = date === today && !lock ? clock : '';
   const dayLocks = ready

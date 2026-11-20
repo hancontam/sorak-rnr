@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
-import { Input } from '@/components/ui/input';
+import { BottomSheetInput } from '@/components/ui/bottom-sheet';
 import { Text } from '@/components/ui/text';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
@@ -13,6 +13,7 @@ function toNumber(text) {
 }
 
 // Ô số đo có nút −/+ và chip bước nhanh. Chỉ tăng/giảm từ số đã có, không tự điền số mặc định.
+// Dùng trong sheet (BottomSheetInput) để sheet được nâng lên trên bàn phím.
 export function MeasureField({
   label,
   unit,
@@ -49,13 +50,13 @@ export function MeasureField({
           <Icon as={Minus} size={16} />
         </Button>
         <View className="min-w-0 flex-1 justify-center">
-          <Input
+          <BottomSheetInput
             value={value}
             onChangeText={(text) => onChange(text.replace(',', '.'))}
             editable={editable}
             keyboardType="decimal-pad"
             accessibilityLabel={label}
-            placeholder="—"
+            placeholder=""
             className="pr-10 text-center font-mono text-sm"
           />
           {unit ? (

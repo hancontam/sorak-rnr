@@ -1,6 +1,6 @@
 import { Bell, ChevronDown, Clock } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AccountAvatar } from '@/components/shared/AccountAvatar';
 import { SorakLogo } from '@/components/shared/SorakLogo';
@@ -35,6 +35,7 @@ export function HomeHeader({
   onNotifications,
   onSettings,
 }) {
+  const insets = useSafeAreaInsets();
   const t = useTranslation();
   const hasUnread = Number.isInteger(unreadCount) && unreadCount > 0;
   const context = (
@@ -55,8 +56,10 @@ export function HomeHeader({
     </View>
   );
 
+  // Tự đặt paddingTop theo vùng an toàn: SafeAreaView native trên Android kiến trúc mới đôi khi không
+  // áp lại khi màn dựng lại (vd. sau khi đăng xuất một tài khoản PH) làm header chồng thanh trạng thái.
   return (
-    <SafeAreaView edges={['top']} className="border-b border-border bg-background">
+    <View className="border-b border-border bg-background" style={{ paddingTop: insets.top }}>
       <View className="mx-auto w-full max-w-xl flex-row items-center gap-2.5 px-4 py-2.5">
         <SorakLogo size={30} />
         {onTitlePress ? (
@@ -100,6 +103,6 @@ export function HomeHeader({
           <AccountAvatar user={avatarUser} className="size-10" />
         </Pressable>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

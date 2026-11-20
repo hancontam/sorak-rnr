@@ -75,7 +75,7 @@ function QuickMeasure({ label, unit, value, editable, onChange }) {
         editable={editable}
         keyboardType="decimal-pad"
         accessibilityLabel={label}
-        placeholder="—"
+        placeholder=""
         className="h-8 min-w-0 flex-1 border-0 bg-transparent px-1 text-center font-mono text-sm shadow-none"
       />
       <Text className="pr-2 text-2xs text-muted-foreground">{unit}</Text>
@@ -174,7 +174,8 @@ export function DailyRecordCard({ kind, row, first, editable, locked, onChange, 
               onChange={(next) => onChange({ weight: next })}
             />
             <Text className="w-14 text-right font-mono text-2xs text-muted-foreground">
-              {bmi ? `BMI ${bmi}` : 'BMI —'}
+              {/* Chưa đủ số đo thì để trống, giữ cột thẳng hàng. */}
+              {bmi ? `BMI ${bmi}` : ''}
             </Text>
           </View>
         )

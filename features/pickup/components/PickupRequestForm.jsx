@@ -195,7 +195,7 @@ export function PickupRequestForm({
               <Text className="text-xs text-destructive">{t(photo.error)}</Text>
               {photo.asset && !photo.url ? (
                 <Button size="sm" variant="outline" disabled={disabled} onPress={photo.retry}>
-                  <Text>{t('Tải ảnh lại')}</Text>
+                  <Text>{t('Tải lại')}</Text>
                 </Button>
               ) : null}
             </>
@@ -204,7 +204,7 @@ export function PickupRequestForm({
       ) : null}
       {error ? <Text className="text-xs text-destructive">{t(error)}</Text> : null}
       <Button size="sm" disabled={disabled || (photo && !photo.ready)} onPress={send}>
-        <Text>{isParent ? t('Gửi đơn chờ duyệt') : t('Tạo ủy quyền đã duyệt')}</Text>
+        <Text>{isParent ? t('Gửi đơn') : t('Tạo đơn')}</Text>
       </Button>
     </Card>
   );

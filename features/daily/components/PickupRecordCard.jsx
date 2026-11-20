@@ -10,14 +10,15 @@ import { isAbsent, pickupOptions } from '../utils/daily-records';
 import { schoolClock } from '../utils/schedule-date';
 import { StudentHeader } from './StudentHeader';
 
-// Ô trạng thái bên phải mỗi hàng: cùng kích thước cho nút "Đón" (viền xanh) và trạng thái
-// "Đã đón" (nền xanh nhạt + dấu tích) hay "Vắng" (chữ xám), để cột phải thẳng hàng.
+// Ô trạng thái bên phải mỗi hàng: cùng kích thước cho nút "Đón" (nền xanh, chữ trắng) và trạng thái
+// "Đã đón" (nền xanh nhạt + dấu tích) hay "Vắng" (nền xám); căn giữa theo cả hàng (kể cả dòng giờ đón)
+// để các ô thẳng hàng giữa hàng hai dòng và ba dòng.
 function StatusBox({ tone, label }) {
   return (
     <View
       className={cn(
         'h-7 min-w-[76px] flex-row items-center justify-center gap-1 border px-2',
-        tone === 'action' && 'border-primary bg-card',
+        tone === 'action' && 'border-primary bg-primary',
         tone === 'done' && 'border-transparent bg-secondary',
         tone === 'off' && 'border-transparent bg-muted'
       )}>
@@ -26,7 +27,11 @@ function StatusBox({ tone, label }) {
         numberOfLines={1}
         className={cn(
           'text-xs font-medium',
-          tone === 'off' ? 'text-muted-foreground' : 'text-primary'
+          tone === 'off'
+            ? 'text-muted-foreground'
+            : tone === 'action'
+              ? 'text-primary-foreground'
+              : 'text-primary'
         )}>
         {label}
       </Text>
@@ -36,7 +41,7 @@ function StatusBox({ tone, label }) {
 
 // Hàng gọn của một bé trong Đón trẻ: trạng thái và người/giờ đã đón; chọn người đón, giờ, dặn dò
 // nằm trong sheet chi tiết (onOpenDetail) để danh sách hiện được nhiều bé.
-export function PickupRecordCard({ row, first, editable, locked, onOpenDetail }) {
+export function PickupRecordCard({ row, first, editable, busy = false, locked, onOpenDetail }) {
   const t = useTranslation();
   const { student, value } = row;
   const canOpen = student.isPresent && !locked;
@@ -53,7 +58,7 @@ export function PickupRecordCard({ row, first, editable, locked, onOpenDetail })
   const detail = student.isDismissed
     ? [pickedAt, student.pickupPersonName, student.pickupRelationship].filter(Boolean).join(' · ')
     : row.changed && draftPerson
-      ? `${t('Chưa lưu')}: ${[value.time, draftPerson.name].filter(Boolean).join(' · ')}`
+      ? `${busy ? t('Đang lưu') : t('Chưa lưu')}: ${[value.time, draftPerson.name].filter(Boolean).join(' · ')}`
       : !student.isPresent
         ? isAbsent(student)
           ? t('Vắng trong ngày, không ghi nhận đón trẻ.')
@@ -64,28 +69,32 @@ export function PickupRecordCard({ row, first, editable, locked, onOpenDetail })
 
   const content = (
     <>
-      <StudentHeader
-        compact
-        name={student.name}
-        code={student.code}
-        avatarUrl={row.avatarUrl}
-        right={
-          canWrite && !student.isDismissed ? (
-            <StatusBox tone="action" label={t('Đón')} />
-          ) : (
-            <StatusBox tone={student.isDismissed ? 'done' : 'off'} label={t(status)} />
-          )
-        }
-      />
-      {detail ? (
-        <Text numberOfLines={1} className="pl-[42px] text-2xs text-muted-foreground">
-          {detail}
-        </Text>
-      ) : null}
+      <View className="min-w-0 flex-1 gap-1">
+        <StudentHeader compact name={student.name} code={student.code} avatarUrl={row.avatarUrl} />
+        {student.isDismissed && pickedAt ? (
+          // Giờ đón tô xanh để nhìn nhanh bé đã về lúc nào.
+          <Text numberOfLines={1} className="pl-[42px] text-2xs text-muted-foreground">
+            <Text className="font-mono text-2xs font-semibold text-primary">{pickedAt}</Text>
+            {[student.pickupPersonName, student.pickupRelationship]
+              .filter(Boolean)
+              .map((part) => ` · ${part}`)
+              .join('')}
+          </Text>
+        ) : detail ? (
+          <Text numberOfLines={1} className="pl-[42px] text-2xs text-muted-foreground">
+            {detail}
+          </Text>
+        ) : null}
+      </View>
+      {canWrite && !student.isDismissed ? (
+        <StatusBox tone="action" label={t('Đón')} />
+      ) : (
+        <StatusBox tone={student.isDismissed ? 'done' : 'off'} label={t(status)} />
+      )}
     </>
   );
   const rowClass = cn(
-    'gap-1 border-x border-b border-border bg-card px-3 py-2.5',
+    'flex-row items-center gap-2.5 border-x border-b border-border bg-card px-3 py-2.5',
     first && 'border-t'
   );
   if (!canOpen) return <View className={rowClass}>{content}</View>;
@@ -93,6 +102,7 @@ export function PickupRecordCard({ row, first, editable, locked, onOpenDetail })
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={t('Chi tiết đón trẻ của {name}', { name: student.name })}
+      disabled={busy}
       onPress={onOpenDetail}
       className={cn(rowClass, 'active:bg-muted')}>
       {content}

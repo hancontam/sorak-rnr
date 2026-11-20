@@ -36,6 +36,49 @@ function isRecorded(kind, initial, student) {
   return Boolean(initial.status);
 }
 
+// Khóa + hàm tải dùng chung cho màn ghi nhận và phần tải sẵn từ Thời khóa biểu / màn hoạt động.
+// Lịch dùng lại bản vừa tải (còn mới trong 60 giây) thay vì tải lại tuần 37 KB mỗi lần mở màn;
+// sau khi lưu, refreshRelatedRecords đánh dấu lịch cũ nên lần đọc lại vẫn lấy mới.
+export function dailyRecordsQuery({ client, user, kind, date, slot }) {
+  const classId = assignedClass(user).classId;
+  return {
+    queryKey: ['daily-records', user?.id, classId, kind, date, slot?.id, slot?.activityId],
+    queryFn: ({ signal }) =>
+      getDailyRecords({
+        kind,
+        classId,
+        date,
+        slot,
+        signal,
+        loadTimetable: () =>
+          client.fetchQuery({ ...timetableQuery(user, date), staleTime: 60_000 }),
+      }),
+  };
+}
+
+// Tải sẵn dữ liệu ghi nhận (điểm danh, sức khỏe, đón trẻ hoặc đánh giá một hoạt động) để mở màn là
+// thấy ngay; màn vẫn tải lại ở nền khi mở. Chỉ giáo viên, chỉ ngày đã có lịch.
+export function usePrefetchDailyRecords({ date, kinds, slot, enabled = true }) {
+  const client = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const ready =
+    enabled &&
+    user?.role === AUTH_ROLES.teacher &&
+    assignedClass(user).classId &&
+    calendarDate(date);
+  const kindsKey = kinds.join(',');
+  useEffect(() => {
+    if (!ready) return;
+    for (const kind of kindsKey.split(',')) {
+      if (kind === 'assessment' && !slot?.activityId) continue;
+      client.prefetchQuery({
+        ...dailyRecordsQuery({ client, user, kind, date, slot }),
+        staleTime: 30_000,
+      });
+    }
+  }, [client, user, date, kindsKey, slot?.id, slot?.activityId, ready]);
+}
+
 export function useDailyRecords({ kind, date, slotId }) {
   const t = useTranslation();
   const user = useAuthStore((state) => state.user);
@@ -77,25 +120,9 @@ export function useDailyRecords({ kind, date, slotId }) {
     valid && timetable.query.data ? dayCalendar(timetable.query.data, date, false).lock : null;
   const canEdit = Boolean(valid && date === today && timetable.query.data && !lock);
   const params = { kind, classId: assignment.classId, date, slot };
-  const key = [
-    'daily-records',
-    user?.id,
-    assignment.classId,
-    kind,
-    date,
-    slot?.id,
-    slot?.activityId,
-  ];
+  const recordsQuery = dailyRecordsQuery({ client, user, kind, date, slot });
   const query = useQuery({
-    queryKey: key,
-    queryFn: ({ signal }) =>
-      getDailyRecords({
-        ...params,
-        signal,
-        // Dùng chung request/cache lịch với Thời khóa biểu; staleTime 0 để lần đọc lại sau khi lưu
-        // luôn lấy dữ liệu mới, còn lúc mở màn thì gộp với request lịch đang chạy.
-        loadTimetable: () => client.fetchQuery({ ...timetableQuery(user, date), staleTime: 0 }),
-      }),
+    ...recordsQuery,
     enabled: Boolean(valid && (!isAssessment || slot?.activityId)),
     refetchOnWindowFocus: false,
   });

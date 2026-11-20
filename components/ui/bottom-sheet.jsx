@@ -4,6 +4,7 @@ import {
   BottomSheetModalProvider,
   BottomSheetScrollView,
   BottomSheetView,
+  useBottomSheetInternal,
 } from '@gorhom/bottom-sheet';
 import { Check, X } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
@@ -12,6 +13,7 @@ import { Pressable, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/ui/icon';
+import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { THEME } from '@/lib/theme';
@@ -155,3 +157,28 @@ function BottomSheetOption({
 }
 
 export { BottomSheet, BottomSheetModalProvider, BottomSheetOption, BottomSheetScrollView };
+
+// Ô nhập dùng trong sheet: Gorhom chỉ nâng sheet lên trên bàn phím khi ô đang focus được ghi làm
+// "target" (như BottomSheetTextInput); Input thường không báo nên bàn phím che mất sheet.
+function BottomSheetInput({ onFocus, onBlur, ...props }) {
+  const { animatedKeyboardState } = useBottomSheetInternal();
+  return (
+    <Input
+      {...props}
+      onFocus={(event) => {
+        const target = event.nativeEvent.target;
+        animatedKeyboardState.set((state) => ({ ...state, target }));
+        onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        const target = event.nativeEvent.target;
+        animatedKeyboardState.set((state) =>
+          state.target === target ? { ...state, target: undefined } : state
+        );
+        onBlur?.(event);
+      }}
+    />
+  );
+}
+
+export { BottomSheetInput };

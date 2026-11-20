@@ -126,7 +126,7 @@ function DailyRecordsForm({ kind, date, slotId }) {
             {t('Cần tải lại dữ liệu mới nhất trước khi làm tiếp.')}
           </AlertDescription>
           <Button size="sm" variant="outline" className="ml-6 mt-1 self-start" onPress={reload}>
-            <Text>{t('Tải lại dữ liệu')}</Text>
+            <Text>{t('Tải lại')}</Text>
           </Button>
         </Alert>
       ) : null}
@@ -155,6 +155,9 @@ function DailyRecordsForm({ kind, date, slotId }) {
         contentContainerClassName="mx-auto w-full max-w-xl p-4 pb-8"
         keyboardShouldPersistTaps="handled"
         // Cuộn ô đang gõ lên trên bàn phím và trên thanh Lưu (~76 dp).
+        // FlatList trên Android mặc định ẩn hàng ngoài màn hình; KeyboardAwareScrollView cần đo hàng
+        // đang nhập để cuộn lên trên bàn phím, nếu không app treo (ANR) khi focus ô ở cuối danh sách.
+        removeClippedSubviews={false}
         renderScrollComponent={(props) => (
           <KeyboardAwareScrollView {...props} bottomOffset={showSaveBar ? 88 : 16} />
         )}
@@ -181,7 +184,10 @@ function DailyRecordsForm({ kind, date, slotId }) {
             <PickupRecordCard
               row={item}
               first={index === 0}
-              editable={canChange}
+              // Ngày còn ghi được thì luôn hiện ô "Đón"; lúc đang lưu/tải lại chỉ tạm khóa bấm
+              // để ô không nhấp nháy sang "Chưa đón".
+              editable={form.canEdit && !form.error}
+              busy={!canChange}
               locked={!form.canEdit}
               onOpenDetail={() => setDetailId(item.id)}
             />
@@ -201,18 +207,16 @@ function DailyRecordsForm({ kind, date, slotId }) {
       {showSaveBar ? (
         <KeyboardStickyView offset={{ opened: insets.bottom }}>
           <SafeAreaView edges={['bottom']} className="border-t border-border bg-background">
-            <View className="mx-auto w-full max-w-xl px-4 py-3">
+            <View className="mx-auto w-full max-w-xl gap-1.5 px-4 py-3">
+              {/* Số thay đổi nằm trên nút; nhãn nút giữ ngắn (Lưu / Cập nhật). */}
+              {form.changedCount && !form.isSaving ? (
+                <Text className="text-center text-2xs text-muted-foreground">
+                  {t('{count} thay đổi', { count: form.changedCount })}
+                </Text>
+              ) : null}
               <Button disabled={!canChange || !form.hasChangesToSave} onPress={() => form.save()}>
                 <Text>
-                  {form.isSaving
-                    ? t('Đang lưu và kiểm tra…')
-                    : form.hasRecorded
-                      ? form.changedCount
-                        ? t('Cập nhật ghi nhận · {count} thay đổi', { count: form.changedCount })
-                        : t('Cập nhật ghi nhận')
-                      : form.changedCount
-                        ? t('Lưu ghi nhận · {count} thay đổi', { count: form.changedCount })
-                        : t('Lưu ghi nhận')}
+                  {form.isSaving ? t('Đang lưu…') : form.hasRecorded ? t('Cập nhật') : t('Lưu')}
                 </Text>
               </Button>
             </View>

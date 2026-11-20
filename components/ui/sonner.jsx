@@ -1,4 +1,5 @@
 import { CircleAlert, CircleCheck, Info, TriangleAlert } from 'lucide-react-native';
+import { useSegments } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toaster as SonnerToaster } from 'sonner-native';
 
@@ -13,17 +14,21 @@ import { THEME } from '@/lib/theme';
 const COLORS = THEME.light;
 const ON_COLOR = '#ffffff';
 const ICON_SIZE = 18;
-// Snackbar nằm ngay trên thanh tab: cao thanh tab (56) + vùng an toàn đáy máy + khoảng hở 8.
+// Màn có thanh tab: snackbar nằm ngay trên thanh tab (cao 56 + vùng an toàn + hở 8). Màn không có
+// thanh tab: đặt thấp sát đáy (vùng an toàn + 12).
 const TAB_BAR_HEIGHT = 56;
 const GAP = 8;
+const BOTTOM_GAP = 12;
 
 function Toaster(props) {
   const insets = useSafeAreaInsets();
+  const segments = useSegments();
+  const hasTabBar = segments.includes('(tabs)');
   return (
     <SonnerToaster
       theme="dark"
       position="bottom-center"
-      offset={TAB_BAR_HEIGHT + insets.bottom + GAP}
+      offset={hasTabBar ? TAB_BAR_HEIGHT + insets.bottom + GAP : insets.bottom + BOTTOM_GAP}
       duration={3200}
       visibleToasts={3}
       swipeToDismissDirection="left"

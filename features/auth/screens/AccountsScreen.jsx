@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { LogOut, Plus, Settings } from 'lucide-react-native';
+import { LogOut, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
@@ -129,12 +129,6 @@ export default function AccountsScreen() {
       <Text className="text-2xs leading-4 text-muted-foreground">
         {t('Đăng xuất chỉ áp dụng cho tài khoản đang chọn trên máy này.')}
       </Text>
-      {signedIn ? (
-        <Button variant="ghost" onPress={() => router.push('/settings')}>
-          <Icon as={Settings} size={16} />
-          <Text>{t('Cài đặt')}</Text>
-        </Button>
-      ) : null}
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </ScrollView>
   );

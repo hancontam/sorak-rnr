@@ -45,7 +45,7 @@ export function LoginOtpForm({ emailMasked, error, pending, onSubmit, onBack, on
           onPress={submit}
         />
         <Button variant="ghost" disabled={pending} onPress={onBack}>
-          <Text>{t('Quay lại đăng nhập')}</Text>
+          <Text>{t('Quay lại')}</Text>
         </Button>
       </CardContent>
     </Card>

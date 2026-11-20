@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
+import { studentAvatarUrl } from '@/lib/student-avatar';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
@@ -33,6 +34,49 @@ function isRecorded(kind, initial, student) {
   if (kind === 'attendance') return student.isAttendanceRecorded === true;
   if (kind === 'health') return Boolean(initial.height && initial.weight);
   return Boolean(initial.status);
+}
+
+// Khóa + hàm tải dùng chung cho màn ghi nhận và phần tải sẵn từ Thời khóa biểu / màn hoạt động.
+// Lịch dùng lại bản vừa tải (còn mới trong 60 giây) thay vì tải lại tuần 37 KB mỗi lần mở màn;
+// sau khi lưu, refreshRelatedRecords đánh dấu lịch cũ nên lần đọc lại vẫn lấy mới.
+export function dailyRecordsQuery({ client, user, kind, date, slot }) {
+  const classId = assignedClass(user).classId;
+  return {
+    queryKey: ['daily-records', user?.id, classId, kind, date, slot?.id, slot?.activityId],
+    queryFn: ({ signal }) =>
+      getDailyRecords({
+        kind,
+        classId,
+        date,
+        slot,
+        signal,
+        loadTimetable: () =>
+          client.fetchQuery({ ...timetableQuery(user, date), staleTime: 60_000 }),
+      }),
+  };
+}
+
+// Tải sẵn dữ liệu ghi nhận (điểm danh, sức khỏe, đón trẻ hoặc đánh giá một hoạt động) để mở màn là
+// thấy ngay; màn vẫn tải lại ở nền khi mở. Chỉ giáo viên, chỉ ngày đã có lịch.
+export function usePrefetchDailyRecords({ date, kinds, slot, enabled = true }) {
+  const client = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const ready =
+    enabled &&
+    user?.role === AUTH_ROLES.teacher &&
+    assignedClass(user).classId &&
+    calendarDate(date);
+  const kindsKey = kinds.join(',');
+  useEffect(() => {
+    if (!ready) return;
+    for (const kind of kindsKey.split(',')) {
+      if (kind === 'assessment' && !slot?.activityId) continue;
+      client.prefetchQuery({
+        ...dailyRecordsQuery({ client, user, kind, date, slot }),
+        staleTime: 30_000,
+      });
+    }
+  }, [client, user, date, kindsKey, slot?.id, slot?.activityId, ready]);
 }
 
 export function useDailyRecords({ kind, date, slotId }) {
@@ -76,25 +120,9 @@ export function useDailyRecords({ kind, date, slotId }) {
     valid && timetable.query.data ? dayCalendar(timetable.query.data, date, false).lock : null;
   const canEdit = Boolean(valid && date === today && timetable.query.data && !lock);
   const params = { kind, classId: assignment.classId, date, slot };
-  const key = [
-    'daily-records',
-    user?.id,
-    assignment.classId,
-    kind,
-    date,
-    slot?.id,
-    slot?.activityId,
-  ];
+  const recordsQuery = dailyRecordsQuery({ client, user, kind, date, slot });
   const query = useQuery({
-    queryKey: key,
-    queryFn: ({ signal }) =>
-      getDailyRecords({
-        ...params,
-        signal,
-        // Dùng chung request/cache lịch với Thời khóa biểu; staleTime 0 để lần đọc lại sau khi lưu
-        // luôn lấy dữ liệu mới, còn lúc mở màn thì gộp với request lịch đang chạy.
-        loadTimetable: () => client.fetchQuery({ ...timetableQuery(user, date), staleTime: 0 }),
-      }),
+    ...recordsQuery,
     enabled: Boolean(valid && (!isAssessment || slot?.activityId)),
     refetchOnWindowFocus: false,
   });
@@ -110,7 +138,10 @@ export function useDailyRecords({ kind, date, slotId }) {
     const fields = Object.keys(initial);
     const changed = fields.some((field) => initial[field] !== value[field]);
     const edited = fields.some((field) => defaultDraft[field] !== value[field]);
-    const avatarUrl = student.avatarUrl || avatars.get(id) || '';
+    const avatarUrl =
+      student.avatarUrl ||
+      avatars.get(id) ||
+      studentAvatarUrl({ studentCode: student.code, fullName: student.name });
     return {
       id,
       student,
@@ -173,8 +204,17 @@ export function useDailyRecords({ kind, date, slotId }) {
   }
 
   const [isSaving, setIsSaving] = useState(false);
-  async function save(onlyId) {
+  // patch (chỉ dùng cho đón trẻ): giá trị vừa chọn trong sheet, lưu ngay trong cùng lần bấm nên
+  // không chờ bản nháp kịp render lại.
+  async function save(onlyId, patch) {
     if (!canEdit || running.current || needsReload || !query.isSuccess || !baseline) return;
+    if (patch && onlyId) update(onlyId, patch);
+    const source =
+      patch && onlyId
+        ? rows.map((row) =>
+            row.id === onlyId ? { ...row, value: { ...row.value, ...patch }, changed: true } : row
+          )
+        : rows;
     // Màn có thể mở từ trước 0:00: kiểm tra lại ngày ngay lúc bấm lưu.
     if (date !== schoolToday()) {
       setMessage({ error: true, text: 'Đã qua ngày ghi nhận. Dữ liệu ngày này chỉ còn xem.' });
@@ -185,7 +225,7 @@ export function useDailyRecords({ kind, date, slotId }) {
     // Keep absent children visible, but exclude their measurements until BE fixes this.
     const selected =
       kind === 'pickup'
-        ? rows.filter((row) => row.id === onlyId && row.changed)
+        ? source.filter((row) => row.id === onlyId && row.changed)
         : kind === 'health'
           ? rows.filter((row) => !isAbsent(row.student))
           : rows;
@@ -229,7 +269,7 @@ export function useDailyRecords({ kind, date, slotId }) {
         setNeedsReload(true);
         setMessage({
           error: true,
-          text: 'Dữ liệu đã thay đổi trên máy chủ. Bản nháp vẫn còn; tải lại để đối chiếu trước khi lưu.',
+          text: 'Dữ liệu vừa được cập nhật ở nơi khác. Thay đổi của bạn vẫn còn; tải lại để xem trước khi lưu.',
         });
         return;
       }
@@ -276,7 +316,7 @@ export function useDailyRecords({ kind, date, slotId }) {
             : { text: SAVED_MESSAGES[kind], values: { count: records.length } }
           : {
               error: true,
-              text: 'Máy chủ đã nhận yêu cầu nhưng dữ liệu đọc lại chưa khớp. Hãy tải lại để kiểm tra.',
+              text: 'Hệ thống đã nhận yêu cầu nhưng dữ liệu đọc lại chưa khớp. Hãy tải lại để kiểm tra.',
             }
       );
     } catch (error) {

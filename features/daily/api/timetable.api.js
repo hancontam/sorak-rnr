@@ -10,7 +10,7 @@ function readData(response) {
     typeof body.data !== 'object' ||
     Array.isArray(body.data)
   ) {
-    throw new Error('Máy chủ chưa trả đủ dữ liệu thời khóa biểu.');
+    throw new Error('Hệ thống chưa trả đủ dữ liệu thời khóa biểu.');
   }
   return body.data;
 }
@@ -41,7 +41,7 @@ export async function getTeacherTimetable({ classId, date, signal }) {
     throw new Error('Lịch trả về không khớp lớp được phân công.');
   }
   if (data.classInfo.selectedDate !== date) {
-    throw new Error('Máy chủ trả trạng thái cho ngày khác. Vui lòng tải lại lịch.');
+    throw new Error('Hệ thống trả trạng thái cho ngày khác. Vui lòng tải lại lịch.');
   }
   requireRecords(data.slots, 'hoạt động');
   if (data.slots.some((slot) => !slot.id || !calendarDate(slot.fullDate))) {

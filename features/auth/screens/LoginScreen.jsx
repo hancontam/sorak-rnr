@@ -2,12 +2,9 @@ import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ArrowLeft,
   ChevronDown,
-  ExternalLink,
   Eye,
   EyeOff,
   GraduationCap,
-  KeyRound,
-  School,
   UsersRound,
 } from 'lucide-react-native';
 import { useCallback, useRef, useState } from 'react';
@@ -16,11 +13,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { SorakLogo } from '@/components/shared/SorakLogo';
-
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
@@ -32,7 +25,6 @@ import { AuthSubmitButton } from '../components/AuthSubmitButton';
 import { LoginError } from '../components/LoginError';
 import { LoginOtpForm } from '../components/LoginOtpForm';
 import { RoleSheet } from '../components/RoleSheet';
-import { TurnstileChallenge } from '../components/TurnstileChallenge';
 import { useLogin } from '../hooks/useLogin';
 import { useAuthStore } from '../store/auth.store';
 import { AUTH_ROLES, isMobileRole, roleLabel } from '../utils/auth-roles';
@@ -85,11 +77,9 @@ function LoginFlow({ role, adding, accountId }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
-  const [showChallenge, setShowChallenge] = useState(false);
   const [roleSheetOpen, setRoleSheetOpen] = useState(false);
   const [recovering, setRecovering] = useState(false);
   const closeRecovery = useCallback(() => setRecovering(false), []);
-  const challengeOpen = useRef(false);
   const passwordField = useRef(null);
   const {
     submitLogin,
@@ -100,7 +90,6 @@ function LoginFlow({ role, adding, accountId }) {
     error,
     needsOtp,
     emailMasked,
-    challengeUrl,
   } = useLogin(role, {
     adding,
     accountId,
@@ -108,25 +97,15 @@ function LoginFlow({ role, adding, accountId }) {
   });
   const canSubmit = username.trim().length >= 3 && password.length >= 6;
 
-  function openChallenge() {
-    if (!canSubmit || isPending || challengeOpen.current) return;
+  // Đăng nhập trực tiếp: backend bỏ qua Turnstile cho app mobile (X-Client-Platform), không mở WebView.
+  function submitCredentials() {
+    if (!canSubmit || isPending) return;
     Keyboard.dismiss();
     clearError();
-    challengeOpen.current = true;
-    setShowChallenge(true);
-  }
-
-  function closeChallenge() {
-    challengeOpen.current = false;
-    setShowChallenge(false);
-  }
-
-  function handleVerified(captchaToken) {
-    if (!challengeOpen.current) return;
-    closeChallenge();
+    const secret = password;
     setShowPassword(false);
     setPassword('');
-    void submitLogin({ username: username.trim(), password, captchaToken, remember });
+    void submitLogin({ username: username.trim(), password: secret, remember });
   }
 
   function openRecovery() {
@@ -163,9 +142,9 @@ function LoginFlow({ role, adding, accountId }) {
         contentContainerClassName="mx-auto w-full max-w-md gap-4 px-4 pb-6 pt-3">
         <View className="flex-row items-center justify-between gap-3">
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
-            className="size-10 rounded-xl"
+            className="size-10"
             hitSlop={4}
             onPress={() =>
               router.canGoBack()
@@ -175,31 +154,54 @@ function LoginFlow({ role, adding, accountId }) {
             accessibilityLabel={t('Quay lại')}>
             <Icon as={ArrowLeft} size={18} />
           </Button>
-          {adding || accountId ? (
-            <Text className="text-sm font-semibold">
-              {t(adding ? 'Thêm tài khoản' : 'Đăng nhập lại')}
-            </Text>
-          ) : null}
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 gap-1.5 rounded-full px-3"
-            hitSlop={4}
-            disabled={adding || Boolean(accountId) || isPending || needsOtp}
-            accessibilityLabel={t('Đổi vai trò đăng nhập, đang chọn {role}', {
-              role: t(roleLabel(role)),
-            })}
-            onPress={() => {
-              Keyboard.dismiss();
-              setRoleSheetOpen(true);
-            }}>
-            <Icon as={parent ? UsersRound : GraduationCap} size={14} className="text-brand-link" />
-            <Text className="text-xs font-semibold">{t(roleLabel(role))}</Text>
-            <Text className="font-mono text-2xs text-muted-foreground">{t('Đổi vai trò')}</Text>
-            <Icon as={ChevronDown} size={14} className="text-muted-foreground" />
-          </Button>
+          {/* Thêm tài khoản / đăng nhập lại chỉ dành cho đúng vai trò hiện tại nên ẩn nút đổi vai trò. */}
+          {adding || accountId ? null : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5 px-3"
+              hitSlop={4}
+              disabled={adding || Boolean(accountId) || isPending || needsOtp}
+              accessibilityLabel={t('Đổi vai trò đăng nhập, đang chọn {role}', {
+                role: t(roleLabel(role)),
+              })}
+              onPress={() => {
+                Keyboard.dismiss();
+                setRoleSheetOpen(true);
+              }}>
+              <Icon
+                as={parent ? UsersRound : GraduationCap}
+                size={14}
+                className="text-foreground"
+              />
+              <Text className="text-xs font-semibold">{t(roleLabel(role))}</Text>
+              <Icon as={ChevronDown} size={14} className="text-muted-foreground" />
+            </Button>
+          )}
         </View>
-        <RoleBanner role={role} />
+        {/* Tiêu đề theo vai trò như Figma (Phụ huynh / Giáo viên), thay khung thương hiệu cũ. */}
+        <View className="gap-1 pt-2">
+          <Text role="heading" className="text-xl font-semibold tracking-tight">
+            {t(
+              adding
+                ? 'Thêm tài khoản'
+                : accountId
+                  ? 'Đăng nhập lại'
+                  : parent
+                    ? 'Phụ huynh'
+                    : 'Giáo viên'
+            )}
+          </Text>
+          <Text className="text-sm text-muted-foreground">
+            {t(
+              adding
+                ? 'Nhập mã học sinh và mật khẩu của bé cần thêm.'
+                : parent
+                  ? 'Nhập mã học sinh của con.'
+                  : 'Nhập tài khoản được cấp.'
+            )}
+          </Text>
+        </View>
         {needsOtp ? (
           <LoginOtpForm
             emailMasked={emailMasked}
@@ -214,87 +216,82 @@ function LoginFlow({ role, adding, accountId }) {
           />
         ) : (
           <>
-            <Card>
-              <CardHeader className="gap-1">
-                <CardTitle>{t('Đăng nhập tài khoản')}</CardTitle>
-                <CardDescription className="leading-5">
-                  {t('Nhập thông tin tài khoản để xác minh bảo mật qua WebView.')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="gap-4">
-                <View className="gap-1.5">
-                  <Label nativeID="account-label">{accountLabel}</Label>
+            <View className="gap-4">
+              <View className="gap-1.5">
+                <Label nativeID="account-label">{accountLabel}</Label>
+                <Input
+                  aria-labelledby="account-label"
+                  accessibilityLabel={accountLabel}
+                  placeholder={parent ? t('Nhập mã học sinh') : t('Nhập mã cán bộ')}
+                  value={username}
+                  onChangeText={(value) => {
+                    setUsername(value);
+                    clearError();
+                  }}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="username"
+                  editable={!isPending}
+                  maxLength={100}
+                  returnKeyType="next"
+                  submitBehavior="submit"
+                  onSubmitEditing={() => passwordField.current?.focus()}
+                />
+              </View>
+              <View className="gap-1.5">
+                <View className="flex-row flex-wrap items-center justify-between gap-x-2">
+                  <Label nativeID="password-label">{t('Mật khẩu')}</Label>
+                  {!parent ? (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto px-0 py-0"
+                      hitSlop={8}
+                      disabled={isPending}
+                      onPress={openRecovery}>
+                      <Text className="text-xs font-medium">{t('Quên mật khẩu?')}</Text>
+                    </Button>
+                  ) : null}
+                </View>
+                <View className="justify-center">
                   <Input
-                    aria-labelledby="account-label"
-                    accessibilityLabel={accountLabel}
-                    placeholder={parent ? t('Nhập mã học sinh') : t('Nhập mã cán bộ')}
-                    value={username}
+                    ref={passwordField}
+                    className="pr-11"
+                    aria-labelledby="password-label"
+                    accessibilityLabel={t('Mật khẩu')}
+                    placeholder={t('Nhập mật khẩu')}
+                    value={password}
                     onChangeText={(value) => {
-                      setUsername(value);
+                      setPassword(value);
                       clearError();
                     }}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    autoComplete="username"
+                    autoComplete="current-password"
+                    secureTextEntry={!showPassword}
                     editable={!isPending}
                     maxLength={100}
-                    returnKeyType="next"
-                    submitBehavior="submit"
-                    onSubmitEditing={() => passwordField.current?.focus()}
+                    returnKeyType="go"
+                    onSubmitEditing={submitCredentials}
                   />
-                </View>
-                <View className="gap-1.5">
-                  <View className="flex-row flex-wrap items-center justify-between gap-x-2">
-                    <Label nativeID="password-label">{t('Mật khẩu')}</Label>
-                    {!parent ? (
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="h-auto px-0 py-0"
-                        hitSlop={8}
-                        disabled={isPending}
-                        onPress={openRecovery}>
-                        <Text className="text-xs font-medium">{t('Quên mật khẩu?')}</Text>
-                      </Button>
-                    ) : null}
-                  </View>
-                  <View className="justify-center">
-                    <Input
-                      ref={passwordField}
-                      className="pr-11"
-                      aria-labelledby="password-label"
-                      accessibilityLabel={t('Mật khẩu')}
-                      placeholder={t('Nhập mật khẩu')}
-                      value={password}
-                      onChangeText={(value) => {
-                        setPassword(value);
-                        clearError();
-                      }}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      autoComplete="current-password"
-                      secureTextEntry={!showPassword}
-                      editable={!isPending}
-                      maxLength={100}
-                      returnKeyType="go"
-                      onSubmitEditing={openChallenge}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 size-8"
+                    hitSlop={6}
+                    onPress={() => setShowPassword((value) => !value)}
+                    accessibilityLabel={showPassword ? t('Ẩn mật khẩu') : t('Hiện mật khẩu')}
+                    disabled={isPending}>
+                    <Icon
+                      as={showPassword ? EyeOff : Eye}
+                      size={16}
+                      className="text-muted-foreground"
                     />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-1 size-8"
-                      hitSlop={6}
-                      onPress={() => setShowPassword((value) => !value)}
-                      accessibilityLabel={showPassword ? t('Ẩn mật khẩu') : t('Hiện mật khẩu')}
-                      disabled={isPending}>
-                      <Icon
-                        as={showPassword ? EyeOff : Eye}
-                        size={16}
-                        className="text-muted-foreground"
-                      />
-                    </Button>
-                  </View>
+                  </Button>
                 </View>
+              </View>
+              {/* Thêm tài khoản / đăng nhập lại luôn ghi nhớ phiên nên không hiện ô bị khóa. */}
+              {adding || accountId ? null : (
                 <View className="flex-row items-start gap-2.5 pt-0.5">
                   <Checkbox
                     className="mt-0.5"
@@ -302,7 +299,7 @@ function LoginFlow({ role, adding, accountId }) {
                     onCheckedChange={setRemember}
                     disabled={adding || Boolean(accountId) || isPending}
                     hitSlop={8}
-                    accessibilityLabel={t('Ghi nhớ phiên đăng nhập')}
+                    accessibilityLabel={t('Duy trì đăng nhập')}
                     aria-labelledby="remember-label"
                   />
                   <View className="flex-1 gap-0.5">
@@ -310,90 +307,40 @@ function LoginFlow({ role, adding, accountId }) {
                       nativeID="remember-label"
                       disabled={adding || Boolean(accountId) || isPending}
                       onPress={() => !adding && !accountId && setRemember((value) => !value)}>
-                      {t('Ghi nhớ phiên đăng nhập')}
+                      {t('Duy trì đăng nhập')}
                     </Label>
-                    <Text className="text-2xs leading-4 text-muted-foreground">
-                      {t(
-                        adding
-                          ? 'Các tài khoản được ghi nhớ bảo mật trên thiết bị này.'
-                          : 'Giữ phiên trên thiết bị này khi mở lại ứng dụng.'
-                      )}
-                    </Text>
                   </View>
                 </View>
-                <LoginError message={error} />
-                <AuthSubmitButton
-                  label={t('Đăng nhập (WebView)')}
-                  icon={ExternalLink}
-                  pending={isPending}
-                  disabled={!canSubmit}
-                  onPress={openChallenge}
-                />
-              </CardContent>
-            </Card>
+              )}
+              <LoginError message={error} />
+              <AuthSubmitButton
+                label={t('Đăng nhập')}
+                pending={isPending}
+                disabled={!canSubmit}
+                onPress={submitCredentials}
+              />
+            </View>
+            {/* Giáo viên tìm lại mật khẩu qua link "Quên mật khẩu?" ở ô mật khẩu; phụ huynh liên hệ GVCN. */}
             {parent ? (
-              <Alert icon={School}>
-                <AlertTitle>{t('Quên mật khẩu?')}</AlertTitle>
-                <AlertDescription className="text-xs leading-5">
-                  {t('Phụ huynh vui lòng liên hệ giáo viên chủ nhiệm để được hỗ trợ.')}
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <Alert icon={KeyRound}>
-                <AlertTitle>{t('Giáo viên tìm lại mật khẩu')}</AlertTitle>
-                <AlertDescription className="text-xs leading-5">
-                  {t('Nhận mã OTP qua email đã liên kết với tài khoản cán bộ.')}
-                </AlertDescription>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="ml-6 h-auto self-start px-0 py-1"
-                  disabled={isPending}
-                  onPress={openRecovery}>
-                  <Text className="text-xs font-semibold text-brand-link">
-                    {t('Tìm lại mật khẩu ngay')}
-                  </Text>
-                </Button>
-              </Alert>
-            )}
+              <Text className="text-center text-xs leading-5 text-muted-foreground">
+                {t('Quên mật khẩu? Phụ huynh vui lòng liên hệ giáo viên chủ nhiệm để được hỗ trợ.')}
+              </Text>
+            ) : null}
           </>
         )}
       </KeyboardAwareScrollView>
       <RoleSheet
         visible={roleSheetOpen}
-        selectedRole={role}
         onClose={() => setRoleSheetOpen(false)}
+        onOpenDocument={(doc) => {
+          setRoleSheetOpen(false);
+          router.push({ pathname: '/legal/[doc]', params: { doc } });
+        }}
         onSelect={(nextRole) => {
           setRoleSheetOpen(false);
           if (nextRole !== role) router.setParams({ role: nextRole });
         }}
       />
-      {showChallenge ? (
-        <TurnstileChallenge
-          url={challengeUrl}
-          role={role}
-          account={username.trim()}
-          onVerified={handleVerified}
-          onClose={closeChallenge}
-        />
-      ) : null}
     </SafeAreaView>
-  );
-}
-
-function RoleBanner({ role }) {
-  const t = useTranslation();
-  return (
-    <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-muted/50 px-4 py-3">
-      <View className="size-10 items-center justify-center rounded-xl border border-border bg-background">
-        <SorakLogo size={26} />
-      </View>
-      <View className="min-w-0 flex-1 gap-0.5">
-        <Text className="text-sm font-semibold">{t('Sorak × Mầm Non Hòn Tre')}</Text>
-        <Text className="text-2xs text-muted-foreground">
-          {t('Cổng đăng nhập dành cho {role}', { role: t(roleLabel(role)) })}
-        </Text>
-      </View>
-    </View>
   );
 }

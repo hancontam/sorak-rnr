@@ -22,8 +22,8 @@ export function useUnsavedChanges(dirty, saving) {
     setRequest({
       title: t('Thay đổi chưa lưu'),
       description: t('Bạn muốn bỏ thay đổi và quay lại?'),
-      cancelLabel: t('Ở lại'),
-      confirmLabel: t('Bỏ thay đổi'),
+      cancelLabel: t('Hủy'),
+      confirmLabel: t('Bỏ'),
       destructive: true,
       onConfirm: onDiscard,
     });

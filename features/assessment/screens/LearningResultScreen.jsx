@@ -1,12 +1,14 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Search } from 'lucide-react-native';
-import { useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { FlatList, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { ActionNotice } from '@/components/shared/ActionNotice';
 import { ChipTabs } from '@/components/shared/ChipTabs';
+import { FilterMenu } from '@/components/shared/FilterMenu';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useActionToast } from '@/components/shared/useActionToast';
 import { useUnsavedChanges } from '@/components/shared/useUnsavedChanges';
@@ -22,6 +24,8 @@ import { cn } from '@/lib/utils';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { MonthlyResultCard, SemesterResultCard } from '../components/ResultCards';
+import { MonthlySummaryTable, MonthlyWeekTable, SemesterTable } from '../components/ResultTables';
+import { matchesStatus, statusFilters } from '../utils/result-filters';
 import { SchoolMonthPicker } from '../components/SchoolMonthPicker';
 import { TeacherWebsiteNotice } from '../components/TeacherWebsiteNotice';
 import { useLearningResults } from '../hooks/useLearningResults';
@@ -48,6 +52,7 @@ export default function LearningResultScreen() {
   const [semester, setSemester] = useState(SEMESTERS[0][0]);
   const [week, setWeek] = useState(0);
   const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('all');
   const [feedback, setFeedback] = useState(null);
   const monthly = kind === 'monthly';
   const result = useLearningResults({ kind, period, semester });
@@ -60,6 +65,15 @@ export default function LearningResultScreen() {
   const schoolYear = data?.classInfo?.schoolYear || data?.classInfo?.academicYear;
   const selectedMonth = period || shownPeriod;
   const months = monthly ? schoolMonths(schoolYear, selectedMonth, schoolToday()) : [];
+  // Giáo viên: máy chủ trả tháng đầu năm học, nên mở sẵn tháng đã kết thúc gần nhất. Phụ huynh giữ
+  // tháng máy chủ chọn (tháng đã công bố gần nhất); tháng sau có thể chưa công bố.
+  const latestEnded = months.filter((month) => month.ended).at(-1);
+  const shownKey = shownPeriod?.month ? monthKey(shownPeriod) : '';
+  useEffect(() => {
+    if (parent || !monthly || period || !latestEnded || !shownKey || shownKey === latestEnded.key)
+      return;
+    setPeriod({ month: latestEnded.month, year: latestEnded.year });
+  }, [parent, monthly, period, latestEnded, shownKey]);
   const monthNotEnded =
     selectedMonth && months.some((month) => month.key === monthKey(selectedMonth) && !month.ended);
   const semesterDates = !monthly && !parent ? data?.classInfo?.semesterDates : null;
@@ -84,8 +98,11 @@ export default function LearningResultScreen() {
   const students =
     parent || semesterNotStarted || monthNotEnded
       ? []
-      : (data?.students || []).filter((student) =>
-          `${student.name || ''} ${student.code || ''}`.toLocaleLowerCase('vi').includes(queryText)
+      : (data?.students || []).filter(
+          (student) =>
+            `${student.name || ''} ${student.code || ''}`
+              .toLocaleLowerCase('vi')
+              .includes(queryText) && matchesStatus(monthly, status, student)
         );
   const semesterResult =
     !monthly && parent && data?.semesterAssessments?.find((item) => item.semester === semester);
@@ -180,17 +197,26 @@ export default function LearningResultScreen() {
         </Text>
       ) : null}
       {!parent && data && !error ? (
-        <View className="justify-center">
-          <Input
-            value={search}
-            onChangeText={setSearch}
-            accessibilityLabel={t('Tìm học sinh')}
-            placeholder={t('Tìm theo tên hoặc mã học sinh')}
-            className="pl-9"
-          />
-          <View pointerEvents="none" className="absolute left-3">
-            <Icon as={Search} size={16} className="text-muted-foreground" />
+        <View className="flex-row items-center gap-2">
+          <View className="flex-1 justify-center">
+            <Input
+              value={search}
+              onChangeText={setSearch}
+              accessibilityLabel={t('Tìm học sinh')}
+              placeholder={t('Tìm theo tên hoặc mã học sinh')}
+              className="pl-9"
+            />
+            <View pointerEvents="none" className="absolute left-3">
+              <Icon as={Search} size={16} className="text-muted-foreground" />
+            </View>
           </View>
+          <FilterMenu
+            title={t('Trạng thái đánh giá')}
+            accessibilityLabel={t('Lọc theo trạng thái đánh giá')}
+            options={statusFilters(monthly).map(([value, label]) => ({ value, label: t(label) }))}
+            value={status}
+            onChange={setStatus}
+          />
         </View>
       ) : null}
       {result.message?.error ? (
@@ -212,16 +238,18 @@ export default function LearningResultScreen() {
         </View>
       );
     if (query.isPending)
-      return (
-        <ActivityIndicator className="py-10" accessibilityLabel={t('Đang tải kết quả học tập')} />
-      );
+      return <LoadingSkeleton variant="cards" rows={3} label={t('Đang tải kết quả học tập')} />;
     if (monthNotEnded)
       return <Empty text={t('Kết quả tháng sẽ hiển thị sau khi tháng kết thúc.')} />;
     if (semesterNotStarted) return <Empty text={t('Học kỳ này chưa bắt đầu.')} />;
     if (!parent)
       return (
         <Empty
-          text={t(queryText ? 'Không tìm thấy học sinh phù hợp.' : 'Chưa có kết quả cho lớp.')}
+          text={t(
+            queryText || status !== 'all'
+              ? 'Không tìm thấy học sinh phù hợp.'
+              : 'Chưa có kết quả cho lớp.'
+          )}
         />
       );
     if (!monthly)
@@ -229,7 +257,11 @@ export default function LearningResultScreen() {
         <SemesterResultCard
           title={data.student.fullName}
           code={data.student.studentCode}
-          avatarUrl={result.avatarOf(data.student.id)}
+          avatarUrl={result.avatarOf(
+            data.student.id,
+            data.student.studentCode,
+            data.student.fullName
+          )}
           record={semesterResult}
           parent
         />
@@ -243,14 +275,24 @@ export default function LearningResultScreen() {
           <MonthlyResultCard
             title={data.student.fullName}
             code={data.student.studentCode}
-            avatarUrl={result.avatarOf(data.student.id)}
+            avatarUrl={result.avatarOf(
+              data.student.id,
+              data.student.studentCode,
+              data.student.fullName
+            )}
             record={{ ...data.record, weeklyStats: data.weeklyStats }}
             week={shownWeek}
             maxRoses={data.record?.maxRoses}
             parent
           />
         ) : (
-          <Empty text={t('Chưa có phiếu đánh giá tháng này.')} />
+          <Empty
+            text={t(
+              data.period?.isPublished === false
+                ? 'Nhà trường chưa công bố phiếu đánh giá tháng này.'
+                : 'Chưa có phiếu đánh giá tháng này.'
+            )}
+          />
         )}
         {data.record?.id && (shownWeek === 0 || feedback) ? (
           <Card className="gap-3 px-4 py-3.5">
@@ -319,31 +361,47 @@ export default function LearningResultScreen() {
       <Stack.Screen options={{ title }} />
       <FlatList
         className="flex-1"
-        contentContainerClassName="mx-auto w-full max-w-xl gap-3 p-4 pb-8"
-        data={error ? [] : students}
+        contentContainerClassName="mx-auto w-full max-w-xl gap-2 p-4 pb-8"
+        // Giáo viên xem cả lớp dạng bảng (một mục chứa cả bảng); phụ huynh vẫn là thẻ của một bé.
+        data={error ? [] : parent ? students : students.length ? [{ id: 'table' }] : []}
         keyExtractor={(student) => String(student.id)}
         keyboardShouldPersistTaps="handled"
+        // FlatList trên Android mặc định ẩn hàng ngoài màn hình; KeyboardAwareScrollView cần đo hàng
+        // đang nhập để cuộn lên trên bàn phím, nếu không app treo (ANR) khi focus ô ở cuối danh sách.
+        removeClippedSubviews={false}
         renderScrollComponent={(props) => <KeyboardAwareScrollView {...props} bottomOffset={16} />}
         ListHeaderComponent={header}
         ListEmptyComponent={renderEmpty()}
         refreshing={pull.refreshing}
         onRefresh={pull.onRefresh}
         renderItem={({ item }) =>
-          monthly ? (
+          !parent ? (
+            monthly ? (
+              shownWeek ? (
+                <MonthlyWeekTable rows={students} week={shownWeek} avatarOf={result.avatarOf} />
+              ) : (
+                <MonthlySummaryTable rows={students} maxRoses={weeks} avatarOf={result.avatarOf} />
+              )
+            ) : (
+              <SemesterTable rows={students} avatarOf={result.avatarOf} />
+            )
+          ) : monthly ? (
             <MonthlyResultCard
               title={item.name}
               code={item.code}
-              avatarUrl={result.avatarOf(item.id)}
+              avatarUrl={result.avatarOf(item.id, item.code, item.name)}
               record={item}
               week={shownWeek}
               maxRoses={weeks}
+              compact
             />
           ) : (
             <SemesterResultCard
               title={item.name}
               code={item.code}
-              avatarUrl={result.avatarOf(item.id)}
+              avatarUrl={result.avatarOf(item.id, item.code, item.name)}
               record={item}
+              compact
             />
           )
         }

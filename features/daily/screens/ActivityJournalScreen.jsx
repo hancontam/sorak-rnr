@@ -1,6 +1,7 @@
 import { CircleCheck, Sun } from 'lucide-react-native';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -62,7 +63,7 @@ export default function ActivityJournalScreen() {
       }
       ListEmptyComponent={
         studentId && query.isPending ? (
-          <ActivityIndicator className="py-10" accessibilityLabel={t('Đang tải nhật ký')} />
+          <LoadingSkeleton variant="cards" rows={4} label={t('Đang tải nhật ký')} />
         ) : (
           <View className="items-center gap-3 rounded-2xl border border-dashed border-border px-5 py-8">
             <Text className="text-center text-sm text-muted-foreground">

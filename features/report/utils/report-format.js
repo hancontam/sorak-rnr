@@ -100,10 +100,10 @@ export const authorizationStatus = (value) =>
 export function reportError(error) {
   if (error?.response?.status === 403) return 'Bạn chưa được cấp quyền xem dữ liệu này.';
   if (error?.response?.status === 404) return 'Chưa tìm thấy hồ sơ hoặc lớp học này.';
-  if (error?.response?.status === 401) return 'Phiên đăng nhập không còn hợp lệ.';
+  if (error?.response?.status === 401) return 'Đăng nhập đã hết hạn.';
   if (error?.isAxiosError)
     return error.response
       ? 'Chưa tải được dữ liệu từ nhà trường. Hãy thử lại.'
-      : 'Chưa kết nối được máy chủ. Kiểm tra mạng rồi thử lại.';
+      : 'Chưa kết nối được. Kiểm tra mạng rồi thử lại.';
   return error?.message || 'Không thể tải báo cáo. Hãy thử lại.';
 }

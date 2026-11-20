@@ -17,14 +17,14 @@ export function SessionGate({ status, error, onRetry, onSignOut, children }) {
         {status === 'restore-error' ? (
           <>
             <Alert icon={CircleAlert} variant="destructive">
-              <AlertTitle className="text-sm leading-5">{t('Chưa thể mở phiên')}</AlertTitle>
+              <AlertTitle className="text-sm leading-5">{t('Chưa thể đăng nhập')}</AlertTitle>
               <AlertDescription className="text-xs leading-4">{t(error)}</AlertDescription>
             </Alert>
             <Button size="sm" onPress={onRetry}>
               <Text className="text-xs">{t('Thử lại')}</Text>
             </Button>
             <Button variant="outline" size="sm" onPress={onSignOut}>
-              <Text className="text-xs">{t('Thoát phiên trên thiết bị')}</Text>
+              <Text className="text-xs">{t('Đăng xuất')}</Text>
             </Button>
           </>
         ) : (
@@ -32,7 +32,7 @@ export function SessionGate({ status, error, onRetry, onSignOut, children }) {
             <ActivityIndicator size="small" />
             <Text className="text-center text-xs text-muted-foreground">
               {status === 'restoring'
-                ? t('Đang khôi phục phiên')
+                ? t('Đang mở Sorak…')
                 : status === 'switching'
                   ? t('Đang chuyển tài khoản')
                   : t('Đang đăng xuất')}

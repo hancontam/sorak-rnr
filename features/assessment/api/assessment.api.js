@@ -3,7 +3,7 @@ import { apiClient } from '@/shared/api/client';
 function readData(response) {
   const body = response.data;
   if (body?.success !== true || !body.data || typeof body.data !== 'object') {
-    throw new Error('Máy chủ chưa trả dữ liệu kết quả học tập hợp lệ.');
+    throw new Error('Hệ thống chưa trả dữ liệu kết quả học tập hợp lệ.');
   }
   return body.data;
 }
@@ -39,7 +39,7 @@ export async function getClassResults({ classId, kind, period, semester, signal 
       : !validPeriod(classInfo) ||
         (period && (classInfo.month !== period.month || classInfo.year !== period.year))
   ) {
-    throw new Error('Máy chủ trả kết quả cho kỳ khác.');
+    throw new Error('Hệ thống trả kết quả cho kỳ khác.');
   }
   return data;
 }
@@ -56,7 +56,7 @@ export async function getChildResults({ studentId, period, signal }) {
     (period && (data.period.month !== period.month || data.period.year !== period.year)) ||
     !Array.isArray(data.semesterAssessments)
   ) {
-    throw new Error('Máy chủ trả thiếu kết quả hoặc trả sai tháng đã chọn.');
+    throw new Error('Hệ thống trả thiếu kết quả hoặc trả sai tháng đã chọn.');
   }
   return {
     student: data.student,

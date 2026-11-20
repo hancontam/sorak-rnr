@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 
+import { studentAvatarUrl } from '@/lib/student-avatar';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import { assignedClass } from '@/features/auth/utils/class-assignment';
@@ -47,7 +48,10 @@ export function useLearningResults({ kind, period, semester }) {
   const avatars = new Map(
     (roster.query.data?.students || []).map((student) => [String(student.id), student.avatarUrl])
   );
-  const avatarOf = (id) => (parent ? user?.student?.avatarUrl : avatars.get(String(id))) || '';
+  // Bé không còn trong danh sách lớp hiện tại vẫn có avatar theo cùng quy tắc của backend.
+  const avatarOf = (id, studentCode, fullName) =>
+    (parent ? user?.student?.avatarUrl : avatars.get(String(id))) ||
+    studentAvatarUrl({ studentCode, fullName });
   const [message, setMessage] = useState(null);
   const [saving, setSaving] = useState(false);
   const writing = useRef(false);
@@ -91,7 +95,7 @@ export function useLearningResults({ kind, period, semester }) {
       const result = await getChildResults({ studentId, period: selected });
       if (useAuthStore.getState().user !== user) return false;
       if (result.record?.id !== data.record.id || result.record.parentFeedback !== text) {
-        throw new Error('Chưa đối chiếu được phản hồi vừa gửi. Hãy tải lại phiếu tháng.');
+        throw new Error('Chưa kiểm tra được phản hồi vừa gửi. Hãy tải lại phiếu tháng.');
       }
       client.setQueryData(childKey(selected), result);
       if (!childPeriod) client.setQueryData(childKey(), result);
@@ -104,7 +108,7 @@ export function useLearningResults({ kind, period, semester }) {
         error: true,
         text:
           error.response?.status >= 500
-            ? 'Máy chủ chưa xác nhận lưu phản hồi. Hãy tải lại phiếu tháng.'
+            ? 'Hệ thống chưa xác nhận lưu phản hồi. Hãy tải lại phiếu tháng.'
             : error.response?.data?.message || error.message,
       });
       return false;

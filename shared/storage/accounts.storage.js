@@ -43,7 +43,7 @@ export async function readAccountTokens(id) {
     typeof pair?.refreshToken !== 'string' ||
     !pair.refreshToken
   )
-    throw new Error('Cặp token phiên không hợp lệ.');
+    throw new Error('Thông tin đăng nhập đã lưu không hợp lệ.');
   return pair;
 }
 
@@ -54,7 +54,7 @@ export function writeAccountTokens(id, pair) {
     typeof pair?.refreshToken !== 'string' ||
     !pair.refreshToken
   )
-    throw new Error('Cặp token phiên không hợp lệ.');
+    throw new Error('Thông tin đăng nhập đã lưu không hợp lệ.');
   return SecureStore.setItemAsync(
     tokenKey(id),
     JSON.stringify({ accessToken: pair.accessToken, refreshToken: pair.refreshToken })

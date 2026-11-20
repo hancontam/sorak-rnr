@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { LogOut, Plus, Settings } from 'lucide-react-native';
+import { LogOut, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
@@ -66,9 +66,6 @@ export default function AccountsScreen() {
     <ScrollView
       className="flex-1 bg-background"
       contentContainerClassName="mx-auto w-full max-w-md gap-4 p-4 pb-8">
-      <Text className="text-xs leading-5 text-muted-foreground">
-        {t('Chọn bé để xem hồ sơ, thời khóa biểu và thông báo của bé đó.')}
-      </Text>
       <ActionNotice message={error || notice ? { error: true, text: t(error || notice) } : null} />
       <Card className="gap-0 overflow-hidden py-0">
         {accounts.map((account, index) => (
@@ -130,14 +127,8 @@ export default function AccountsScreen() {
         </Pressable>
       </Card>
       <Text className="text-2xs leading-4 text-muted-foreground">
-        {t('Đăng xuất chỉ xóa phiên của tài khoản được chọn trên thiết bị này.')}
+        {t('Đăng xuất chỉ áp dụng cho tài khoản đang chọn trên máy này.')}
       </Text>
-      {signedIn ? (
-        <Button variant="ghost" onPress={() => router.push('/settings')}>
-          <Icon as={Settings} size={16} />
-          <Text>{t('Cài đặt')}</Text>
-        </Button>
-      ) : null}
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </ScrollView>
   );

@@ -29,7 +29,7 @@ const semesters = [
   ['ALL', 'Cả năm'],
 ];
 
-export function StudentReport({ query, error, semester, onSemesterChange }) {
+export function StudentReport({ query, error, semester, onSemesterChange, parentView, teacher }) {
   const t = useTranslation();
   const locale = useLocale();
   const [section, setSection] = useState('profile');
@@ -46,6 +46,7 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
         {!error ? <SemesterPicker value={semester} onChange={onSemesterChange} /> : null}
         <ReportState
           loading={!error && query.isPending}
+          skeleton="cards"
           error={error || (query.error && reportError(query.error))}
           onRetry={!error ? query.refetch : undefined}
         />
@@ -140,7 +141,7 @@ export function StudentReport({ query, error, semester, onSemesterChange }) {
         }
         renderItem={({ item }) =>
           section === 'profile' ? (
-            <StudentProfile report={report} />
+            <StudentProfile report={report} parentView={parentView} teacher={teacher} />
           ) : (
             <ReportRecord section={section} record={item} />
           )

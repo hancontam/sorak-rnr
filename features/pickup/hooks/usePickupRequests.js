@@ -158,13 +158,13 @@ export function usePickupRequests({ enabled = true, date = schoolToday(), creati
               text:
                 action === 'create'
                   ? isParent
-                    ? 'Đã gửi đơn ủy quyền, đang chờ cô duyệt.'
+                    ? 'Đã gửi đơn ủy quyền, đang chờ giáo viên duyệt.'
                     : 'Đã tạo đơn ủy quyền đã duyệt.'
                   : DONE_MESSAGES[action],
             }
           : {
               error: true,
-              text: 'Máy chủ đã nhận yêu cầu nhưng chưa đối chiếu được trạng thái. Hãy tải lại danh sách.',
+              text: 'Hệ thống đã nhận yêu cầu nhưng chưa xác nhận trạng thái. Hãy tải lại danh sách.',
             }
       );
       return confirmed;

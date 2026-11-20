@@ -96,7 +96,7 @@ export default function ChangePasswordScreen() {
       <Button
         disabled={pending || !currentPassword || !newPassword || !confirmation}
         onPress={submit}>
-        {pending ? <ActivityIndicator size="small" /> : <Text>{t('Cập nhật mật khẩu')}</Text>}
+        {pending ? <ActivityIndicator size="small" /> : <Text>{t('Cập nhật')}</Text>}
       </Button>
     </SettingsContent>
   );

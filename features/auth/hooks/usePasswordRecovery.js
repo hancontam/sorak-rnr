@@ -14,7 +14,7 @@ function recoveryError(error, action) {
   if (status === 400 && action === 'verify')
     return 'Mã OTP không chính xác. Hãy kiểm tra và thử lại.';
   if (error.isAxiosError && !error.response) {
-    return 'Không kết nối được với máy chủ. Kiểm tra mạng rồi thử lại.';
+    return 'Không kết nối được. Kiểm tra mạng rồi thử lại.';
   }
   return action === 'send'
     ? 'Chưa gửi được mã xác thực. Vui lòng thử lại.'
@@ -133,7 +133,7 @@ export function usePasswordRecovery() {
         ) {
           resetToken.current = null;
           setOtpStatus('expired');
-          setError('Phiên đặt lại đã hết hạn. Hãy yêu cầu mã OTP mới.');
+          setError('Yêu cầu đặt lại mật khẩu đã hết hạn. Hãy lấy mã OTP mới.');
           return;
         }
         if (

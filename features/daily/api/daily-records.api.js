@@ -4,7 +4,7 @@ import { getTeacherTimetable } from './timetable.api';
 
 function readData(response) {
   if (response.data?.success !== true || !response.data.data) {
-    throw new Error('Máy chủ chưa xác nhận thao tác.');
+    throw new Error('Hệ thống chưa xác nhận thao tác.');
   }
   return response.data.data;
 }
@@ -67,11 +67,19 @@ export async function getDailyRecords({
     return getDismissalStudents({ classId, date, signal });
   }
 
-  const timetable = await loadTimetable();
+  // Gọi lịch và dữ liệu ghi nhận song song (trước đây chờ lịch xong mới gọi tiếp), rồi mới đối chiếu.
+  const recordsRequest =
+    kind === 'assessment'
+      ? apiClient.get(classPath('assessment', classId, 'records'), {
+          params: { date, slotId: slot.id, activityId: slot.activityId },
+          signal,
+        })
+      : getDismissalStudents({ classId, date, signal });
+  const [timetable, recordsResult] = await Promise.all([loadTimetable(), recordsRequest]);
   if (!Array.isArray(timetable.students)) throw new Error('Lịch chưa có danh sách học sinh.');
   const students = validateStudents(timetable.students.filter((student) => !student.isTransferred));
   if (kind !== 'assessment') {
-    const attendance = await getDismissalStudents({ classId, date, signal });
+    const attendance = recordsResult;
     const byId = new Map(attendance.map((student) => [String(student.id), student]));
     return students.map((student) => {
       const recorded = byId.get(String(student.id));
@@ -96,12 +104,7 @@ export async function getDailyRecords({
   ) {
     throw new Error('Hoạt động đã thay đổi. Hãy mở lại từ thời khóa biểu.');
   }
-  const data = readData(
-    await apiClient.get(classPath('assessment', classId, 'records'), {
-      params: { date, slotId: slot.id, activityId: slot.activityId },
-      signal,
-    })
-  );
+  const data = readData(recordsResult);
   if (!Array.isArray(data.records))
     throw new Error('Danh sách kết quả đánh giá chưa đúng định dạng.');
   if (
@@ -127,7 +130,7 @@ export async function saveDailyRecords({ kind, classId, date, slot, records }) {
   const data = readData(await apiClient.post(classPath(module, classId, action), body));
   if (!Number.isInteger(data[countKey]) || data[countKey] < 0 || data[countKey] > records.length) {
     throw new Error(
-      'Máy chủ chưa xác nhận đủ số bản ghi. Hãy tải lại để đối chiếu trước khi lưu tiếp.'
+      'Hệ thống chưa xác nhận đủ các mục vừa lưu. Hãy tải lại để kiểm tra trước khi lưu tiếp.'
     );
   }
   // Counts alone cannot prove which child was saved. The hook reads each record back.

@@ -1,20 +1,23 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 
 import { usePullToRefresh } from '@/components/shared/usePullToRefresh';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { usePickupRequests } from '@/features/pickup/hooks/usePickupRequests';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { ChildDayResults } from '../components/ChildDayResults';
+import { ChildDaySummary } from '../components/ChildDaySummary';
 import { DayLockCard } from '../components/DayLockCard';
-import { DayOverviewCard } from '../components/DayOverviewCard';
+import { DayStatusBar } from '../components/DayStatusBar';
 import { EmptyFrames, ScheduleFrame } from '../components/ScheduleFrame';
 import { ScheduleCalendar } from '../components/ScheduleCalendar';
 import { ScheduleState } from '../components/ScheduleState';
 import { useSchoolToday } from '../hooks/useSchoolToday';
+import { usePrefetchDailyRecords } from '../hooks/useDailyRecords';
 import { useTimetable } from '../hooks/useTimetable';
 import { dayTitle, schoolClock, schoolToday, shortDate, weekDates } from '../utils/schedule-date';
 import {
@@ -47,7 +50,7 @@ export default function TimetableScreen() {
   const clock = useSchoolClock();
   const [date, setDate] = useState(schoolToday);
   const { query, error, isParent, noClass } = useTimetable(date, { prefetchWeek: true });
-  const pickup = usePickupRequests({ date });
+  const pickup = usePickupRequests({ date, enabled: isParent });
   const pendingCount = pickup.query.data?.stats?.pendingCount;
   const data = query.data;
   const pull = usePullToRefresh(query.refetch);
@@ -56,13 +59,20 @@ export default function TimetableScreen() {
   const frames = ready ? dayFrames(data, date, isParent) : [];
   const items = timelineItems(frames);
   const activityCount = frames.reduce((sum, frame) => sum + frame.activities.length, 0);
-  const now = date === today ? clock : '';
   // Đang hiện lịch của ngày trước trong cùng tuần trong lúc tải ngày mới: slot đúng nhưng số liệu
   // trong ngày (điểm danh, sức khỏe, đón trẻ) chưa phải của ngày này nên ẩn card và làm mờ lịch.
   const placeholder = query.isPlaceholderData;
   // Ngày nghỉ/cuối tuần chỉ phụ thuộc lịch năm học và slot của tuần nên vẫn đúng với lịch tạm.
   const calendar = ready ? dayCalendar(data, date, isParent) : null;
   const lock = calendar?.lock;
+  // Tải sẵn điểm danh/sức khỏe/đón trẻ của ngày đang xem để bấm thanh trạng thái là mở ngay.
+  usePrefetchDailyRecords({
+    date,
+    kinds: ['attendance', 'health', 'pickup'],
+    enabled: ready && !isParent && !lock,
+  });
+  // Ngày nghỉ/cuối tuần không có khung nào "Đang diễn ra".
+  const now = date === today && !lock ? clock : '';
   const dayLocks = ready
     ? Object.fromEntries(
         weekDates(date)
@@ -97,49 +107,6 @@ export default function TimetableScreen() {
         ListHeaderComponent={
           <View className="gap-4 pb-1">
             <ScheduleCalendar date={date} today={today} onChange={setDate} dayLocks={dayLocks} />
-            {lock ? (
-              <DayLockCard
-                lock={lock}
-                isParent={isParent}
-                onOpenMakeup={lock.makeupDate ? () => setDate(lock.makeupDate) : undefined}
-              />
-            ) : null}
-            {ready && placeholder && !lock ? (
-              <View className="flex-row items-center gap-2 px-1 py-2">
-                <ActivityIndicator size="small" />
-                <Text className="text-xs text-muted-foreground">
-                  {t('Đang tải số liệu trong ngày…')}
-                </Text>
-              </View>
-            ) : null}
-            {ready && !placeholder && !lock ? (
-              <DayOverviewCard
-                overview={dayOverview(data, date, isParent)}
-                isParent={isParent}
-                isToday={date === today}
-                pendingCount={pendingCount}
-                onOpenRecords={
-                  isParent
-                    ? undefined
-                    : (kind) =>
-                        router.push({
-                          pathname: '/(teacher)/daily-records',
-                          params: { kind, date },
-                        })
-                }
-                onOpenPickupRequests={
-                  pickup.allowed
-                    ? () =>
-                        router.push({
-                          pathname: isParent
-                            ? '/(parent)/pickup-requests'
-                            : '/(teacher)/pickup-requests',
-                          params: { date },
-                        })
-                    : undefined
-                }
-              />
-            ) : null}
             <View className="flex-row flex-wrap items-center gap-2 pt-1">
               <Text className="text-sm font-semibold">{dayTitle(date, locale)}</Text>
               {date === today ? (
@@ -167,6 +134,12 @@ export default function TimetableScreen() {
                 </Text>
               ) : null}
             </View>
+            {lock ? (
+              <DayLockCard
+                lock={lock}
+                onOpenMakeup={lock.makeupDate ? () => setDate(lock.makeupDate) : undefined}
+              />
+            ) : null}
           </View>
         }
         ListEmptyComponent={
@@ -174,10 +147,10 @@ export default function TimetableScreen() {
           lock?.kind === 'weekend' ? null : (
             <ScheduleState
               loading={query.isPending}
+              skeleton="timetable"
               error={query.isError ? timetableError(query.error) : ''}
               onRetry={query.isError ? query.refetch : undefined}
               title={noParentClass ? 'Chưa có lớp học của con' : 'Chưa có lịch cho ngày này'}
-              description="Bạn có thể chọn ngày khác hoặc kéo xuống để tải lại."
             />
           )
         }
@@ -214,9 +187,48 @@ export default function TimetableScreen() {
           </View>
         )}
         ListFooterComponent={
-          ready && isParent ? <ChildDayResults results={childDayResults(data, date)} /> : null
+          ready && isParent ? (
+            // Phụ huynh: lịch đi ngay sau dải ngày; ngày của bé và kết quả hoạt động nằm dưới lịch.
+            <View className="gap-3 pt-3">
+              {!placeholder && !lock ? (
+                <View className="gap-2.5">
+                  <Text className="text-sm font-semibold">{t('Ngày của bé')}</Text>
+                  <ChildDaySummary
+                    overview={dayOverview(data, date, true)}
+                    pendingCount={pendingCount}
+                    onOpenPickupRequests={
+                      pickup.allowed
+                        ? () =>
+                            router.push({ pathname: '/(parent)/pickup-requests', params: { date } })
+                        : undefined
+                    }
+                  />
+                </View>
+              ) : null}
+              {lock ? null : <ChildDayResults results={childDayResults(data, date)} />}
+            </View>
+          ) : null
         }
       />
+      {ready && !lock && !isParent ? (
+        placeholder ? (
+          <View
+            accessible
+            accessibilityLabel={t('Đang tải số liệu trong ngày…')}
+            className="flex-row gap-3 border-t border-border bg-background px-4 py-3">
+            {[0, 1, 2].map((key) => (
+              <Skeleton key={key} className="h-8 flex-1" />
+            ))}
+          </View>
+        ) : (
+          <DayStatusBar
+            overview={dayOverview(data, date, false)}
+            onOpenRecords={(kind) =>
+              router.push({ pathname: '/(teacher)/daily-records', params: { kind, date } })
+            }
+          />
+        )
+      ) : null}
     </View>
   );
 }

@@ -116,10 +116,15 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 - Chỉ GET, tài khoản GV (lớp Nhà Trẻ 1 và Lá 1). `GET /classes/{id}/students` và `GET /attendance/classes/{id}/dismissal` trả `avatarUrl` (dicebear SVG, tải được 200 `image/svg+xml`); `GET /attendance/classes/{id}/authorizations` trả `student.avatarUrl`.
 - `GET /attendance/classes/{id}/timetable` (`students`) và các endpoint kết quả `assessment` tháng/học kỳ không có trường avatar. `id` học sinh của lịch và kết quả khớp `id` trong danh sách lớp (4/4 và 8/8 bé), nên mobile ghép avatar theo `id` trong hook.
 - Không có ảnh thật nào trên test2 để kiểm tra trường hợp ảnh tải lên.
+- 19/11/2026: kết quả học tập có học sinh không còn trong danh sách lớp hiện tại (HS26025, lớp Lá 1) nên không ghép được avatar theo `id`. Mobile dùng cùng quy tắc backend (`class.service.js`: `avatar_url`, nếu không có thì DiceBear `10.x/critters` theo mã HS và bảng màu cố định) qua `lib/student-avatar.js`. Khi BE-05 trả `avatarUrl` trong kết quả, bỏ bước ghép này.
 
 ### Ngày nghỉ và Thứ Bảy dạy bù (test2, 19/11/2026)
 
 `GET /attendance/classes/{classId}/timetable` (CB26001, Lá 1) trả `holidays[]` có thêm `makeupDate` (`YYYY-MM-DD` hoặc `null`); test2 chưa có mục nào đặt ngày dạy bù nên UI học bù mới được xem bằng dữ liệu giả trên bản dev. Theo code `sorak-api` cùng ngày: ngày dạy bù chỉ đặt cho ngày nghỉ 1 ngày (`is_teaching_allowed = false`), luôn là Thứ Bảy tuần đó hoặc tuần sau, và hoạt động được sao chép sang Thứ Bảy với `notes` mở đầu `[Dạy bù ngày dd/mm]`; ngày dạy bù không bị tính là ngày nghỉ. Không xếp lịch Chủ nhật; Thứ Bảy chỉ xếp được khi là ngày dạy bù hoặc có sự kiện cho dạy. Mobile theo cùng quy tắc (và theo web `DailyRoutinePage`): Thứ Bảy dạy bù mở ghi nhận kể cả khi chưa có slot. Các API lưu vẫn chưa chặn ngày nghỉ và `/parent/schedule` vẫn chưa trả `holidays` (BE-06).
+
+### Đăng nhập mobile không Turnstile (test2, 19/11/2026)
+
+`POST /auth/login` với `username/password/role`, header `X-Client-Platform: android` và không có `captchaToken` trả 200 cùng cặp token JSON trên test2 (đã dùng nhiều lần cho script GET từ 09/11). Code `sorak-api` (`auth.service.js` `verifyCaptchaToken`): mobile không gửi token thì được bỏ qua khi `NODE_ENV !== 'production'` hoặc `ALLOW_MOBILE_BYPASS === 'true'`; ngoài ra mọi client gửi `sorak-mobile-bypass`, `sorak-mobile-test`, `test-token-playwright`, `sorak-link-child-bypass` đều qua. App đã bỏ WebView `GET /auth/mobile-challenge` và không gửi các token cố định này. Production cần BE-07 trước khi phát hành.
 
 ## Nguồn và lịch sử
 

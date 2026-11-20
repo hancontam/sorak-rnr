@@ -7,17 +7,16 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
-import { formatDate, formatGender, schoolYearValue } from '../utils/report-format';
-import { HeroCard } from '@/components/shared/HeroCard';
+import { formatDate, formatGender } from '../utils/report-format';
 import { ReportFields } from './ReportFields';
 import { ReportState } from './ReportState';
 
-const CHILD_HERO = require('@/assets/images/hero-child.jpg');
-
-export function StudentProfile({ report }) {
+// Giáo viên xem hồ sơ có nút gọi phụ huynh; phụ huynh (parentView) không gọi chính mình mà có
+// thẻ Giáo viên chủ nhiệm với nút gọi giáo viên.
+export function StudentProfile({ report, parentView = false, teacher }) {
   const t = useTranslation();
   const locale = useLocale();
-  const { student, classInfo } = report;
+  const { student } = report;
   const [callError, setCallError] = useState('');
   const parents = student.parents;
   const call = async (phone) => {
@@ -35,17 +34,6 @@ export function StudentProfile({ report }) {
   };
   return (
     <View className="gap-4">
-      {/* Lớp và năm học của bé trên card ảnh (thay cho khối "Lớp học" cũ). */}
-      <HeroCard
-        source={CHILD_HERO}
-        tag={
-          classInfo.schoolYear
-            ? t('Năm học {year}', { year: schoolYearValue(classInfo.schoolYear) })
-            : null
-        }
-        title={classInfo.name}
-        subtitle={t('Lớp học')}
-      />
       <ReportFields
         title={t('Thông tin cá nhân')}
         fields={[
@@ -68,7 +56,7 @@ export function StudentProfile({ report }) {
               ['Quan hệ', parent.relationship],
               ['Số điện thoại', parent.phone, { mono: true }],
             ]}>
-            {parent.phone ? (
+            {parent.phone && !parentView ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -82,6 +70,29 @@ export function StudentProfile({ report }) {
           </ReportFields>
         ))
       )}
+      {parentView && teacher ? (
+        <>
+          <Text className="pt-1 text-sm font-semibold">{t('Giáo viên chủ nhiệm')}</Text>
+          <ReportFields
+            title={teacher.fullName}
+            fields={[
+              ['Số điện thoại', teacher.phone, { mono: true }],
+              ...(teacher.email ? [['Email', teacher.email]] : []),
+            ]}>
+            {teacher.phone ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="self-start"
+                onPress={() => call(teacher.phone)}
+                accessibilityLabel={t('Gọi {name}', { name: teacher.fullName })}>
+                <Icon as={Phone} size={14} />
+                <Text>{t('Gọi giáo viên')}</Text>
+              </Button>
+            ) : null}
+          </ReportFields>
+        </>
+      ) : null}
       {callError ? (
         <Text accessibilityRole="alert" className="text-xs text-destructive">
           {t(callError)}

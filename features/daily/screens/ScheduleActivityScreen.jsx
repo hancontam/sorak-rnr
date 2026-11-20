@@ -11,9 +11,11 @@ import { cn } from '@/lib/utils';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { ChildDayResults } from '../components/ChildDayResults';
+import { DateHeader } from '../components/DateHeader';
 import { ScheduleState } from '../components/ScheduleState';
+import { usePrefetchDailyRecords } from '../hooks/useDailyRecords';
 import { useTimetable } from '../hooks/useTimetable';
-import { dayTitle, schoolToday, shortDate } from '../utils/schedule-date';
+import { schoolToday, shortDate } from '../utils/schedule-date';
 import {
   childDayResults,
   dayActivities,
@@ -44,6 +46,13 @@ export default function ScheduleActivityScreen() {
   // Slot đã sắp vẫn xem được trong ngày nghỉ nhưng không đánh giá.
   const holiday = activity ? dayCalendar(data, date, isParent).lock : null;
   const canAssess = date === schoolToday() && !holiday;
+  // Tải sẵn danh sách đánh giá của hoạt động để bấm "Đánh giá" là mở ngay.
+  usePrefetchDailyRecords({
+    date,
+    kinds: ['assessment'],
+    slot: activity,
+    enabled: Boolean(activity) && !isParent,
+  });
   return (
     <ScrollView
       className="flex-1 bg-background"
@@ -51,6 +60,7 @@ export default function ScheduleActivityScreen() {
       {error || noClass || query.isPending || query.isError || !activity ? (
         <ScheduleState
           loading={!error && !noClass && query.isPending}
+          skeleton="cards"
           error={error || (query.isError ? timetableError(query.error) : '')}
           onRetry={query.isError ? query.refetch : undefined}
           title={noClass ? 'Chưa được phân công lớp' : 'Không tìm thấy hoạt động trong ngày này'}
@@ -58,8 +68,18 @@ export default function ScheduleActivityScreen() {
         />
       ) : (
         <>
+          <DateHeader
+            date={date}
+            tone={holiday ? 'locked' : date === schoolToday() ? 'today' : 'past'}
+            badges={
+              holiday
+                ? [[t('Ngày nghỉ'), 'destructive']]
+                : date === schoolToday()
+                  ? [[t('Hôm nay'), 'secondary']]
+                  : []
+            }
+          />
           <View className="gap-2">
-            <Text className="text-xs text-muted-foreground">{dayTitle(date, locale)}</Text>
             <Text className="text-lg font-semibold leading-6 tracking-tight">
               {activity.title || t('Hoạt động chưa có tên')}
             </Text>
@@ -74,7 +94,7 @@ export default function ScheduleActivityScreen() {
                   <Text>{[frame.start, frame.end].filter(Boolean).join('–')}</Text>
                 </Badge>
               ) : null}
-              {activity.status ? (
+              {activity.status === 'Đã hoàn thành' ? (
                 <Badge variant="outline">
                   <Text>{t(activity.status)}</Text>
                 </Badge>
@@ -129,7 +149,7 @@ export default function ScheduleActivityScreen() {
               }>
               <Text>
                 {/* Đánh giá chỉ làm trong ngày của slot và không làm trong ngày nghỉ; còn lại chỉ xem. */}
-                {canAssess ? t('Đánh giá học sinh') : t('Xem đánh giá học sinh')}
+                {canAssess ? t('Đánh giá') : t('Xem đánh giá')}
               </Text>
             </Button>
           ) : null}

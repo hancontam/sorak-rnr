@@ -92,6 +92,18 @@ Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: resp
 
 **Nghiệm thu:** trên môi trường phát hành, login mobile không token trả 200; web không token vẫn bị chặn; token cố định bị từ chối ở production.
 
+## BE-08 — Nhận diện phiên đăng nhập từ app Sorak
+
+**Trạng thái:** đề xuất ngày 20/11; mobile đã tự xử lý phần hiển thị trong app.
+
+**Cần gì/vì sao:** `_parseUserAgent` (auth.service.js) chỉ nhận trình duyệt và hệ điều hành; User-Agent mặc định của React Native (`okhttp/...`) không khớp gì nên phiên trên điện thoại hiện "Trình duyệt Web · Thiết bị". Từ 20/11 app gửi `User-Agent: Sorak/<version> (Android <ver>; <model>)` hoặc `(iPhone; iOS <ver>; <model>)`, nên backend đã nhận đúng Android/iOS và loại thiết bị di động, nhưng `browser` vẫn là "Trình duyệt Web". Mobile tự đổi nhãn thành "Ứng dụng Sorak · Android 17 · <model>" từ `deviceInfo`; web (danh sách thiết bị của tài khoản) vẫn hiện "Trình duyệt Web · Android".
+
+**Đề xuất:** khi User-Agent bắt đầu bằng `Sorak/`, trả `browser: 'Ứng dụng Sorak'` và `deviceDisplay: 'Ứng dụng Sorak · <hệ điều hành> · <model>'`.
+
+**Bằng chứng:** test2, 20/11, đăng nhập HS26019 trên emulator Android 17 sau khi đổi User-Agent; `GET /auth/sessions` trả `deviceType: 'mobile'`, `os: 'Android'`.
+
+**Nghiệm thu:** phiên từ app hiện "Ứng dụng Sorak · Android · <model>" trên cả web và mobile; phiên trình duyệt không đổi.
+
 ## Mẫu yêu cầu mới
 
 Vai trò/flow bị chặn; cần gì/vì sao; bằng chứng ngày/môi trường; endpoint hiện có và phần thiếu; request/response đề xuất; quyền/empty/error; dữ liệu test; nghiệm thu; ảnh hưởng thời hạn; phản hồi BE. Không ghi bug client, nghiệp vụ đã bỏ (xin nghỉ/ghi học kỳ GV) hoặc điều chưa điều tra thành lỗi BE chắc chắn.

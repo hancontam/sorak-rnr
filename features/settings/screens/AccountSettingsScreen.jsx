@@ -44,14 +44,31 @@ function sessionTime(session, locale) {
     : '';
 }
 
+// Phiên từ app Sorak (User-Agent "Sorak/x (Android 16; Pixel 7)") hiện "Ứng dụng Sorak · Android 16 ·
+// Pixel 7"; backend chỉ nhận trình duyệt nên tự ghi "Trình duyệt Web" cho các phiên này.
+const APP_AGENT = /^Sorak\/[\w.]+ \(([^)]*)\)/;
+
+function sessionLabel(session, t) {
+  const app = APP_AGENT.exec(session.deviceInfo || '');
+  if (app) {
+    const parts = app[1]
+      .split(';')
+      .map((part) => part.trim())
+      .filter((part) => part && part !== 'iPhone' && part !== 'iPad');
+    return [t('Ứng dụng Sorak'), ...parts].join(' · ');
+  }
+  return session.deviceDisplay || session.deviceInfo || t('Thiết bị đăng nhập');
+}
+
 function SessionRow({ session, current }) {
   const t = useTranslation();
   const locale = useLocale();
   const time = sessionTime(session, locale);
+  const mobile = session.deviceType === 'mobile' || APP_AGENT.test(session.deviceInfo || '');
   return (
     <SettingsRow
-      icon={session.deviceType === 'mobile' ? Smartphone : Monitor}
-      label={session.deviceDisplay || session.deviceInfo || t('Thiết bị đăng nhập')}
+      icon={mobile ? Smartphone : Monitor}
+      label={sessionLabel(session, t)}
       detail={time ? t('Hoạt động {time}', { time }) : undefined}
       right={
         current ? (

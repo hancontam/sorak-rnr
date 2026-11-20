@@ -1043,4 +1043,5 @@ export const english = {
   'Email': 'Email',
   'Nhập mã học sinh và mật khẩu của bé cần thêm.': 'Enter the student code and password of the child to add.',
   'Ủy quyền đón con': 'Pickup for my child',
+  'Ứng dụng Sorak': 'Sorak app',
 };

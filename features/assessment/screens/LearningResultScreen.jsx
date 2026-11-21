@@ -93,6 +93,9 @@ export default function LearningResultScreen() {
   const schoolDays = data?.classInfo?.totalSchoolDays;
   const weeks = monthly ? (parent ? data?.monthWeeks?.length : data?.classInfo?.totalWeeks) : 0;
   const shownWeek = week <= weeks ? week : 0;
+  // Tháng chưa công bố: máy chủ vẫn trả phiếu của PH nhưng ẩn hoa và nhận xét (0/4), nên báo chưa
+  // công bố thay vì hiện kết quả rỗng. GV vẫn xem đủ, kèm nhãn để biết PH chưa thấy.
+  const unpublished = monthly && data?.[parent ? 'period' : 'classInfo']?.isPublished === false;
   const queryText = search.trim().toLocaleLowerCase('vi');
   const semesterNotStarted = !monthly && !parent && data?.classInfo?.isStarted === false;
   const students =
@@ -173,7 +176,7 @@ export default function LearningResultScreen() {
           </TabsList>
         </Tabs>
       ) : null}
-      {monthly && data && !error && !monthNotEnded ? (
+      {monthly && data && !error && !monthNotEnded && !(parent && unpublished) ? (
         <View className="gap-2">
           <ChipTabs
             options={[
@@ -193,7 +196,13 @@ export default function LearningResultScreen() {
       ) : null}
       {data?.classInfo?.name && !error ? (
         <Text className="text-2xs text-muted-foreground">
-          {[data.classInfo.name, yearLabel].filter(Boolean).join(' · ')}
+          {[
+            data.classInfo.name,
+            yearLabel,
+            !parent && unpublished && !monthNotEnded ? t('Chưa công bố cho phụ huynh') : '',
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </Text>
       ) : null}
       {!parent && data && !error ? (
@@ -271,7 +280,7 @@ export default function LearningResultScreen() {
 
     return (
       <View className="gap-3">
-        {shownWeek || data.record?.id ? (
+        {!unpublished && (shownWeek || data.record?.id) ? (
           <MonthlyResultCard
             title={data.student.fullName}
             code={data.student.studentCode}
@@ -288,13 +297,13 @@ export default function LearningResultScreen() {
         ) : (
           <Empty
             text={t(
-              data.period?.isPublished === false
+              unpublished
                 ? 'Nhà trường chưa công bố phiếu đánh giá tháng này.'
                 : 'Chưa có phiếu đánh giá tháng này.'
             )}
           />
         )}
-        {data.record?.id && (shownWeek === 0 || feedback) ? (
+        {!unpublished && data.record?.id && (shownWeek === 0 || feedback) ? (
           <Card className="gap-3 px-4 py-3.5">
             <View className="flex-row items-center justify-between gap-2">
               <Text className="text-sm font-semibold">{t('Phản hồi cho giáo viên')}</Text>

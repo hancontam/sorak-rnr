@@ -35,7 +35,21 @@ export function isAbsent(student) {
   );
 }
 
-export function draftRecord(kind, initial) {
+// Backend (và web) không cho bé vắng hôm đó được Đạt hoặc Vượt trội: lưu lên sẽ bị đổi thành Chưa đạt.
+const ABSENT_ASSESSMENT_STATUS = 'NOT_ACHIEVED';
+const ABSENT_ASSESSMENT_NOTE = 'Nghỉ học';
+
+export function assessmentLockedFor(student) {
+  return isAbsent(student) ? ['ACHIEVED', 'OUTSTANDING'] : [];
+}
+
+export function draftRecord(kind, initial, student) {
+  if (kind === 'assessment' && student && isAbsent(student)) {
+    return {
+      status: ABSENT_ASSESSMENT_STATUS,
+      note: initial.status === ABSENT_ASSESSMENT_STATUS ? initial.note : ABSENT_ASSESSMENT_NOTE,
+    };
+  }
   if ((kind === 'attendance' || kind === 'assessment') && !initial.status) {
     return { ...initial, status: kind === 'attendance' ? 'PRESENT' : 'ACHIEVED' };
   }
@@ -133,6 +147,9 @@ export function toDailyRecord(kind, student, draft, date, t) {
   const options = kind === 'attendance' ? ATTENDANCE_OPTIONS : ASSESSMENT_OPTIONS;
   if (!statusIn(options, draft.status)) {
     throw new Error(t('{name}: cần chọn trạng thái.', { name: student.name }));
+  }
+  if (kind === 'assessment' && assessmentLockedFor(student).includes(draft.status)) {
+    throw new Error(t('{name} vắng hôm nay nên chỉ ghi được Chưa đạt.', { name: student.name }));
   }
   return kind === 'attendance'
     ? { studentId, status: draft.status, notes: note }

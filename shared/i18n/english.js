@@ -622,6 +622,7 @@ export const english = {
   'Đang lưu và kiểm tra…': 'Saving and verifying…',
   'Lưu ghi nhận': 'Save records',
   'Vắng — không ghi số đo mới.': 'Absent. No new measurements can be recorded.',
+  'Bé vắng hôm nay nên chỉ ghi được Chưa đạt.': 'Absent today, so only Not achieved can be recorded.',
   'Hệ thống đang có số đo cho ngày này: {height} cm · {weight} kg. Hãy kiểm tra lại với nhà trường.':
     'The server has measurements for this day: {height} cm · {weight} kg. Please check with the school.',
   'Chiều cao (cm)': 'Height (cm)',
@@ -778,6 +779,8 @@ export const english = {
   'Cần điểm danh có mặt, chọn người đón và nhập giờ theo HH:mm.':
     'Mark the student present, select a pickup person and enter a time in HH:mm format.',
   '{name}: cần chọn trạng thái.': '{name}: select a status.',
+  '{name} vắng hôm nay nên chỉ ghi được Chưa đạt.':
+    '{name} is absent today, so only Not achieved can be recorded.',
   'Tài khoản chưa được cấp quyền xem thời khóa biểu này.':
     'This account cannot view this timetable.',
   'Chưa tải được lịch từ nhà trường. Vui lòng thử lại.':
@@ -1033,6 +1036,7 @@ export const english = {
   'Không có đơn chờ': 'Nothing pending',
   'Trường Mầm Non Hòn Tre · Sorak. Cập nhật lần cuối {date}.': 'Hon Tre Preschool · Sorak. Last updated {date}.',
   'Nhà trường chưa công bố phiếu đánh giá tháng này.': 'The school has not published this month’s report yet.',
+  'Chưa công bố cho phụ huynh': 'Not yet published to parents',
   'Quay lại danh sách đơn': 'Back to requests',
   'Bằng việc tiếp tục, bạn đồng ý với': 'By continuing, you agree to the',
   'và': 'and',

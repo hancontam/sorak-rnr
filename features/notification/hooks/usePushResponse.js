@@ -8,6 +8,16 @@ import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import { notificationAccount } from '@/features/auth/utils/linked-accounts';
 
+// Expo Router đặt mọi route dưới "__root", nên phải tìm route cần mở trong state lồng nhau thay vì
+// chỉ đọc routeNames ở gốc (ở gốc chỉ có __root, +not-found, _sitemap).
+function hasRoute(state, name) {
+  if (!state) return false;
+  return (
+    Boolean(state.routeNames?.includes(name)) ||
+    Boolean(state.routes?.some((route) => hasRoute(route.state, name)))
+  );
+}
+
 export function usePushResponse(response) {
   const navigation = useNavigationContainerRef();
   const router = useRouter();
@@ -41,10 +51,10 @@ export function usePushResponse(response) {
         return;
       }
       const target = state.linkedAccounts.find((account) => account.id === targetId);
-      const routes = navigation.getRootState()?.routeNames || [];
+      const root = navigation.getRootState();
       if (target?.requiresLogin) {
         const path = state.status === 'signed-in' ? '/add-account' : '/auth/login';
-        if (!routes.includes(path.slice(1)) || loginShown) return;
+        if (!hasRoute(root, path.slice(1)) || loginShown) return;
         loginShown = true;
         router.push({ pathname: path, params: { role: AUTH_ROLES.parent, accountId: targetId } });
         return;
@@ -58,7 +68,7 @@ export function usePushResponse(response) {
           return;
         }
         const group = teacher ? '(teacher)' : '(parent)';
-        if (!routes.includes(group)) return;
+        if (!hasRoute(root, group)) return;
         consume();
         void queryClient.invalidateQueries({ queryKey: ['notification-inbox', targetId] });
         router.navigate(teacher ? '/(teacher)/notifications' : '/(parent)/notifications');

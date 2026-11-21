@@ -10,6 +10,7 @@ import { useClassStudents } from '@/features/report/hooks/useClassStudents';
 
 import { getDailyRecords, saveDailyRecords } from '../api/daily-records.api';
 import {
+  assessmentLockedFor,
   DAILY_ACTIONS,
   draftRecord,
   initialRecord,
@@ -126,14 +127,19 @@ export function useDailyRecords({ kind, date, slotId }) {
     enabled: Boolean(valid && (!isAssessment || slot?.activityId)),
     refetchOnWindowFocus: false,
   });
+  const hasDrafts = Object.keys(drafts).length > 0;
+  // Mở màn có thể hiện bản cache cũ trước rồi bản mới về sau. Khi giáo viên chưa sửa gì (và không có
+  // xung đột đang chờ tải lại), lấy bản mới nhất làm gốc để ô nhập hiện đúng giá trị trên máy chủ.
   useEffect(() => {
-    if (query.data && baseline === null) setBaseline(query.data);
-  }, [query.data, baseline]);
+    if (!query.data || query.data === baseline) return;
+    if (baseline === null || (!hasDrafts && !needsReload && !running.current))
+      setBaseline(query.data);
+  }, [query.data, baseline, hasDrafts, needsReload]);
   const initialById = new Map((baseline || []).map((student) => [String(student.id), student]));
   const rows = (query.data || []).map((student) => {
     const id = String(student.id);
     const initial = initialRecord(kind, initialById.get(id) || student);
-    const defaultDraft = draftRecord(kind, initial);
+    const defaultDraft = draftRecord(kind, initial, student);
     const value = drafts[id] || defaultDraft;
     const fields = Object.keys(initial);
     const changed = fields.some((field) => initial[field] !== value[field]);
@@ -199,6 +205,7 @@ export function useDailyRecords({ kind, date, slotId }) {
     if (running.current || needsReload) return;
     const row = rows.find((item) => item.id === id);
     if (!row) return;
+    if (isAssessment && assessmentLockedFor(row.student).includes(patch.status)) return;
     setMessage(null);
     setDrafts((current) => ({ ...current, [id]: { ...row.value, ...current[id], ...patch } }));
   }
@@ -280,8 +287,11 @@ export function useDailyRecords({ kind, date, slotId }) {
         );
       await mutation.mutateAsync(records);
       if (!isCurrent()) return;
-      const result = await query.refetch();
+      // Làm mới lịch trước khi đọc lại: số đo, ghi chú điểm danh và trạng thái vắng nằm trong lịch,
+      // còn lần đọc lại dùng lịch trong cache 60 giây nên đọc trước sẽ so với bản cũ.
       await refreshRelatedRecords();
+      if (!isCurrent()) return;
+      const result = await query.refetch();
       if (!isCurrent()) return;
       const confirmed =
         !result.isError &&

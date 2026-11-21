@@ -10,7 +10,13 @@ import { statusBadgeVariant } from '@/lib/status-badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/shared/i18n/useLanguage';
 
-import { ASSESSMENT_OPTIONS, ATTENDANCE_OPTIONS, decimal, isAbsent } from '../utils/daily-records';
+import {
+  ASSESSMENT_OPTIONS,
+  assessmentLockedFor,
+  ATTENDANCE_OPTIONS,
+  decimal,
+  isAbsent,
+} from '../utils/daily-records';
 import { StudentHeader } from './StudentHeader';
 
 // Khung một hàng trong danh sách gọn: các hàng nối liền, viền chung, không bo góc.
@@ -28,25 +34,27 @@ export function RecordRow({ first, className, children }) {
 }
 
 // Chọn một trạng thái dạng segmented (radio), thấp để danh sách hiện được nhiều bé.
-function StatusSegments({ options, value, disabled, onChange, t }) {
+function StatusSegments({ options, value, disabled, lockedKeys = [], onChange, t }) {
   return (
     <View
       accessibilityRole="radiogroup"
       className={cn('flex-row bg-muted p-0.5', disabled && 'opacity-60')}>
       {options.map(([key, label]) => {
         const selected = key === value;
+        const off = disabled || lockedKeys.includes(key);
         return (
           <Pressable
             key={key}
             accessibilityRole="radio"
-            accessibilityState={{ selected, disabled }}
-            disabled={disabled}
+            accessibilityState={{ selected, disabled: off }}
+            disabled={off}
             hitSlop={{ top: 6, bottom: 6 }}
             onPress={() => onChange(key)}
             className={cn(
               // Giữ sẵn lớp shadow từ lần render đầu như TabsTrigger; thêm shadow lúc chạy làm NativeWind lỗi.
               'min-h-8 min-w-0 flex-1 items-center justify-center px-1 py-1 shadow-none shadow-black/5 active:opacity-70',
-              selected && 'bg-primary shadow-sm'
+              selected && 'bg-primary shadow-sm',
+              !disabled && off && 'opacity-40'
             )}>
             <Text
               // Màn hẹp (360 dp) hoặc chữ lớn: xuống tối đa 2 dòng thay vì cắt chữ.
@@ -88,6 +96,7 @@ export function DailyRecordCard({ kind, row, first, editable, locked, onChange, 
   const { student, value } = row;
   const options = kind === 'attendance' ? ATTENDANCE_OPTIONS : ASSESSMENT_OPTIONS;
   const skipHealth = kind === 'health' && isAbsent(student);
+  const absentAssessment = kind === 'assessment' && isAbsent(student);
   if (locked)
     return (
       <LockedRecord kind={kind} row={row} first={first} options={options} absent={skipHealth} />
@@ -184,10 +193,16 @@ export function DailyRecordCard({ kind, row, first, editable, locked, onChange, 
           options={options}
           value={value.status}
           disabled={!canWrite}
+          lockedKeys={kind === 'assessment' ? assessmentLockedFor(student) : []}
           onChange={(status) => onChange({ status })}
           t={t}
         />
       )}
+      {absentAssessment && canWrite ? (
+        <Text className="text-2xs text-muted-foreground">
+          {t('Bé vắng hôm nay nên chỉ ghi được Chưa đạt.')}
+        </Text>
+      ) : null}
       {hasNote && kind !== 'health' ? (
         <Text numberOfLines={1} className="text-2xs text-muted-foreground">
           {value.note}

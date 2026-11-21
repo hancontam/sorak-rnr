@@ -118,7 +118,7 @@ Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: resp
 
 ## BE-10 — Token push còn hoạt động sau khi phiên bị thu hồi
 
-**Trạng thái:** đề xuất ngày 21/11.
+**Trạng thái:** đề xuất và backend đã sửa trong ngày 21/11; test2 đạt (token gắn phiên, tắt khi đăng xuất hoặc phiên bị đẩy ra, `DELETE` nhận `refreshToken` không cần access token). Bằng chứng ở contract-audit "Token push gắn phiên, BE-10". Còn lại: token đăng ký trước khi đổi (không gắn phiên) vẫn hoạt động, ví dụ HS26019 trên emulator vẫn nhận push sau khi app gỡ token của phiên hiện tại. Đề nghị tắt các token không gắn phiên nào.
 
 **Cần gì/vì sao:** `deviceToken` chỉ gắn với tài khoản, không gắn với phiên. Mobile gỡ token bằng `DELETE /notifications/device-token` khi đăng xuất, nhưng việc này cần phiên còn hiệu lực. Khi phiên bị thu hồi ở nơi khác (giới hạn 3 phiên mỗi tài khoản, "đăng xuất tất cả", đổi mật khẩu) thì app không gỡ được, và máy vẫn nhận push của tài khoản đã rời máy. Ví dụ: máy chỉ còn tài khoản PH nhưng vẫn nhận "Ý kiến phụ huynh" của GV.
 

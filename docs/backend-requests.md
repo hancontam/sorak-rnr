@@ -116,6 +116,18 @@ Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: resp
 
 **Nghiệm thu:** PH thấy đủ 5 bản tin và `unreadCount` 33 với cùng dữ liệu.
 
+## BE-10 — Token push còn hoạt động sau khi phiên bị thu hồi
+
+**Trạng thái:** đề xuất ngày 21/11.
+
+**Cần gì/vì sao:** `deviceToken` chỉ gắn với tài khoản, không gắn với phiên. Mobile gỡ token bằng `DELETE /notifications/device-token` khi đăng xuất, nhưng việc này cần phiên còn hiệu lực. Khi phiên bị thu hồi ở nơi khác (giới hạn 3 phiên mỗi tài khoản, "đăng xuất tất cả", đổi mật khẩu) thì app không gỡ được, và máy vẫn nhận push của tài khoản đã rời máy. Ví dụ: máy chỉ còn tài khoản PH nhưng vẫn nhận "Ý kiến phụ huynh" của GV.
+
+**Đề xuất:** lưu token kèm phiên (refresh token) đã đăng ký nó và tắt token khi phiên đó bị thu hồi hoặc hết hạn. Hoặc cho `DELETE /notifications/device-token` nhận refresh token cũ để gỡ, kể cả khi phiên đã bị thay.
+
+**Bằng chứng:** test2, 21/11. Emulator chỉ đăng nhập HS26019/HS26020. `POST /notifications/test-push` bằng CB26001 trả `deliveredCount: 2` và emulator hiện thông báo "Push GV CB26001". HS26019 trả `deliveredCount: 2`, emulator nhận 2 thông báo, tức một máy có hai token đều còn hoạt động.
+
+**Nghiệm thu:** sau khi phiên GV trên máy bị thu hồi, test push của GV không tới máy đó.
+
 ## Mẫu yêu cầu mới
 
 Vai trò/flow bị chặn; cần gì/vì sao; bằng chứng ngày/môi trường; endpoint hiện có và phần thiếu; request/response đề xuất; quyền/empty/error; dữ liệu test; nghiệm thu; ảnh hưởng thời hạn; phản hồi BE. Không ghi bug client, nghiệp vụ đã bỏ (xin nghỉ/ghi học kỳ GV) hoặc điều chưa điều tra thành lỗi BE chắc chắn.

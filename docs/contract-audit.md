@@ -130,6 +130,27 @@ Các kết luận dưới đây thay các mô tả tạm ở 5A/5B–5C bên tr�
 
 Đọc bằng PH HS26011 (chỉ GET). Bản tin Ban giám hiệu gửi có `type: SCHOOL_ANNOUNCEMENT` và `data` gồm `batch_id`, `is_master`, `target_scope`, `target_grade`, `target_class_ids`, `attachments` (mảng URL ảnh). Web tách tab Bản tin trường / Hoạt động lớp theo `data.batch_id`; mobile tách cùng cách. `GET /notifications/my` nhận `page`/`limit`, trả `pagination {page, limit, total, totalPages}`: limit 30 trả 30/33 mục và chỉ 3/5 bản tin, limit 50 trả đủ 33 mục và 5 bản tin. Mobile GV đổi sang lấy trang 50 mục cho tới `totalPages` (tối đa 4 trang). `GET /parent/notifications` cố định 30 mục (BE-09). GV CB26001 (Lá 1) cùng ngày: `total` 93, 28 chưa đọc, 6 bản tin; limit 30 trả 0 bản tin (lỗi mobile cũ), limit 50 trả 1 (web), limit 100 trả đủ 6.
 
+### Token push gắn phiên, BE-10 (test2, 21/11/2026)
+
+Backend báo đã gắn `deviceToken` theo phiên và cho `DELETE /notifications/device-token` nhận `refreshToken` trong body. Thử bằng GV CB26001 và PH HS26011 với token Expo giả (không thuộc máy nào), lúc 14:26–14:28 giờ VN.
+
+- Đã đúng: `POST /notifications/test-push` của CB26001 trả `deliveredCount: 0`; buổi sáng trả 2 và emulator (không đăng nhập GV) vẫn nhận push của GV.
+- `POST /notifications/device-token` `{deviceToken, platform, deviceName}` trả 400 `DB_ERROR` (traceId `52d2d70d-dee8-422a-9714-131353c96f7a`). Buổi sáng cùng body vẫn trả 200, nên app hiện không đăng ký được push.
+- `DELETE /notifications/device-token` với `{deviceToken}` (`aee4d790-324d-423e-90d7-f435ada2102b`) hoặc `{deviceToken, refreshToken}` (`559afbe3-aa11-4bc9-9cdb-2e8203ed1219`) có access token hợp lệ đều trả 400 `DB_ERROR`. Access token sai kèm `refreshToken` trả 401 "Missing or invalid authentication token for unregistering device".
+- `POST /auth/logout` `{refreshToken}` (dạng mobile đang gửi) trả 400 `DB_ERROR` (`4bd6d341-826c-48d6-8d56-f9a1b0c5001e`). Không body thì trả 200 và phiên bị thu hồi (`/auth/me`, `/auth/refresh` trả 401).
+- `POST /auth/login` khi tài khoản đã có 3 phiên trả 400 `DB_ERROR` ở lần đầu (`27d25ce6-b38c-478c-aac1-4724c839227a`, CB26001), lần thử lại thành công.
+
+Sau khi backend sửa, thử lại cùng ngày bằng HS26011 (token giả, đếm thiết bị qua `deliveredCount` của test push):
+
+- Đăng ký, gỡ token, đăng xuất `{refreshToken}` và đăng nhập khi đủ 3 phiên đều trả 200.
+- Token gắn phiên: đăng ký bằng phiên B (số thiết bị 0 → 1), đăng xuất B → 0. Đăng nhập thêm tới khi phiên A bị đẩy ra (giới hạn 3 phiên): `/auth/me` của A trả 401 và token của A tắt (1 → 0).
+- `POST /auth/refresh` xoay refresh token, token push của phiên vẫn hoạt động (giữ 1).
+- `DELETE /notifications/device-token` không có access token, body `{deviceToken, refreshToken}` trả 200 và tắt token. Refresh token đã bị xoay vẫn gỡ được token của phiên đó.
+
+Trên app (emulator Android, HS26019 và HS26020 cùng máy), mobile gửi `{deviceToken, refreshToken}` khi gỡ. Tắt "Thông báo đẩy" trong Cài đặt: HS26020 từ 1 xuống 0 thiết bị; HS26019 từ 2 xuống 1, token còn lại vẫn tới emulator dù HS26019 chỉ còn một phiên (phiên của emulator). Bật lại: về 2 và 1. Token còn lại nhiều khả năng đăng ký trước khi backend gắn token theo phiên; app không biết giá trị token đó nên không gỡ được.
+
+Giới hạn: chưa thử "đăng xuất tất cả" và đổi mật khẩu.
+
 ## Nguồn và lịch sử
 
 - Swagger https://mamnonhontre.sorak.io.vn/docs.json ; hướng dẫn `C:/Users/HCT/Desktop/Code/SWAGGER_USAGE_GUIDE.md`.

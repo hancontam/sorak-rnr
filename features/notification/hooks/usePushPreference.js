@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AppState, Linking } from 'react-native';
 import { create } from 'zustand';
 
-import { withAccountSession } from '@/features/auth/session';
+import { removeAccountPush } from '@/features/auth/session';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import {
   readNotificationSound,
@@ -12,7 +12,7 @@ import {
   writePushPreference,
 } from '@/shared/storage/preferences.storage';
 
-import { pushAccounts, removePushForSession, supportsPush } from '../push-registration';
+import { pushAccounts, supportsPush } from '../push-registration';
 
 // Lựa chọn của máy này; token và đăng ký vẫn do usePushRegistration xử lý theo từng phiên.
 export const usePushPreferenceStore = create(() => ({
@@ -117,7 +117,7 @@ export function usePushSettings() {
     try {
       const { user, linkedAccounts } = useAuthStore.getState();
       for (const account of pushAccounts(user, linkedAccounts)) {
-        await withAccountSession(account.id, (access) => removePushForSession(account, access));
+        await removeAccountPush(account.id);
       }
       await writePushPreference('off');
     } catch (error) {

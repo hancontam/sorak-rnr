@@ -10,11 +10,13 @@ export async function registerPushDevice(device, accessToken) {
   if (data?.success !== true) throw new Error('Push registration was not confirmed');
 }
 
-export async function unregisterPushDevice(deviceToken, accessToken) {
+// Backend nhận refresh token của phiên đã đăng ký token, nên gỡ được cả khi access token đã hết hạn
+// hoặc phiên đã bị thu hồi (test2 21/11), không cần làm mới phiên trước.
+export async function unregisterPushDevice(deviceToken, { accessToken, refreshToken }) {
   const { data } = await apiClient.delete(path, {
-    data: { deviceToken },
+    data: { deviceToken, refreshToken },
     skipSession: true,
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
   if (data?.success !== true) throw new Error('Push removal was not confirmed');
 }

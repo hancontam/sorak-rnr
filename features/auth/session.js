@@ -235,6 +235,14 @@ async function activate(id) {
   setAuth({ status: 'signed-in', user, error: '' });
 }
 
+// Gỡ token push của một tài khoản trên máy (tắt thông báo trong Cài đặt).
+export function removeAccountPush(id) {
+  const entry = accounts.get(id);
+  if (!entry?.pair)
+    return Promise.reject(new Error('Đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'));
+  return removePushForSession(entry.account, entry.pair);
+}
+
 export function switchAccount(id) {
   return exclusively(async () => {
     if (activeId === id && useAuthStore.getState().status === 'signed-in') return;
@@ -380,7 +388,7 @@ async function removeSession(id, { revoke = true, notice = '' } = {}) {
     await refreshing.get(id)?.catch(() => {});
     if (revoke && entry?.pair) {
       try {
-        await withAccountSession(id, (access) => removePushForSession(entry.account, access));
+        await removePushForSession(entry.account, entry.pair);
       } catch {
         notice = PUSH_REMOVAL_NOTICE;
       }
@@ -438,7 +446,7 @@ export function revokeAllSessionsAndSignOut() {
     let pushRemoved = true;
     setPushRegistrationPaused(entry?.account, true);
     try {
-      await removePushForSession(entry?.account, entry?.pair?.accessToken).catch(() => {
+      await removePushForSession(entry?.account, entry?.pair).catch(() => {
         pushRemoved = false;
       });
       if (version !== expectedVersion) throw new CanceledError();

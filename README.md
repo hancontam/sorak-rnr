@@ -1,94 +1,98 @@
-# Minimal Template
+# Sorak Mobile
 
-This is a [React Native](https://reactnative.dev/) project built with [Expo](https://expo.dev/) and [React Native Reusables](https://reactnativereusables.com).
+Ứng dụng di động của hệ thống quản lý Trường Mầm non Sorak, dành cho **giáo viên** và **phụ huynh**. Ban giám hiệu dùng bản web. App dùng chung backend với bản web, và quyền của từng tài khoản do backend quyết định.
 
-It was initialized using the following command, then the `Minimal (Nativewind)` template was selected when prompted:
+## Tính năng
 
-```bash
-npx @react-native-reusables/cli@latest init
+**Giáo viên** (phụ trách một lớp):
+
+- Tổng quan lớp: sĩ số, điểm danh, sức khỏe, đón trẻ trong ngày; hồ sơ, biểu đồ tăng trưởng (WHO) và báo cáo từng bé.
+- Thời khóa biểu theo tuần. Ghi nhận trong ngày: điểm danh, số đo sức khỏe, đón trẻ, đánh giá từng hoạt động giáo dục.
+- Kết quả học tập của cả lớp (Sổ bé ngoan theo tuần/tháng, kết quả học kỳ) dạng bảng, có tìm kiếm và lọc theo trạng thái.
+- Ủy quyền đón trẻ: duyệt hoặc từ chối đơn của phụ huynh, tạo đơn đã duyệt.
+
+**Phụ huynh** (mỗi tài khoản gắn với một bé):
+
+- Hồ sơ trẻ: thông tin, sức khỏe, điểm danh, đánh giá hoạt động theo học kỳ.
+- Thời khóa biểu (chỉ xem) và nhật ký hoạt động ở trường.
+- Sổ bé ngoan, gửi phản hồi cho giáo viên; kết quả học kỳ đã công bố.
+- Tạo và hủy đơn ủy quyền đón con, kèm ảnh người đón.
+- Thêm nhiều tài khoản (mỗi bé một tài khoản) và chuyển qua lại trên cùng máy.
+
+**Chung:**
+
+- Đăng nhập, xác thực hai lớp (OTP), đổi mật khẩu, quản lý phiên đăng nhập trên các thiết bị.
+- Hộp thông báo chia hai tab Bản tin trường / Hoạt động lớp; thông báo đẩy (push). Bấm vào push sẽ mở đúng tài khoản của bé.
+- Giao diện sáng/tối/tự động; tiếng Việt và tiếng Anh.
+
+## Công nghệ
+
+| Phần       | Thư viện                                                                                      |
+| ---------- | --------------------------------------------------------------------------------------------- |
+| Nền tảng   | Expo SDK 57, React Native 0.86, JavaScript (JSX)                                              |
+| Điều hướng | Expo Router: tab riêng cho từng vai trò, Stack cho màn chi tiết                               |
+| Giao diện  | React Native Reusables (RNR), NativeWind 4 (Tailwind CSS), Lucide icons                       |
+| Dữ liệu    | TanStack Query (dữ liệu từ server, cache), Axios (HTTP), Zustand (trạng thái phiên trong RAM) |
+| Lưu trữ    | Expo SecureStore (token đăng nhập), AsyncStorage (tùy chọn giao diện, ngôn ngữ)               |
+| Thông báo  | Expo Notifications (Expo Push Token)                                                          |
+
+## Cấu trúc thư mục
+
+```text
+app/                  Route của Expo Router: layout, phân quyền theo vai trò, màn mỏng chỉ export screen
+  (teacher)/          Nhóm màn của giáo viên
+  (parent)/           Nhóm màn của phụ huynh
+  auth/, settings/    Đăng nhập và cài đặt
+features/<tính năng>/ Mã theo nghiệp vụ: auth, home, daily, report, assessment, pickup, notification, settings
+  screens/            Màn hình: bố cục, sự kiện, điều hướng
+  components/         Giao diện riêng của tính năng, nhận dữ liệu qua props
+  hooks/              Query/mutation và điều phối thao tác
+  api/                Gọi endpoint, kiểm tra và chuyển đổi response
+  utils/, store/      Hàm thuần và state Zustand của tính năng
+components/ui/        Component nền RNR (Button, Card, Badge, Input…)
+components/shared/    Component ghép dùng chung (bảng dữ liệu, lịch, bộ lọc…)
+shared/api/           Axios client chung, xử lý phiên và làm mới token
+shared/storage/       Lớp bọc SecureStore/AsyncStorage
+shared/i18n/          Bản dịch tiếng Anh
+assets/images/        Ảnh minh họa
 ```
 
-## Getting Started
+## Cài đặt và chạy
 
-Bản làm lại dùng Expo SDK 57, React Native 0.86.3, NativeWind 4 và RNR.
+Yêu cầu: Node.js 20 trở lên, Android Studio (Android SDK, máy ảo hoặc điện thoại bật USB debugging). Chạy trên iOS cần máy Mac có Xcode.
 
-Trong worktree này, cài dependency theo lockfile và tạo cấu hình local trước lần chạy đầu:
+1. Cài thư viện theo lockfile:
 
-```powershell
-npm ci
-if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
-```
+   ```bash
+   npm ci
+   ```
 
-`EXPO_PUBLIC_API_URL` dùng server test2 trong `.env.example`. `.env.local` không đưa vào Git;
-biến có tiền tố `EXPO_PUBLIC_` được đưa vào app, không đặt mật khẩu/token trong đó.
-Khởi động lại Expo sau khi thay đổi cấu hình môi trường.
+2. Tạo file cấu hình môi trường từ mẫu (file này không đưa lên Git):
 
-Quy ước và luồng dữ liệu: [AGENTS.md](./AGENTS.md), [docs/architecture.md](./docs/architecture.md).
-Các hàm storage mới là nền cho bước auth/Settings, chưa nối lưu phiên hoặc lưu theme vào màn starter.
+   ```bash
+   cp .env.example .env.local
+   ```
 
-To run the development server:
+   `EXPO_PUBLIC_API_URL` trỏ tới server thử nghiệm `https://test2mamnonhontre.sorak.io.vn/api`. Biến có tiền tố `EXPO_PUBLIC_` được đóng vào app, vì vậy không đặt mật khẩu hay token trong file này.
 
-```bash
-    npm run dev
-    # or
-    yarn dev
-    # or
-    pnpm dev
-    # or
-    bun dev
-```
+3. Build và chạy bản phát triển trên Android:
 
-This will start the Expo Dev Server. Open the app in:
+   ```bash
+   npx expo run:android
+   ```
 
-- **iOS**: press `i` to launch in the iOS simulator _(Mac only)_
-- **Android**: press `a` to launch in the Android emulator
-- **Web**: press `w` to run in a browser
+   Lệnh này tạo thư mục `android/`, build app rồi cài lên máy ảo hoặc điện thoại. App dùng một số module native (thông báo đẩy, bàn phím, chọn ảnh), nên cần bản build này thay cho Expo Go.
 
-Có thể thử starter bằng [Expo Go](https://expo.dev/go) hỗ trợ SDK 57. Nếu dùng dev client,
-cần binary được build với SDK 57; dev client SDK 56 không được cập nhật native module chỉ bằng reload Metro.
+4. Những lần sau chỉ cần khởi động Metro:
 
-Trên máy Windows hiện tại, React Native DevTools còn báo lỗi cài đặt/khởi chạy trong khi Metro
-vẫn khởi động và xuất bundle được. Đây là giới hạn của công cụ debug đang được ghi nhận;
-chưa xác định nguyên nhân gốc và chưa coi là đã sửa. Không cần sửa source ứng dụng để ẩn thông báo này.
+   ```bash
+   npm run dev
+   ```
 
-## Adding components
+   Mở app đã cài trên máy, app sẽ tải mã từ Metro. Sau khi đổi `.env.local`, khởi động lại Metro.
 
-You can add more reusable components using the CLI:
+Đăng nhập bằng tài khoản giáo viên hoặc phụ huynh mà nhà trường cấp trên server thử nghiệm. Tài khoản Ban giám hiệu sẽ được hướng dẫn dùng bản web.
 
-```bash
-npx react-native-reusables/cli@latest add [...components]
-```
+### Thông báo đẩy
 
-> e.g. `npx react-native-reusables/cli@latest add input textarea`
-
-If you don't specify any component names, you'll be prompted to select which components to add interactively. Use the `--all` flag to install all available components at once.
-
-## Project Features
-
-- ⚛️ Built with [Expo Router](https://expo.dev/router)
-- 🎨 Styled with [Tailwind CSS](https://tailwindcss.com/) via [Nativewind](https://www.nativewind.dev/)
-- 📦 UI powered by [React Native Reusables](https://github.com/founded-labs/react-native-reusables)
-- 🚀 New Architecture enabled
-- 🔥 Edge to Edge enabled
-- 📱 Runs on iOS, Android, and Web
-
-## Learn More
-
-To dive deeper into the technologies used:
-
-- [React Native Docs](https://reactnative.dev/docs/getting-started)
-- [Expo Docs](https://docs.expo.dev/)
-- [Nativewind Docs](https://www.nativewind.dev/)
-- [React Native Reusables](https://reactnativereusables.com)
-
-## Deploy with EAS
-
-The easiest way to deploy your app is with [Expo Application Services (EAS)](https://expo.dev/eas).
-
-- [EAS Build](https://docs.expo.dev/build/introduction/)
-- [EAS Updates](https://docs.expo.dev/eas-update/introduction/)
-- [EAS Submit](https://docs.expo.dev/submit/introduction/)
-
----
-
-If you enjoy using React Native Reusables, please consider giving it a ⭐ on [GitHub](https://github.com/founded-labs/react-native-reusables). Your support means a lot!
+Push chỉ hoạt động trên bản build (không chạy trong Expo Go, web hoặc máy ảo iOS). Expo project ID đã có trong `app.json`. Android dùng cấu hình Firebase trong `google-services.json`. Có thể đổi hai giá trị này bằng `EAS_PROJECT_ID` và `GOOGLE_SERVICES_JSON` trong `.env.local` (xem `.env.example`).

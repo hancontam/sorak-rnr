@@ -907,6 +907,10 @@ export const english = {
   'Tháng {month}/{year}': '{month}/{year}',
   'Chuyên cần lớp': 'Class attendance',
   'Chọn tháng': 'Choose month',
+  'Phóng to biểu đồ {title}': 'Enlarge chart: {title}',
+  'Kéo ngang để xem cả biểu đồ': 'Swipe sideways to see the whole chart',
+  'Các đợt đo gần nhau được dãn ra để dễ nhìn; tháng tuổi thật ghi ở phần chi tiết.':
+    'Measurements taken close together are spread out to stay readable; the actual age is shown in the details.',
   'Giáo viên lớp': 'Class teacher',
   'Giáo viên lớp ({count})': 'Class teachers ({count})',
   'Xem chi tiết chuyên cần lớp': 'View class attendance details',

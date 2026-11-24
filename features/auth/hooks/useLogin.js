@@ -1,11 +1,16 @@
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
+import { serverMessage } from '@/shared/api/server-message';
+
 import { login, verifyLoginOtp } from '../api/auth.api';
 import { acceptLogin } from '../session';
 import { useAuthStore } from '../store/auth.store';
 
 function errorMessage(error, isOtp) {
+  // Câu của máy chủ nói rõ lý do (sai mật khẩu, tài khoản bị khóa, OTP còn mấy lần thử…).
+  const fromServer = serverMessage(error);
+  if (fromServer) return fromServer;
   switch (error.response?.status) {
     case 400:
       return isOtp

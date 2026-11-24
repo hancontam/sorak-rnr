@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { isMobileRole } from '@/features/auth/utils/auth-roles';
+import { serverMessage } from '@/shared/api/server-message';
 
 import { getNotifications, markNotificationRead } from '../api/notification.api';
 
@@ -51,9 +52,12 @@ export function useNotificationReadActions(query) {
         setError('Một số thông báo vừa chọn vẫn chưa được đánh dấu đã đọc. Hãy thử lại.');
       } else return true;
       return false;
-    } catch {
+    } catch (failure) {
       if (useAuthStore.getState().user === user)
-        setError('Chưa xác nhận được thay đổi. Hãy tải lại danh sách trước khi thử lại.');
+        setError(
+          serverMessage(failure) ||
+            'Chưa xác nhận được thay đổi. Hãy tải lại danh sách trước khi thử lại.'
+        );
       return false;
     } finally {
       writing.current = false;

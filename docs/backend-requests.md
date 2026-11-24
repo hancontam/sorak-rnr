@@ -128,6 +128,18 @@ Ngày 09/11 gọi lại `GET /parent/schedule` trên test2 cho ngày 02/11: resp
 
 **Nghiệm thu:** sau khi phiên GV trên máy bị thu hồi, test push của GV không tới máy đó.
 
+## BE-11 — Không duyệt được đơn ủy quyền đã bắt đầu
+
+**Trạng thái:** đề xuất ngày 24/11.
+
+**Cần gì/vì sao:** `PATCH /attendance/classes/:classId/authorizations/:authId/approve` gọi lại `validatePickupQuota` của bước tạo đơn. Hàm này từ chối khi `startDate < hôm nay`. Vì vậy đơn PH gửi trước nhưng GV mở ra duyệt sau ngày bắt đầu (vẫn còn trong thời hạn) không duyệt được, chỉ còn cách từ chối.
+
+**Đề xuất:** khi duyệt, chỉ chặn đơn đã hết hạn (`endDate < hôm nay`). Kiểm tra giới hạn người đón trên các ngày còn lại (từ `max(startDate, hôm nay)` tới `endDate`).
+
+**Bằng chứng:** test2, 24/11, GV CB26001 duyệt đơn PENDING của HS26020 (21/11–29/11): 400 `VALIDATION_ERROR` "Không thể tạo đơn ủy quyền cho ngày trong quá khứ." (traceId `3b827033-0faf-4a40-97df-e7ea58a513d8`); đọc lại vẫn `PENDING`. Người dùng gặp cùng lỗi với đơn 22/11–16/01 của HS26022.
+
+**Nghiệm thu:** duyệt được đơn đang trong thời hạn có ngày bắt đầu đã qua; đơn đã hết hạn vẫn bị từ chối với thông báo rõ.
+
 ## Mẫu yêu cầu mới
 
 Vai trò/flow bị chặn; cần gì/vì sao; bằng chứng ngày/môi trường; endpoint hiện có và phần thiếu; request/response đề xuất; quyền/empty/error; dữ liệu test; nghiệm thu; ảnh hưởng thời hạn; phản hồi BE. Không ghi bug client, nghiệp vụ đã bỏ (xin nghỉ/ghi học kỳ GV) hoặc điều chưa điều tra thành lỗi BE chắc chắn.

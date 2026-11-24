@@ -1,3 +1,5 @@
+import { serverMessage } from '@/shared/api/server-message';
+
 import { TEACHER_ROUTINES } from './routine-slots';
 import { calendarDate } from './schedule-date';
 
@@ -239,6 +241,9 @@ export function childDayResults(data, date, routineSlot) {
 }
 
 export function timetableError(error) {
+  if (error?.response?.status === 401) return 'Đăng nhập đã hết hạn.';
+  const fromServer = serverMessage(error);
+  if (fromServer) return fromServer;
   if (error?.response?.status === 403)
     return 'Tài khoản chưa được cấp quyền xem thời khóa biểu này.';
   if (error?.response?.status === 401) return 'Đăng nhập đã hết hạn.';

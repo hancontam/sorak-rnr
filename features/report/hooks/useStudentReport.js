@@ -4,7 +4,7 @@ import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import { assignedClass } from '@/features/auth/utils/class-assignment';
 
-import { getHomeroomTeacher, getParentReport, getStudentReport } from '../api/report.api';
+import { getClassTeachers, getParentReport, getStudentReport } from '../api/report.api';
 
 export function useStudentReport(studentId, semester) {
   const user = useAuthStore((state) => state.user);
@@ -36,13 +36,13 @@ export function useParentReport(semester) {
     enabled: user?.role === AUTH_ROLES.parent && Boolean(studentId),
   });
   const teacherQuery = useQuery({
-    queryKey: ['report', user?.id, 'homeroom-teacher', studentId],
-    queryFn: ({ signal }) => getHomeroomTeacher(signal),
+    queryKey: ['report', user?.id, 'class-teachers', studentId],
+    queryFn: ({ signal }) => getClassTeachers(signal),
     enabled: user?.role === AUTH_ROLES.parent && Boolean(studentId),
   });
   return {
     query,
-    teacher: teacherQuery.data,
+    teachers: teacherQuery.data,
     error: studentId
       ? ''
       : 'Tài khoản chưa được liên kết với hồ sơ trẻ. Vui lòng liên hệ nhà trường.',

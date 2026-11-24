@@ -29,7 +29,7 @@ const semesters = [
   ['ALL', 'Cả năm'],
 ];
 
-export function StudentReport({ query, error, semester, onSemesterChange, parentView, teacher }) {
+export function StudentReport({ query, error, semester, onSemesterChange, parentView, teachers }) {
   const t = useTranslation();
   const locale = useLocale();
   const [section, setSection] = useState('profile');
@@ -96,6 +96,7 @@ export function StudentReport({ query, error, semester, onSemesterChange, parent
             {query.isError ? (
               <ReportState error={reportError(query.error)} onRetry={query.refetch} />
             ) : null}
+            <SectionSummary section={section} report={report} />
             {section === 'health' ? (
               <>
                 <WhoGrowthChart student={report.student} history={records} metric="height" />
@@ -104,32 +105,6 @@ export function StudentReport({ query, error, semester, onSemesterChange, parent
                   {t('Lịch sử đo sức khỏe · {count} đợt', { count: records.length })}
                 </Text>
               </>
-            ) : null}
-            {section === 'attendance' ? (
-              <View className="flex-row gap-3">
-                <Stat label={t('Ngày có bản ghi')} value={String(records.length)} />
-                <Stat
-                  label={t('Chuyên cần')}
-                  value={
-                    records.length && typeof report.attendance.attendanceRate === 'number'
-                      ? (report.attendance.attendanceRate / 100).toLocaleString(locale, {
-                          style: 'percent',
-                          maximumFractionDigits: 2,
-                        })
-                      : '—'
-                  }
-                />
-              </View>
-            ) : null}
-            {section === 'assessments' ? (
-              <Text className="text-xs text-muted-foreground">
-                {t('{count} bản ghi đánh giá hoạt động trong kỳ', { count: records.length })}
-              </Text>
-            ) : null}
-            {section === 'authorizations' ? (
-              <Text className="text-xs text-muted-foreground">
-                {t('{count} đơn trong kỳ · Chỉ xem lịch sử', { count: records.length })}
-              </Text>
             ) : null}
           </View>
         }
@@ -141,7 +116,7 @@ export function StudentReport({ query, error, semester, onSemesterChange, parent
         }
         renderItem={({ item }) =>
           section === 'profile' ? (
-            <StudentProfile report={report} parentView={parentView} teacher={teacher} />
+            <StudentProfile report={report} parentView={parentView} teachers={teachers} />
           ) : (
             <ReportRecord section={section} record={item} />
           )
@@ -151,12 +126,77 @@ export function StudentReport({ query, error, semester, onSemesterChange, parent
   );
 }
 
-// Số liệu tóm tắt từ báo cáo (mono), không tự suy ra khi máy chủ không trả.
-function Stat({ label, value }) {
+const wholeCount = (value) => (Number.isInteger(value) && value >= 0 ? value : null);
+
+// Tóm tắt đầu mỗi tab như thẻ thống kê của web, lấy đúng số máy chủ trả trong báo cáo; trường nào
+// thiếu thì bỏ phần đó, không tự đếm lại từ lịch sử.
+function SectionSummary({ section, report }) {
+  const t = useTranslation();
+  const locale = useLocale();
+  const data = report[section] || {};
+  const number = (value, digits = 1) =>
+    Number(value).toLocaleString(locale, { maximumFractionDigits: digits });
+  let label = '';
+  let value = '';
+  if (section === 'health') {
+    const total = wholeCount(data.totalChecks);
+    const latest = data.latest;
+    label = total === null ? t('Sức khỏe') : t('Sức khỏe ({count} đợt)', { count: total });
+    value =
+      latest && Number(latest.height) > 0 && Number(latest.weight) > 0
+        ? `${number(latest.height)} cm · ${number(latest.weight)} kg`
+        : t('Chưa có dữ liệu');
+  } else if (section === 'attendance') {
+    const total = wholeCount(data.totalDays);
+    const present = wholeCount(data.presentCount);
+    const rate = typeof data.attendanceRate === 'number' ? data.attendanceRate : null;
+    label =
+      total && rate !== null
+        ? t('Chuyên cần ({rate}%)', { rate: number(rate, 2) })
+        : t('Chuyên cần');
+    value =
+      total && present !== null
+        ? t('{present}/{total} buổi có mặt', { present, total })
+        : t('Chưa có dữ liệu');
+  } else if (section === 'assessments') {
+    const total = wholeCount(data.totalAssessed);
+    const achieved = wholeCount(data.achievedCount);
+    const outstanding = wholeCount(data.outstandingCount);
+    const notAchieved = wholeCount(data.notAchievedCount);
+    label = total === null ? t('Đánh giá') : t('Đánh giá ({count} tiết)', { count: total });
+    value =
+      achieved === null || outstanding === null
+        ? t('Chưa có dữ liệu')
+        : [
+            t('{count} Đạt', { count: achieved }),
+            t('{count} Vượt trội', { count: outstanding }),
+            notAchieved ? t('{count} Chưa đạt', { count: notAchieved }) : '',
+          ]
+            .filter(Boolean)
+            .join(' · ');
+  } else if (section === 'authorizations') {
+    const total = wholeCount(data.total);
+    const approved = wholeCount(data.approvedCount);
+    const pending = wholeCount(data.pendingCount);
+    label = total === null ? t('Ủy quyền') : t('Ủy quyền ({count} đơn)', { count: total });
+    value =
+      approved === null
+        ? t('Chưa có dữ liệu')
+        : [
+            t('{count} Đã duyệt', { count: approved }),
+            pending ? t('{count} Chờ duyệt', { count: pending }) : '',
+          ]
+            .filter(Boolean)
+            .join(' · ');
+  } else {
+    return null;
+  }
   return (
-    <Card className="min-w-0 flex-1 gap-1 px-4 py-3">
-      <Text className="text-2xs text-muted-foreground">{label}</Text>
-      <Text className="font-mono text-lg font-semibold">{value}</Text>
+    <Card className="gap-1 px-4 py-3">
+      <Text className="text-2xs font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </Text>
+      <Text className="font-mono text-sm font-semibold">{value}</Text>
     </Card>
   );
 }

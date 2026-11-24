@@ -2,6 +2,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useRef, useState } from 'react';
 
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { serverMessage } from '@/shared/api/server-message';
 
 import { uploadPickupPhoto } from '../api/pickup-photo.api';
 
@@ -37,7 +38,7 @@ export function usePickupPhoto() {
         setError(
           failure.response?.status === 413
             ? 'Ảnh quá lớn. Hãy chọn ảnh dưới 2 MB.'
-            : 'Chưa tải được ảnh. Thử lại hoặc bỏ ảnh trước khi gửi đơn.'
+            : serverMessage(failure) || 'Chưa tải được ảnh. Thử lại hoặc bỏ ảnh trước khi gửi đơn.'
         );
       }
     } finally {

@@ -119,7 +119,9 @@ export default function PickupRequestsScreen() {
         <AlertDescription className="text-xs">
           {query.isError && !needsReload
             ? t(timetableError(query.error))
-            : t('Cần tải lại dữ liệu mới nhất trước khi làm tiếp.')}
+            : message?.error
+              ? t(message.text)
+              : t('Cần tải lại dữ liệu mới nhất trước khi làm tiếp.')}
         </AlertDescription>
         {needsReload || allowed ? (
           <Button
@@ -262,7 +264,10 @@ export default function PickupRequestsScreen() {
           <PickupRequestTable
             requests={rows}
             isParent={isParent}
-            onOpen={(request) => setOpenId(request.id)}
+            onOpen={(request) => {
+              requests.clearMessage();
+              setOpenId(request.id);
+            }}
           />
         )}
       />
@@ -286,6 +291,7 @@ export default function PickupRequestsScreen() {
         isParent={isParent}
         disabled={disabled}
         saving={saving}
+        error={message?.error ? t(message.text) : ''}
         onAction={(action, body) => act(action, openId, body)}
         onClose={() => setOpenId(null)}
       />

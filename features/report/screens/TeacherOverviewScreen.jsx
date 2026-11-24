@@ -13,8 +13,11 @@ import { cn } from '@/lib/utils';
 import { useLocale, useTranslation } from '@/shared/i18n/useLanguage';
 
 import { IllustrationCard } from '@/components/shared/IllustrationCard';
+import { ClassAttendanceRibbon } from '../components/ClassAttendanceRibbon';
 import { ReportState } from '../components/ReportState';
+import { useClassAttendance } from '../hooks/useClassAttendance';
 import { useClassStudents } from '../hooks/useClassStudents';
+import { currentSchoolMonth, periodLabel } from '../utils/attendance-period';
 import {
   formatDate,
   formatGender,
@@ -41,7 +44,10 @@ export default function TeacherOverviewScreen() {
   const [search, setSearch] = useState('');
   const { assignment, query, transferred } = useClassStudents({ withTransferred: true });
   const [showTransferred, setShowTransferred] = useState(false);
-  const pull = usePullToRefresh(query.refetch);
+  // Chuyên cần lớp tháng hiện tại, như dải "Chuyên cần lớp" trên trang Báo cáo của web.
+  const [month] = useState(() => ({ type: 'month', ...currentSchoolMonth() }));
+  const attendance = useClassAttendance(month);
+  const pull = usePullToRefresh(() => Promise.all([query.refetch(), attendance.query.refetch()]));
   const students = useMemo(
     () =>
       (query.data?.students || []).filter((s) =>
@@ -86,6 +92,13 @@ export default function TeacherOverviewScreen() {
                 subtitle={t('{count} học sinh', { count: query.data.students.length })}
               />
             ) : null}
+            <ClassAttendanceRibbon
+              periodLabel={periodLabel(month, t)}
+              stats={attendance.query.data?.stats}
+              loading={attendance.query.isPending}
+              error={attendance.query.isError ? reportError(attendance.query.error) : ''}
+              onPress={() => router.push('/(teacher)/class-attendance')}
+            />
             <View className="gap-2">
               <Text className="text-sm font-semibold">{t('Danh sách học sinh')}</Text>
               <View className="justify-center">

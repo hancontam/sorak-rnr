@@ -1,11 +1,15 @@
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
+import { serverMessage } from '@/shared/api/server-message';
+
 import { requestPasswordReset, resetPassword, verifyPasswordResetOtp } from '../api/auth.api';
 
 const RESEND_SECONDS = 60;
 
 function recoveryError(error, action) {
+  const fromServer = serverMessage(error);
+  if (fromServer) return fromServer;
   const status = error.response?.status;
   if (status === 403) return 'Tài khoản chưa được phép thao tác. Vui lòng liên hệ nhà trường.';
   if (status === 404 && action === 'send')

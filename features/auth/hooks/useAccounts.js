@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
 
+import { serverMessage } from '@/shared/api/server-message';
+
 import { signOut, switchAccount } from '../session';
 import { useAuthStore } from '../store/auth.store';
 import { AUTH_ROLES } from '../utils/auth-roles';
@@ -23,7 +25,11 @@ export function useAccounts() {
       return true;
     } catch (failure) {
       if (failure.code !== 'ERR_CANCELED')
-        setError('Chưa thực hiện được thao tác. Kiểm tra kết nối rồi thử lại.');
+        setError(
+          serverMessage(failure) ||
+            (!failure.isAxiosError && failure.message) ||
+            'Chưa thực hiện được thao tác. Kiểm tra kết nối rồi thử lại.'
+        );
       return false;
     } finally {
       pending.current = false;

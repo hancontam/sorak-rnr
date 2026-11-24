@@ -39,6 +39,19 @@ export function growthChartData(student, history, metric) {
   return { reference, points, outside, invalid, min, max };
 }
 
+// Vị trí ngang của các điểm đo như web: các đợt đo cách nhau vài ngày nằm chồng lên nhau trên trục
+// 48 tháng, nên đẩy điểm sau sang phải cho cách điểm trước ít nhất `gap`, rồi kéo lùi từ cuối để không
+// vượt mép phải. Chỉ đổi vị trí vẽ; tháng tuổi thật vẫn hiện ở phần chi tiết bên dưới.
+export function spreadPoints(points, x, gap, right) {
+  const xs = points.map((point) => x(point.age));
+  for (let i = 1; i < xs.length; i++) xs[i] = Math.max(xs[i], xs[i - 1] + gap);
+  if (xs.length && xs[xs.length - 1] > right) {
+    xs[xs.length - 1] = right;
+    for (let i = xs.length - 2; i >= 0; i--) xs[i] = Math.min(xs[i], xs[i + 1] - gap);
+  }
+  return xs;
+}
+
 // Màu biểu đồ thống nhất web; vùng khoa học giữ cùng màu trên nền trắng ở cả hai theme.
 export const GROWTH_COLORS = {
   high: '#FEF9C3',
@@ -50,4 +63,5 @@ export const GROWTH_COLORS = {
   line: '#64748B',
   background: '#FFFFFF',
   text: '#334155',
+  activeLabel: '#0F172A',
 };

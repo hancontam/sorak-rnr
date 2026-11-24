@@ -1,7 +1,9 @@
+import { CircleAlert } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 
 import { AccountAvatar } from '@/components/shared/AccountAvatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { BottomSheet, BottomSheetInput } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
@@ -32,7 +34,15 @@ function Field({ label, value, mono }) {
 
 // Chi tiết một đơn ủy quyền khi bấm dòng trong bảng. Sheet là bước xác nhận: giáo viên duyệt hoặc
 // nhập lý do rồi từ chối, phụ huynh hủy đơn đang chờ; không mở thêm hộp thoại hỏi lại.
-export function PickupRequestSheet({ request, isParent, disabled, saving, onAction, onClose }) {
+export function PickupRequestSheet({
+  request,
+  isParent,
+  disabled,
+  saving,
+  error,
+  onAction,
+  onClose,
+}) {
   const t = useTranslation();
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
@@ -102,6 +112,12 @@ export function PickupRequestSheet({ request, isParent, disabled, saving, onActi
               <Field label={t('Lý do từ chối')} value={item.rejectedReason} />
             ) : null}
           </View>
+          {error ? (
+            // Lý do máy chủ từ chối thao tác (ví dụ quy tắc ngày của đơn) hiện ngay trong sheet.
+            <Alert variant="destructive" icon={CircleAlert}>
+              <AlertDescription className="text-xs">{error}</AlertDescription>
+            </Alert>
+          ) : null}
           {pending && isParent ? (
             <Button
               variant="destructive-soft"

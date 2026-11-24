@@ -21,6 +21,7 @@ import { useAuthStore } from '@/features/auth/store/auth.store';
 import { AUTH_ROLES } from '@/features/auth/utils/auth-roles';
 import { usePushSettings } from '@/features/notification/hooks/usePushPreference';
 import { useTranslation } from '@/shared/i18n/useLanguage';
+import { serverMessage } from '@/shared/api/server-message';
 
 import { SettingsContent } from '../components/SettingsContent';
 import { SettingsRow, SettingsSection } from '../components/SettingsRow';
@@ -44,11 +45,12 @@ export default function NotificationSettingsScreen() {
       if (result === 'enabled') toast.success(t('Đã bật thông báo trên máy này'));
       else if (result === 'blocked') setBlocked(true);
       else if (result === 'denied') toast(t('Chưa bật thông báo vì máy chưa được cấp quyền.'));
-    } catch {
+    } catch (failure) {
       toast.error(
-        next
-          ? t('Chưa bật được thông báo. Hãy thử lại.')
-          : t('Chưa tắt được thông báo. Hãy thử lại.')
+        serverMessage(failure) ||
+          (next
+            ? t('Chưa bật được thông báo. Hãy thử lại.')
+            : t('Chưa tắt được thông báo. Hãy thử lại.'))
       );
     }
   }

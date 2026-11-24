@@ -1,3 +1,5 @@
+import { serverMessage } from '@/shared/api/server-message';
+
 export function displayValue(value) {
   return value === null || value === undefined || value === '' ? null : String(value);
 }
@@ -98,6 +100,9 @@ export const authorizationStatus = (value) =>
   })[value] || 'Chưa rõ trạng thái';
 
 export function reportError(error) {
+  if (error?.response?.status === 401) return 'Đăng nhập đã hết hạn.';
+  const fromServer = serverMessage(error);
+  if (fromServer) return fromServer;
   if (error?.response?.status === 403) return 'Bạn chưa được cấp quyền xem dữ liệu này.';
   if (error?.response?.status === 404) return 'Chưa tìm thấy hồ sơ hoặc lớp học này.';
   if (error?.response?.status === 401) return 'Đăng nhập đã hết hạn.';

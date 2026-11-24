@@ -170,9 +170,12 @@ export function usePickupRequests({ enabled = true, date = schoolToday(), creati
       return confirmed;
     } catch (error) {
       if (!isCurrent()) return false;
-      if (error.response?.status >= 400 && error.response?.status < 500)
-        uncertainCreate.current = false;
+      const status = error.response?.status;
+      if (status >= 400 && status < 500) uncertainCreate.current = false;
       const detail = error.response?.data?.message;
+      // 400/422: máy chủ từ chối theo quy tắc nghiệp vụ, đơn không đổi. Hiện đúng lý do và cho thao tác
+      // tiếp (ví dụ từ chối đơn); lỗi khác (mạng, 409, 5xx) chưa biết kết quả nên vẫn bắt tải lại.
+      const unchanged = (status === 400 || status === 422) && typeof detail === 'string';
       setMessage({
         error: true,
         text:
@@ -180,7 +183,7 @@ export function usePickupRequests({ enabled = true, date = schoolToday(), creati
             ? detail
             : 'Chưa xác nhận được thao tác. Hãy tải lại danh sách trước khi gửi lại.',
       });
-      setNeedsReload(true);
+      setNeedsReload(!unchanged);
       return false;
     } finally {
       running.current = false;
@@ -197,6 +200,7 @@ export function usePickupRequests({ enabled = true, date = schoolToday(), creati
     saving,
     needsReload,
     message,
+    clearMessage: () => setMessage(null),
     act,
     reload,
   };

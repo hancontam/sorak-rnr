@@ -16,6 +16,7 @@ export default function TeacherLayout() {
       <Stack.Screen name="pickup-requests" options={{ title: t('Ủy quyền đón trẻ') }} />
       <Stack.Screen name="learning-results/[kind]" options={{ title: t('Kết quả học tập') }} />
       <Stack.Screen name="notifications" options={{ title: t('Thông báo') }} />
+      <Stack.Screen name="class-attendance" options={{ title: t('Chuyên cần lớp') }} />
     </Stack>
   );
 }

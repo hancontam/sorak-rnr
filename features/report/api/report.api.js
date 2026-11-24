@@ -78,15 +78,49 @@ export async function getParentReport({ studentId, semester, signal }) {
   return readReport(data, studentId);
 }
 
-// Giáo viên chủ nhiệm của bé (từ hồ sơ PH) để phụ huynh liên hệ; null khi lớp chưa có giáo viên.
-export async function getHomeroomTeacher(signal) {
-  const data = readData(await apiClient.get('/parent/profile', { signal }));
-  const teacher = data.primaryTeacher;
-  if (!teacher || typeof teacher !== 'object' || !teacher.fullName) return null;
-  return {
-    fullName: teacher.fullName,
-    phone: teacher.phone || '',
-    email: teacher.email || '',
-    avatarUrl: teacher.avatarUrl || '',
-  };
+// Giáo viên của lớp bé đang học để phụ huynh liên hệ. Một lớp có thể có nhiều giáo viên phụ trách
+// (backend cho tối đa 3, BR-38): đọc `teachers` của /parent/home như web; bản cũ chỉ có
+// `primaryTeacher`. Mảng rỗng khi lớp chưa có giáo viên.
+export async function getClassTeachers(signal) {
+  const data = readData(await apiClient.get('/parent/home', { signal }));
+  const list = Array.isArray(data.teachers)
+    ? data.teachers
+    : data.primaryTeacher
+      ? [data.primaryTeacher]
+      : [];
+  return list
+    .filter((teacher) => teacher && typeof teacher === 'object' && teacher.fullName)
+    .map((teacher, index) => ({
+      id: String(teacher.id || teacher.employeeCode || index),
+      fullName: teacher.fullName,
+      phone: teacher.phone || '',
+      email: teacher.email || '',
+      avatarUrl: teacher.avatarUrl || '',
+    }));
+}
+
+// Chuyên cần cả lớp theo tháng, học kỳ hoặc cả năm (cùng endpoint web dùng cho "Chuyên cần lớp").
+export async function getClassAttendanceStats({ classId, period, signal }) {
+  const params =
+    period.type === 'month'
+      ? { period: 'month', month: period.month, year: period.year }
+      : period.type === 'semester'
+        ? { period: 'semester', semester: period.semester }
+        : { period: 'year' };
+  const data = readData(
+    await apiClient.get(`/attendance/classes/${encodeURIComponent(classId)}/stats`, {
+      params,
+      signal,
+    })
+  );
+  if (
+    !data.stats ||
+    typeof data.stats !== 'object' ||
+    !Array.isArray(data.studentsSummary) ||
+    !Array.isArray(data.dailyTrend) ||
+    data.studentsSummary.some((student) => !student?.id)
+  ) {
+    throw new Error('Thống kê chuyên cần chưa đúng định dạng.');
+  }
+  return data;
 }

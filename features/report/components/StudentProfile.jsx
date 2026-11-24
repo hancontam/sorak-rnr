@@ -12,8 +12,8 @@ import { ReportFields } from './ReportFields';
 import { ReportState } from './ReportState';
 
 // Giáo viên xem hồ sơ có nút gọi phụ huynh; phụ huynh (parentView) không gọi chính mình mà có
-// thẻ Giáo viên chủ nhiệm với nút gọi giáo viên.
-export function StudentProfile({ report, parentView = false, teacher }) {
+// thẻ Giáo viên lớp (mọi giáo viên phụ trách) với nút gọi giáo viên.
+export function StudentProfile({ report, parentView = false, teachers = [] }) {
   const t = useTranslation();
   const locale = useLocale();
   const { student } = report;
@@ -70,27 +70,35 @@ export function StudentProfile({ report, parentView = false, teacher }) {
           </ReportFields>
         ))
       )}
-      {parentView && teacher ? (
+      {parentView && teachers?.length ? (
+        // Lớp có thể có nhiều giáo viên phụ trách (tối đa 3); web gọi chung là Giáo viên lớp.
         <>
-          <Text className="pt-1 text-sm font-semibold">{t('Giáo viên chủ nhiệm')}</Text>
-          <ReportFields
-            title={teacher.fullName}
-            fields={[
-              ['Số điện thoại', teacher.phone, { mono: true }],
-              ...(teacher.email ? [['Email', teacher.email]] : []),
-            ]}>
-            {teacher.phone ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="self-start"
-                onPress={() => call(teacher.phone)}
-                accessibilityLabel={t('Gọi {name}', { name: teacher.fullName })}>
-                <Icon as={Phone} size={14} />
-                <Text>{t('Gọi giáo viên')}</Text>
-              </Button>
-            ) : null}
-          </ReportFields>
+          <Text className="pt-1 text-sm font-semibold">
+            {t(teachers.length > 1 ? 'Giáo viên lớp ({count})' : 'Giáo viên lớp', {
+              count: teachers.length,
+            })}
+          </Text>
+          {teachers.map((teacher) => (
+            <ReportFields
+              key={teacher.id}
+              title={teacher.fullName}
+              fields={[
+                ['Số điện thoại', teacher.phone, { mono: true }],
+                ...(teacher.email ? [['Email', teacher.email]] : []),
+              ]}>
+              {teacher.phone ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="self-start"
+                  onPress={() => call(teacher.phone)}
+                  accessibilityLabel={t('Gọi {name}', { name: teacher.fullName })}>
+                  <Icon as={Phone} size={14} />
+                  <Text>{t('Gọi giáo viên')}</Text>
+                </Button>
+              ) : null}
+            </ReportFields>
+          ))}
         </>
       ) : null}
       {callError ? (
